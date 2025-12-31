@@ -54,7 +54,8 @@ const allowedOrigins = [
   'http://localhost:3001',
   'https://noretmy-admin-panel.vercel.app',
   'https://www.api.noretmy.com',
-  'https://admin.noretmy.com'
+  'https://admin.noretmy.com',
+  'https://noretmy.vercel.app'
 
 ];
 
