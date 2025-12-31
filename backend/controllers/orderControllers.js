@@ -1042,37 +1042,53 @@ const getUserOrders = async (req, res) => {
           ]
         }
       ]
-    })
-      .populate({
-        path: "gigId",
-        model: "Job",
-        select: "title photos"
-      })
-      .populate({
-        path: "sellerId",
-        model: "User",
-        select: "username"
-      }).populate({
-        path: "buyerId",
-        model: "User",
-        select: "username"
-      })
-      .sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 });
 
     if (!orders || orders.length === 0) {
-      return res.status(404).json({ message: "No orders found" });
+      return res.status(200).json([]); // Return empty array
     }
 
-    // Format the response to include required fields
-    // const formattedOrders = orders.map(order => ({
-    //     gigImage: order.gigId?.photos?.[0] || null, // Get the first gig image
-    //     price: order.price,
-    //     title: order.gigId?.title || "No Title",
-    //     username: order.sellerId?.username || "Unknown",
-    //     deliveryDate: order.orderCompletionDate || "Pending"
-    // }));
+    const formattedOrders = await Promise.all(orders.map(async (order) => {
+        const gig = await Job.findById(order.gigId).select('title photos');
+        const buyer = await User.findById(order.buyerId).select('fullName username');
+        const seller = await User.findById(order.sellerId).select('fullName username');
+        
+        // Fetch profiles safely
+        let buyerProfile = null;
+        let sellerProfile = null;
+        try {
+           buyerProfile = await UserProfile.findOne({ userId: order.buyerId });
+           sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
+        } catch (e) {
+           console.log("Error fetching profiles in getUserOrders:", e);
+        }
 
-    res.status(200).json(orders);
+        return {
+          _id: order._id,
+          status: order.status,
+          progress: order.progress,
+          price: order.price,
+          createdAt: order.createdAt,
+          deliveryDate: order.deliveryDate,
+          isUserSeller: order.sellerId?.toString() === userId?.toString(),
+          isUserBuyer: order.buyerId?.toString() === userId?.toString(),
+          gig: {
+            title: gig?.title || "Gig Unavailable", 
+            image: gig?.photos?.[0] || null
+          },
+          buyer: {
+            name: buyer?.fullName || buyer?.username || "Unknown User",
+            image: buyerProfile?.profilePicture || null
+          },
+          seller: {
+             name: seller?.fullName || seller?.username || "Unknown User",
+             image: sellerProfile?.profilePicture || null
+          },
+          latestTimelineEvent: order.timeline?.[order.timeline.length - 1]
+       };
+    }));
+
+    res.status(200).json(formattedOrders);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }

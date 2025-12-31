@@ -109,8 +109,8 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
         <button
           onClick={() => setActiveTab('active')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'active'
-              ? 'bg-orange-500 text-white'
-              : 'bg-white/10 text-black hover:bg-white/20'
+            ? 'bg-orange-500 text-white'
+            : 'bg-white/10 text-black hover:bg-white/20'
             }`}
         >
           <Clock className="w-4 h-4" />
@@ -119,8 +119,8 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
         <button
           onClick={() => setActiveTab('completed')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'completed'
-              ? 'bg-orange-500 text-white'
-              : 'bg-white/10 text-black hover:bg-white/20'
+            ? 'bg-orange-500 text-white'
+            : 'bg-white/10 text-black hover:bg-white/20'
             }`}
         >
           <CheckCircle className="w-4 h-4" />
@@ -158,8 +158,8 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
                   {/* Gig Image */}
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                     <Image
-                      src={order.gig.image || '/images/placeholder-gig.png'}
-                      alt={order.gig.title}
+                      src={order.gig?.image || '/images/placeholder-gig.png'}
+                      alt={order.gig?.title || 'Order'}
                       fill
                       className="object-cover"
                     />
@@ -170,10 +170,10 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <h3 className="font-semibold line-clamp-1 group-hover:text-orange-400 transition-colors">
-                          {order.gig.title}
+                          {order.gig?.title || 'Order'}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          {otherParty.image && (
+                          {otherParty?.image && (
                             <Image
                               src={otherParty.image}
                               alt={otherParty.name}
@@ -183,7 +183,7 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
                             />
                           )}
                           <span className="text-sm text-slate-400">
-                            {roleLabel}: {otherParty.name}
+                            {roleLabel}: {otherParty?.name || 'Unknown'}
                           </span>
                         </div>
                       </div>
