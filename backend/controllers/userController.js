@@ -342,7 +342,7 @@ const getSellerData = async (req, res) => {
     };
 
     // Fetch user and profile data
-    const user = await User.findById({_id:userId}).select('fullName username createdAt');
+    const user = await User.findById(userId).select('fullName username createdAt');
     if (user) {
       responseData.fullName = user.fullName;
       responseData.username = user.username;
@@ -360,9 +360,9 @@ const getSellerData = async (req, res) => {
       responseData.skills = userProfile.skills;
     }
 
-    // Fetch gigs posted by the seller
-    const sellerGigs = await Job.find({ sellerId: userId }).select('_id');
-    const gigIds = sellerGigs.map((gig) => gig._id);
+    // Fetch gigs posted by the seller - ensure userId is stringified for String field matching
+    const sellerGigs = await Job.find({ sellerId: userId.toString() }).select('_id');
+    const gigIds = sellerGigs.map((gig) => gig._id.toString());
 
     if (gigIds.length > 0) {
       // Fetch reviews for the seller's gigs

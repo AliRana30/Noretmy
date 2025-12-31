@@ -137,7 +137,7 @@ const createJob = async (req, res) => {
       return res.status(401).json({ message: "You are not allowed to do so!" });
     }
 
-    const jobs = await Job.find({ sellerId: userId });
+    const jobs = await Job.find({ sellerId: userId.toString() });
 
     if (jobs.length >= 5) {
       return res.status(400).json({ message: "You cannot create more than 5 gigs." });
@@ -659,7 +659,7 @@ const applyDiscountToGig = async (req, res) => {
           return res.status(404).json({ message: "Gig not found." });
       }
 
-      if (gig.sellerId !== userId) {
+      if (gig.sellerId !== userId.toString()) {
           return res.status(403).json({ message: "You are not authorized to modify this gig." });
       }
 
@@ -684,7 +684,7 @@ const getUserJobs = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    const jobs = await Job.find({ sellerId: userId });
+    const jobs = await Job.find({ sellerId: userId.toString() });
 
     if (!jobs || jobs.length === 0) {
       return res.status(404).json({ message: "No jobs found" });
@@ -873,7 +873,7 @@ const deleteJob = async (req, res) => {
       return res.status(404).json({ message: "No gig found" });
     }
 
-    if (gig.sellerId !== userId) {
+    if (gig.sellerId !== userId.toString()) {
       return res.status(403).json({ message: "You can only delete your gig" });
     }
 
@@ -1112,7 +1112,7 @@ const editJob = async (req, res) => {
     }
 
     // Ensure the user is the owner of the job
-    if (job.sellerId.toString() !== userId) {
+    if (job.sellerId.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Unauthorized! You can only edit your own gigs." });
     }
 

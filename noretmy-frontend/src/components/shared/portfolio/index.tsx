@@ -235,7 +235,7 @@ const Projects: React.FC = () => {
 
     try {
       setDeleting(id);
-      await axios.delete(`${BASE_URL}/projects/${id}`, {
+      await axios.delete(`${BASE_URL}/project/${id}`, {
         withCredentials: true,
       });
       setProjects(projects.filter(project => project._id !== id));

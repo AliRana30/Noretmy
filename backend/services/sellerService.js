@@ -119,7 +119,7 @@ const getSellerStatistics = async (sellerId) => {
 
     // Aggregate earnings - from completed orders
     const earnings = await Order.aggregate([
-      { $match: { sellerId, status: 'completed' } },
+      { $match: { sellerId: sellerId.toString(), status: 'completed' } },
       { $group: { _id: null, totalEarnings: { $sum: { $ifNull: ['$baseAmount', '$price'] } } } }
     ]);
     // Seller gets 95% of the order price (5% platform fee)
@@ -134,7 +134,7 @@ const getSellerStatistics = async (sellerId) => {
     const currentMonthEarnings = await Order.aggregate([
       {
         $match: {
-          sellerId,
+          sellerId: sellerId.toString(),
           status: 'completed',
           createdAt: { $gte: firstDayOfMonth }
         }
@@ -146,14 +146,14 @@ const getSellerStatistics = async (sellerId) => {
 
     // Calculate average selling price from completed orders
     const averageSellingPrice = await Order.aggregate([
-      { $match: { sellerId, status: 'completed' } },
+      { $match: { sellerId: sellerId.toString(), status: 'completed' } },
       { $group: { _id: null, avgPrice: { $avg: { $ifNull: ['$baseAmount', '$price'] } } } }
     ]);
     const avgSellingPrice = averageSellingPrice?.[0]?.avgPrice ?? 0;
 
     // Calculate seller rating safely
     const reviews = await Reviews.aggregate([
-      { $match: { sellerId: sellerId } },
+      { $match: { sellerId: sellerId.toString() } },
       { $group: { _id: null, averageRating: { $avg: "$star" }, totalReviews: { $sum: 1 } } },
     ]);
     const rating = reviews?.[0]?.averageRating?.toFixed(1) ?? "0";
@@ -164,7 +164,7 @@ const getSellerStatistics = async (sellerId) => {
     const monthlyEarnings = await Order.aggregate([
       {
         $match: {
-          sellerId,
+          sellerId: sellerId.toString(),
           status: 'completed',
           createdAt: { $gte: new Date(currentYear, 0, 1), $lte: new Date(currentYear, 11, 31, 23, 59, 59) }
         }

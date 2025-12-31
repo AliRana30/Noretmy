@@ -86,7 +86,78 @@ const getProjectsByUser = async (req, res) => {
   }
 };
 
+const updateProject = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { id } = req.params;
+    const { title, skills, description, githubLink, liveDemoLink } = req.body;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Unauthorized to update this project" });
+    }
+
+    let parsedSkills = skills;
+    if (typeof skills === "string") {
+      try {
+        parsedSkills = JSON.parse(skills);
+      } catch (e) {
+        parsedSkills = skills.split(",").map(s => s.trim());
+      }
+    }
+
+    const updateData = {
+      title,
+      skills: parsedSkills,
+      description,
+      githubLink,
+      liveDemoLink,
+    };
+
+    if (req.files && req.files.length > 0) {
+      const urls = await uploadDocuments(req);
+      if (urls && urls.length > 0) {
+        updateData.image = urls[0];
+      }
+    }
+
+    const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });
+    res.status(200).json({ message: "Project updated successfully", project: updatedProject });
+  } catch (error) {
+    console.error("Error updating project:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const deleteProject = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { id } = req.params;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Unauthorized to delete this project" });
+    }
+
+    await Project.findByIdAndDelete(id);
+    res.status(200).json({ message: "Project deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createProject,
   getProjectsByUser,
+  updateProject,
+  deleteProject,
 };
