@@ -104,7 +104,7 @@ const Navbar: React.FC = () => {
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center px-4"
         onClick={() => setIsModalOpen(false)}
       >
         {/* Overlay */}
@@ -241,7 +241,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-white shadow-md h-16 sm:h-20 flex items-center w-full sticky top-0 z-40">
+      <nav className="bg-white shadow-md h-16 sm:h-20 flex items-center w-full sticky top-0 z-[60]">
         <div className="container mx-auto px-4 flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center space-x-6">
@@ -289,7 +289,7 @@ const Navbar: React.FC = () => {
                 {/* Profile Icon for logged-in users */}
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="hover:bg-gray-100 p-2 rounded-full transition-colors"
+                  className="hover:bg-gray-100 p-2 rounded-full transition-colors flex-shrink-0"
                   aria-label={t('navbar:aria.profileButton')}
                 >
                   {user?.profilePicture ? (

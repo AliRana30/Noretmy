@@ -89,7 +89,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   };
 
   return (
-    <aside className="w-full lg:w-72 flex-shrink-0">
+    <aside className="w-full lg:w-72 flex-shrink-0 max-w-full overflow-hidden">
       <div className="sticky top-24 space-y-4">
         {/* User Info Card */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">

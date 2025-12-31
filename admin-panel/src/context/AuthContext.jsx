@@ -85,7 +85,9 @@ export const AuthProvider = ({ children }) => {
         role: data.role || (data.isAdmin ? ROLES.ADMIN : (data.isSeller ? ROLES.FREELANCER : ROLES.CLIENT)),
         permissions: data.permissions || [],
         isAdmin: data.isAdmin || data.role === ROLES.ADMIN,
-        img: data.profilePicture || data.img || "https://via.placeholder.com/150"
+        img: data.profilePicture || data.img || "https://via.placeholder.com/150",
+        // Ensure token is preserved if it exists at the top level, otherwise try to extract it
+        token: data.token || data.accessToken || null
       };
       
       // Check if user has admin role - only admins can access admin panel

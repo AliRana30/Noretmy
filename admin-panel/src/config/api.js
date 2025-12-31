@@ -114,8 +114,26 @@ export const getApiUrl = (endpoint) => {
 
 // Helper function to get auth headers
 export const getAuthHeaders = () => {
+  const userData = localStorage.getItem('userData');
+  let token = null;
+  
+  if (userData) {
+    try {
+      const parsedUser = JSON.parse(userData);
+      token = parsedUser.token || parsedUser.accessToken; // Check both potential fields
+    } catch (e) {
+      console.error('Error parsing userData for token:', e);
+    }
+  }
+
+  // Only add Authorization header if token exists and is a non-empty string
+  const authHeader = (token && typeof token === 'string' && token.length > 10) 
+    ? { 'Authorization': `Bearer ${token}` } 
+    : {};
+
   return {
     ...API_CONFIG.HEADERS,
+    ...authHeader
   };
 };
 
