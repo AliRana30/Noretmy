@@ -153,14 +153,7 @@ const getSellerStatistics = async (sellerId) => {
 
     // Calculate seller rating safely
     const reviews = await Reviews.aggregate([
-      { 
-        $addFields: { gigIdObj: { $toObjectId: "$gigId" } } 
-      },
-      { 
-        $lookup: { from: "gigs", localField: "gigIdObj", foreignField: "_id", as: "gigDetails" } 
-      },
-      { $unwind: "$gigDetails" },
-      { $match: { "gigDetails.sellerId": sellerId } },
+      { $match: { sellerId: sellerId } },
       { $group: { _id: null, averageRating: { $avg: "$star" }, totalReviews: { $sum: 1 } } },
     ]);
     const rating = reviews?.[0]?.averageRating?.toFixed(1) ?? "0";

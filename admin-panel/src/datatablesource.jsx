@@ -189,7 +189,7 @@ export const getJobsColumns = (getTranslation) => {
       width: 100,
     },
     {
-      field: "jobsStatus",
+      field: "jobStatus",
       headerName: getTranslatedHeader(getTranslation, "status"),
       width: 160,
       renderCell: (params) => {

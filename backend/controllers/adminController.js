@@ -70,15 +70,15 @@ const getDashboardStats = async (req, res) => {
         } 
       }),
       Job.countDocuments(),
-      Job.countDocuments({ isActive: true }),
+      Job.countDocuments({ jobStatus: { $in: ['Available', 'active', 'Active'] } }),
       Order.countDocuments(),
       Order.countDocuments({ status: 'completed' }),
       Order.countDocuments({ status: { $in: ['pending', 'in_progress', 'started'] } }),
       // Admin revenue from promotion plan purchases
-      Promotion.aggregate([
-        { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+      PromotionPurchase.aggregate([
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
       ]).then(result => result[0]?.total || 0),
-      Promotion.aggregate([
+      PromotionPurchase.aggregate([
         { 
           $match: { 
             createdAt: { 
@@ -86,7 +86,7 @@ const getDashboardStats = async (req, res) => {
             } 
           } 
         },
-        { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
       ]).then(result => result[0]?.total || 0),
       // Platform commissions from completed orders
       Order.aggregate([
@@ -100,8 +100,8 @@ const getDashboardStats = async (req, res) => {
       Message.countDocuments(),
       Conversation.countDocuments(),
       WithdrawRequest.countDocuments({ status: 'pending' }),
-      Promotion.countDocuments(),
-      Promotion.countDocuments({ isActive: true }),
+      PromotionPurchase.countDocuments(),
+      PromotionPurchase.countDocuments({ status: 'active' }),
       Contact.countDocuments({ isRead: false }),
       Newsletter.countDocuments()
     ]);
@@ -116,7 +116,7 @@ const getDashboardStats = async (req, res) => {
 
     // Top performing categories
     const topJobCategories = await Job.aggregate([
-      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $group: { _id: '$cat', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
     ]);

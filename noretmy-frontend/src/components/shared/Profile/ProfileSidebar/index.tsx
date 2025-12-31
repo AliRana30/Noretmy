@@ -94,7 +94,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
         {/* User Info Card */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           {/* Header Background */}
-          <div className="h-16 bg-gradient-to-r from-slate-800 to-slate-600" />
+          <div className="h-16 bg-gradient-to-r from-orange-600 to-orange-400" />
 
           {/* Profile Content */}
           <div className="px-5 pb-5">
@@ -189,7 +189,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                     onClick={() => router.push(action.href)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 group"
                   >
-                    <Icon className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                    <Icon className="w-4 h-4 text-orange-500/70 group-hover:text-orange-600 transition-colors" />
                     <span className="text-sm">{action.label}</span>
                   </button>
                 );

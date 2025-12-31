@@ -72,7 +72,7 @@ const Sidebar = () => {
   return (
     <div
       className={`relative h-screen transition-all duration-300 ease-in-out flex flex-col ${
-        isOpen ? 'min-w-64' : 'w-20'
+        isOpen ? 'lg:min-w-64 md:min-w-64 min-w-[200px]' : 'w-20'
       } ${
         darkMode 
           ? 'bg-gray-900 border-r border-gray-700' 

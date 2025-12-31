@@ -38,7 +38,7 @@ const SidebarItem = ({ icon: Icon, label, isOpen, isSelected, onClick, darkMode,
   return (
     <div
       onClick={onClick}
-      className={`mx-3 mb-1 px-3 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-200 ${getItemClasses()}`}
+      className={`lg:mx-3 md:mx-3 mx-1 mb-1 lg:px-3 md:px-3 px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-200 ${getItemClasses()}`}
     >
       {Icon && (
         <Icon className={`w-5 h-5 flex-shrink-0 ${getIconClasses()}`} />

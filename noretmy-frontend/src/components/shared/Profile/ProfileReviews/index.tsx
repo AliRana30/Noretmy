@@ -39,22 +39,22 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
   return (
     <div className="space-y-6">
       {/* Rating Summary */}
-      <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-orange-500/10 to-blue-500/10 rounded-xl border border-white/10">
+      <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-orange-500/10 to-orange-100/30 rounded-xl border border-orange-100">
         <div className="text-center">
-          <div className="text-4xl font-bold text-white">{averageRating.toFixed(1)}</div>
+          <div className="text-4xl font-bold text-slate-900">{averageRating.toFixed(1)}</div>
           <div className="flex items-center gap-1 mt-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
                 size={16}
-                className={star <= Math.round(averageRating) ? 'fill-orange-500 text-orange-500' : 'text-slate-500'}
+                className={star <= Math.round(averageRating) ? 'fill-orange-500 text-orange-500' : 'text-slate-300'}
               />
             ))}
           </div>
         </div>
-        <div className="border-l border-white/10 pl-6">
-          <div className="text-2xl font-semibold text-white">{reviews.length}</div>
-          <div className="text-slate-400 text-sm">Total Reviews</div>
+        <div className="border-l border-slate-200 pl-6">
+          <div className="text-2xl font-semibold text-slate-900">{reviews.length}</div>
+          <div className="text-slate-500 text-sm">Total Reviews</div>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
           return (
             <div
               key={review._id}
-              className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-all duration-200"
+              className="bg-white border border-gray-100 shadow-sm rounded-xl p-5 hover:border-orange-200 transition-all duration-200"
             >
               <div className="flex items-start gap-4">
                 {/* Avatar */}
@@ -77,10 +77,10 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
                     <img
                       src={profilePic}
                       alt={username}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-orange-50"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-blue-500 flex items-center justify-center text-white font-semibold">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shadow-sm">
                       {username.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -90,7 +90,7 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <h4 className="font-semibold text-white">{username}</h4>
+                      <h4 className="font-semibold text-slate-900">{username}</h4>
                       {gigTitle && (
                         <p className="text-slate-500 text-xs">For: {gigTitle}</p>
                       )}
@@ -100,7 +100,7 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
                         <Star
                           key={star}
                           size={14}
-                          className={star <= review.star ? 'fill-orange-500 text-orange-500' : 'text-slate-600'}
+                          className={star <= review.star ? 'fill-orange-500 text-orange-500' : 'text-slate-200'}
                         />
                       ))}
                     </div>
@@ -108,8 +108,8 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
 
                   {/* Review Text */}
                   <div className="relative">
-                    <Quote className="absolute -left-1 -top-1 w-4 h-4 text-orange-500/30" />
-                    <p className="text-slate-300 text-sm pl-4 leading-relaxed">{review.desc}</p>
+                    <Quote className="absolute -left-1 -top-1 w-4 h-4 text-orange-500/20" />
+                    <p className="text-slate-700 text-sm pl-4 leading-relaxed">{review.desc}</p>
                   </div>
 
                   {/* Date */}
