@@ -51,27 +51,27 @@ const Home = () => {
             <div className="flex justify-center mb-8">
               <div className="h-10 w-64 bg-white/10 rounded-full animate-pulse" />
             </div>
-            
+
             <div className="text-center max-w-5xl mx-auto">
               {/* Headline skeleton */}
               <div className="space-y-4 mb-8">
                 <div className="h-12 sm:h-16 bg-white/10 rounded-lg mx-auto w-3/4 animate-pulse" />
                 <div className="h-12 sm:h-16 bg-orange-500/20 rounded-lg mx-auto w-2/3 animate-pulse" />
               </div>
-              
+
               {/* Subheadline skeleton */}
               <div className="space-y-3 mb-10 max-w-3xl mx-auto">
                 <div className="h-6 bg-white/10 rounded w-full animate-pulse" />
                 <div className="h-6 bg-white/10 rounded w-4/5 mx-auto animate-pulse" />
               </div>
-              
+
               {/* Trust indicators skeleton */}
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-10">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="h-6 w-32 bg-white/10 rounded animate-pulse" />
                 ))}
               </div>
-              
+
               {/* CTA buttons skeleton */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <div className="h-14 w-48 bg-orange-500/30 rounded-xl animate-pulse" />
@@ -80,7 +80,7 @@ const Home = () => {
             </div>
           </div>
         </section>
-        
+
         {/* Social Proof Skeleton */}
         <section className="py-12 bg-slate-50 border-y border-slate-100">
           <div className="max-w-7xl mx-auto px-4">
@@ -99,7 +99,7 @@ const Home = () => {
             </div>
           </div>
         </section>
-        
+
         {/* Content Skeleton */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4">
@@ -141,7 +141,7 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
 
-      <main>
+      <main className="overflow-x-hidden">
         <PageTransitionWrapper>
           {(navigateWithTransition) => (
             <>

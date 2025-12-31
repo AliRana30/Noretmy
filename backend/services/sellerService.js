@@ -106,22 +106,20 @@ const getSellerStatistics = async (sellerId) => {
     
     const completedOrders = await Order.countDocuments({ 
       sellerId, 
-      status: 'completed',
-      isPaid: true
+      status: 'completed'
     }) ?? 0;
 
     // Calculate on-time delivery rate
     const onTimeDeliveries = await Order.countDocuments({
       sellerId,
       status: 'completed',
-      isPaid: true,
       $expr: { $lte: ['$updatedAt', '$deliveryDate'] }
     }) ?? 0;
     const onTimeDeliveryRate = completedOrders > 0 ? Math.round((onTimeDeliveries / completedOrders) * 100) : 100;
 
-    // Aggregate earnings - only from paid orders
+    // Aggregate earnings - from completed orders
     const earnings = await Order.aggregate([
-      { $match: { sellerId, status: 'completed', isPaid: true } },
+      { $match: { sellerId, status: 'completed' } },
       { $group: { _id: null, totalEarnings: { $sum: { $ifNull: ['$baseAmount', '$price'] } } } }
     ]);
     // Seller gets 95% of the order price (5% platform fee)
@@ -132,13 +130,12 @@ const getSellerStatistics = async (sellerId) => {
     const availableForWithdrawalAmount = freelancer?.availableBalance ?? 0;
     const pendingClearance = freelancer?.pendingBalance ?? 0;
 
-    // Earnings in the current month (only completed paid orders)
+    // Earnings in the current month (only completed orders)
     const currentMonthEarnings = await Order.aggregate([
       {
         $match: {
           sellerId,
           status: 'completed',
-          isPaid: true,
           createdAt: { $gte: firstDayOfMonth }
         }
       },
@@ -147,9 +144,9 @@ const getSellerStatistics = async (sellerId) => {
     // Seller gets 95% after platform fee
     const currentMonthTotalEarnings = (currentMonthEarnings?.[0]?.totalCurrentMonthEarnings ?? 0) * 0.95;
 
-    // Calculate average selling price from completed paid orders
+    // Calculate average selling price from completed orders
     const averageSellingPrice = await Order.aggregate([
-      { $match: { sellerId, status: 'completed', isPaid: true } },
+      { $match: { sellerId, status: 'completed' } },
       { $group: { _id: null, avgPrice: { $avg: { $ifNull: ['$baseAmount', '$price'] } } } }
     ]);
     const avgSellingPrice = averageSellingPrice?.[0]?.avgPrice ?? 0;
@@ -157,7 +154,10 @@ const getSellerStatistics = async (sellerId) => {
     // Calculate seller rating safely
     const reviews = await Reviews.aggregate([
       { 
-        $lookup: { from: "gigs", localField: "gigId", foreignField: "_id", as: "gigDetails" } 
+        $addFields: { gigIdObj: { $toObjectId: "$gigId" } } 
+      },
+      { 
+        $lookup: { from: "gigs", localField: "gigIdObj", foreignField: "_id", as: "gigDetails" } 
       },
       { $unwind: "$gigDetails" },
       { $match: { "gigDetails.sellerId": sellerId } },
@@ -166,14 +166,13 @@ const getSellerStatistics = async (sellerId) => {
     const rating = reviews?.[0]?.averageRating?.toFixed(1) ?? "0";
     const totalReviews = reviews?.[0]?.totalReviews ?? 0;
 
-    // Fetch monthly earnings (only completed paid orders)
+    // Fetch monthly earnings (only completed orders)
     const currentYear = new Date().getFullYear();
     const monthlyEarnings = await Order.aggregate([
       {
         $match: {
           sellerId,
           status: 'completed',
-          isPaid: true,
           createdAt: { $gte: new Date(currentYear, 0, 1), $lte: new Date(currentYear, 11, 31, 23, 59, 59) }
         }
       },
