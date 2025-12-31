@@ -1,0 +1,26 @@
+{
+  "header": {
+    "title": "Mensajes",
+    "searchPlaceholder": "Buscar mensajes..."
+  },
+  "loading": {
+    "message": "Cargando conversaciones..."
+  },
+  "errors": {
+    "fetchFailed": "Error al cargar las conversaciones.",
+    "markReadFailed": "Error al marcar la conversación como leída.",
+    "noUserData": "Usuario no conectado o faltan datos del usuario."
+  },
+  "empty": {
+    "noConversations": "No se encontraron conversaciones"
+  },
+  "conversation": {
+    "noMessages": "Aún no hay mensajes",
+    "aria": {
+      "settings": "Configuración de la conversación",
+      "searchInput": "Buscar mensajes",
+      "searchButton": "Buscar",
+      "userAvatar": "Avatar de usuario para {{username}}"
+    }
+  }
+} 

@@ -1,0 +1,32 @@
+{
+  "title": "Solicitud de Pedido Personalizado",
+  "description": "Solicita un pedido personalizado adaptado a tus necesidades. Completa el siguiente formulario y nuestro equipo se pondrá en contacto contigo lo antes posible.",
+  "card": {
+    "title": "Solicitudes de Pedido",
+    "description": "Gestiona tus solicitudes de pedido recibidas",
+    "type": {
+      "custom": "Pedido Personalizado",
+      "milestone": "Pedido por Hitos"
+    },
+    "deliveryBy": "Entrega para:"
+  },
+  "empty": {
+    "title": "Aún no hay solicitudes de pedido",
+    "description": "No tienes solicitudes de pedido en este momento. Cuando los clientes te envíen pedidos personalizados o por hitos, aparecerán aquí."
+  },
+  "button": {
+    "return": "Volver a la página de pedidos",
+    "accept": "Aceptar",
+    "decline": "Rechazar"
+  },
+  "dialog": {
+    "title": {
+      "custom": "Pedido Personalizado",
+      "milestone": "Pedido por Hitos"
+    },
+    "description": "Revisa los detalles del pedido antes de aceptar"
+  },
+  "milestones": {
+    "title": "Hitos"
+  }
+} 

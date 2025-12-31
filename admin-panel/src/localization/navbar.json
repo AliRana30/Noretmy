@@ -1,0 +1,22 @@
+{
+  "en": {
+    "search": "Search...",
+    "english": "English",
+    "spanish": "Spanish",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "fullscreen": "Fullscreen",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
+  "es": {
+    "search": "Buscar...",
+    "english": "Inglés",
+    "spanish": "Español",
+    "notifications": "Notificaciones",
+    "messages": "Mensajes",
+    "fullscreen": "Pantalla Completa",
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro"
+  }
+} 

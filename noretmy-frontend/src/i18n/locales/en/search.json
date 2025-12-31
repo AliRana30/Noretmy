@@ -1,0 +1,46 @@
+{
+  "loading": {
+    "text": "LOADING"
+  },
+  "error": {
+    "prefix": "Error: "
+  },
+  "noResults": {
+    "title": "We couldn't find any services that match your search",
+    "description": "Try another keyword to optimize your search."
+  },
+  "filters": {
+    "search": {
+      "placeholder": "Search for services...",
+      "button": "Search",
+      "aria": {
+        "input": "Search input field",
+        "button": "Search button"
+      }
+    },
+    "budget": {
+      "title": "Budget",
+      "min": "Min budget",
+      "max": "Max budget",
+      "aria": {
+        "minInput": "Minimum budget input",
+        "maxInput": "Maximum budget input"
+      }
+    },
+    "delivery": {
+      "title": "Delivery Time",
+      "days": "days",
+      "aria": {
+        "input": "Delivery time in days"
+      }
+    },
+    "modal": {
+      "title": "Filter Options",
+      "apply": "Apply Filters",
+      "cancel": "Cancel",
+      "aria": {
+        "close": "Close filter modal"
+      }
+    }
+  }
+} 

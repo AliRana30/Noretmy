@@ -1,0 +1,147 @@
+{
+  "header": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "viewPublic": "View Public Profile"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "portfolio": "Portfolio",
+    "reviews": "Reviews",
+    "earnings": "Earnings",
+    "settings": "Settings"
+  },
+  "overview": {
+    "personalInfo": {
+      "title": "Personal Information",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "location": "Location",
+      "joinDate": "Member Since"
+    },
+    "professionalInfo": {
+      "title": "Professional Information",
+      "occupation": "Occupation",
+      "skills": "Skills",
+      "languages": "Languages",
+      "description": "Description"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "completedOrders": "Completed Orders",
+      "activeOrders": "Active Orders",
+      "totalEarnings": "Total Earnings",
+      "avgRating": "Average Rating"
+    }
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "addNew": "Add New Item",
+    "empty": "No portfolio items yet",
+    "item": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "date": "Date",
+      "link": "Project Link"
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "asClient": "As Client",
+    "asSeller": "As Seller",
+    "empty": "No reviews yet",
+    "rating": "Rating",
+    "date": "Review Date"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "title": "Account Settings",
+      "email": "Email",
+      "password": "Password",
+      "language": "Language",
+      "timezone": "Timezone"
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "marketing": "Marketing Communications"
+    },
+    "privacy": {
+      "title": "Privacy Settings",
+      "profile": "Profile Visibility",
+      "portfolio": "Portfolio Visibility",
+      "contactInfo": "Contact Information Visibility"
+    }
+  },
+  "actions": {
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "delete": "Delete Account",
+    "upload": "Upload Photo"
+  },
+  "messages": {
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "Failed to update profile",
+    "deleteSuccess": "Account deleted successfully",
+    "deleteError": "Failed to delete account"
+  },
+  "sellerDetails": {
+    "description": {
+      "title": "Profile Description",
+      "placeholder": "Tell us about yourself...",
+      "emptyState": "No description provided. Click the edit button to add your profile description.",
+      "aria": {
+        "edit": "Edit description",
+        "save": "Save description",
+        "textarea": "Profile description input"
+      }
+    },
+    "skills": {
+      "title": "Skills",
+      "emptyState": "Add skills to showcase your expertise",
+      "input": {
+        "placeholder": "Add a skill",
+        "addButton": "Add",
+        "aria": {
+          "input": "Skill input field",
+          "addButton": "Add new skill",
+          "deleteButton": "Remove {{skill}} skill"
+        }
+      }
+    }
+  },
+  "profileCard": {
+    "about": "About",
+    "expertise": "Expertise",
+    "quickAccess": "Quick Access",
+    "addTagline": "Add a professional tagline...",
+    "addExpertise": "Add expertise",
+    "uploadingPhoto": "Uploading...",
+    "navigation": {
+      "portfolio": "Portfolio",
+      "orders": "Orders",
+      "messages": "Messages",
+      "gigs": "Gigs"
+    },
+    "aria": {
+      "profilePicture": "Profile picture",
+      "uploadButton": "Upload new profile picture",
+      "editTagline": "Edit tagline",
+      "saveTagline": "Save tagline",
+      "taglineInput": "Professional tagline input",
+      "removeSkill": "Remove {{skill}} skill",
+      "addSkill": "Add new skill",
+      "skillInput": "Skill input"
+    },
+    "stats": {
+      "rating": "Rating",
+      "reviews": "reviews",
+      "from": "From",
+      "memberSince": "Member since"
+    }
+  }
+} 

@@ -1,0 +1,99 @@
+{
+  "list": {
+    "title": "Mis Pedidos",
+    "tabs": {
+      "active": "Activos",
+      "completed": "Completados",
+      "cancelled": "Cancelados"
+    },
+    "empty": "No se encontraron pedidos",
+    "filter": {
+      "title": "Filtros",
+      "refine": "Refina tus resultados",
+      "all": "Todos",
+      "buyer": "Como Comprador",
+      "seller": "Como Vendedor",
+      "dateRange": "Rango de Fechas",
+      "priceRange": "Rango de Precios",
+      "orderType": "Tipo de Pedido",
+      "last7": "Últimos 7 Días",
+      "last30": "Últimos 30 Días",
+      "last90": "Últimos 90 Días",
+      "custom": "Personalizado",
+      "start": "Inicio",
+      "end": "Fin",
+      "0-100": "$0 - $100",
+      "101-500": "$101 - $500",
+      "501-1000": "$501 - $1000",
+      "1001-5000": "$1001 - $5000",
+      "standard": "Pedido Estándar",
+      "milestone": "Pedido por Hitos",
+      "clear": "Limpiar Todo",
+      "apply": "Aplicar Filtros"
+    }
+  },
+  "details": {
+    "title": "Detalles del Pedido",
+    "notFound": "Pedido no encontrado.",
+    "status": {
+      "title": "Estado",
+      "pending": "Pendiente",
+      "created": "Creado",
+      "inProgress": "En Progreso",
+      "delivered": "Entregado",
+      "completed": "Completado",
+      "cancelled": "Cancelado",
+      "disputed": "En Disputa"
+    },
+    "orderInfo": {
+      "title": "Información del Pedido",
+      "orderId": "ID del Pedido",
+      "orderDate": "Fecha del Pedido",
+      "orderedOn": "Pedido el",
+      "dueDate": "Fecha de Entrega",
+      "package": "Paquete",
+      "amount": "Monto",
+      "untitledGig": "Gig Sin Título",
+      "na": "N/A"
+    },
+    "buyer": {
+      "title": "Información del Comprador",
+      "name": "Nombre",
+      "email": "Correo Electrónico"
+    },
+    "seller": {
+      "title": "Información del Vendedor",
+      "name": "Nombre",
+      "email": "Correo Electrónico",
+      "unknown": "Vendedor Desconocido"
+    },
+    "requirements": {
+      "title": "Requisitos",
+      "noRequirements": "No se proporcionaron requisitos"
+    },
+    "deliverables": {
+      "title": "Entregables",
+      "noDeliverables": "Aún no hay entregables"
+    }
+  },
+  "actions": {
+    "accept": "Aceptar Pedido",
+    "decline": "Rechazar Pedido",
+    "cancel": "Cancelar Pedido",
+    "deliver": "Entregar Ahora",
+    "revise": "Solicitar Revisión",
+    "complete": "Marcar como Completado",
+    "dispute": "Abrir Disputa",
+    "viewDetails": "Ver Detalles",
+    "customOrder": "Solicitud de Pedido Personalizado"
+  },
+  "messages": {
+    "orderAccepted": "Pedido aceptado exitosamente",
+    "orderDeclined": "Pedido rechazado exitosamente",
+    "orderCancelled": "Pedido cancelado exitosamente",
+    "orderDelivered": "Pedido entregado exitosamente",
+    "revisionRequested": "Revisión solicitada exitosamente",
+    "orderCompleted": "Pedido completado exitosamente",
+    "disputeOpened": "Disputa abierta exitosamente"
+  }
+} 

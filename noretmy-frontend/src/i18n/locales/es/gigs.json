@@ -1,0 +1,146 @@
+{
+  "create": {
+    "title": "Crear un Nuevo Gig",
+    "subtitle": "Comparte tus servicios con el mundo",
+    "form": {
+      "title": "Título",
+      "titlePlaceholder": "Yo haré...",
+      "category": "Categoría",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describe tu servicio en detalle",
+      "requirements": "Requisitos",
+      "requirementsPlaceholder": "¿Qué necesitas del comprador?",
+      "pricing": {
+        "title": "Precios",
+        "basic": "Básico",
+        "standard": "Estándar",
+        "premium": "Premium",
+        "pro": "Pro",
+        "price": "Precio",
+        "delivery": "Tiempo de Entrega",
+        "revisions": "Revisiones"
+      },
+      "submit": "Crear Gig",
+      "draft": "Guardar como Borrador"
+    }
+  },
+  "edit": {
+    "title": "Editar Gig",
+    "submit": "Actualizar Gig"
+  },
+  "search": {
+    "title": "Buscar Gigs",
+    "placeholder": "¿Qué servicio estás buscando?",
+    "filters": {
+      "title": "Filtros",
+      "category": "Categoría",
+      "price": "Rango de Precio",
+      "delivery": "Tiempo de Entrega",
+      "rating": "Calificación",
+      "apply": "Aplicar Filtros",
+      "clear": "Limpiar Filtros"
+    },
+    "sort": {
+      "title": "Ordenar por",
+      "relevance": "Relevancia",
+      "newest": "Más Nuevo",
+      "bestRated": "Mejor Calificado",
+      "priceLow": "Precio: Menor a Mayor",
+      "priceHigh": "Precio: Mayor a Menor"
+    },
+    "noResults": "No se encontraron gigs",
+    "showing": "Mostrando {{count}} resultados"
+  },
+  "card": {
+    "startingAt": "Desde",
+    "deliveryTime": "Entrega en {{time}} Días",
+    "reviews": "{{count}} Reseñas",
+    "noReviews": "Sin Reseñas Aún"
+  },
+  "promotion": {
+    "title": "Promociona tu Gig",
+    "plans": {
+      "basic": {
+        "title": "Impulso Básico",
+        "description": "Obtén más visibilidad para tu gig"
+      },
+      "premium": {
+        "title": "Impulso Premium",
+        "description": "Máxima exposición para tus servicios"
+      }
+    },
+    "duration": "Duración",
+    "price": "Precio",
+    "boost": "Impulsar Ahora"
+  },
+  "single": {
+    "gigTop": {
+      "trustedSeller": "Vendedor Confiable",
+      "ordersCompleted": "Órdenes Completadas",
+      "sales": "Ventas",
+      "contactSeller": "Contactar Vendedor",
+      "readMore": "Leer Más",
+      "showLess": "Mostrar Menos",
+      "imageCounter": "{{current}}/{{total}}"
+    },
+    "pricing": {
+      "title": "Elige tu Plan",
+      "subtitle": "Selecciona el paquete que mejor se adapte a tus necesidades",
+      "basic": "Paquete Básico",
+      "premium": "Paquete Premium",
+      "pro": "Paquete Pro",
+      "popular": "Más Popular",
+      "deliveryTime": "Entrega en {{days}} días",
+      "dayDelivery": "días de entrega",
+      "perProject": "/proyecto",
+      "choosePlan": "Elegir Plan",
+      "getStarted": "Comenzar Ahora",
+      "moneyBackGuarantee": "Garantía de Devolución de 30 Días",
+      "signInRequired": "Por favor inicia sesión para comprar este servicio",
+      "freelancerRestriction": "Los freelancers no pueden ordenar servicios. Cambia a cuenta de comprador para ordenar.",
+      "ownGigRestriction": "No puedes ordenar tu propio gig.",
+      "freelancerOnly": "Freelancers No Pueden Ordenar",
+      "ownGig": "Tu Propio Gig",
+      "orderNow": "Ordenar Ahora",
+      "freelancerNotice": "Has iniciado sesión como freelancer. Para ordenar servicios, por favor cambia a una cuenta de comprador.",
+      "sourceFile": "Archivo fuente incluido",
+      "commercialUse": "Uso comercial",
+      "unlimitedRevisions": "Revisiones ilimitadas",
+      "sendInvitation": "Enviar Invitación",
+      "invitationModalTitle": "Enviar Invitación de Pedido",
+      "invitationModalSubtitle": "Envía una solicitud al vendedor para trabajar en tu proyecto",
+      "selectedPlanLabel": "Plan Seleccionado",
+      "priceLabel": "Precio",
+      "deliveryLabel": "Entrega",
+      "days": "días",
+      "messagePlaceholder": "Describe los requisitos de tu proyecto, cronograma y cualquier detalle específico...",
+      "sending": "Enviando...",
+      "invitationSent": "¡Invitación enviada exitosamente! El vendedor revisará tu solicitud.",
+      "invitationFailed": "Error al enviar la invitación. Por favor intenta de nuevo.",
+      "contactSeller": "Contactar Vendedor"
+    },
+    "invitation": {
+      "title": "Realizar tu Pedido",
+      "subtitle": "El freelancer revisará y comenzará a trabajar en tu proyecto",
+      "messageLabel": "Requisitos del Proyecto (Opcional)",
+      "messagePlaceholder": "Describe los requisitos de tu proyecto, cronograma o cualquier detalle específico...",
+      "send": "Realizar Pedido"
+    },
+    "reviews": {
+      "title": "Reseñas de Clientes",
+      "subtitle": "Lo que los clientes dicen sobre mí",
+      "anonymous": "Anónimo",
+      "noReviewText": "No se proporcionó texto de reseña"
+    },
+    "faqs": {
+      "title": "Preguntas Frecuentes",
+      "subtitle": "Encuentra respuestas a preguntas comunes sobre nuestros servicios"
+    },
+    "errors": {
+      "noGigTitle": "Información del Gig No Disponible",
+      "noGigDescription": "No pudimos encontrar los detalles del gig que estás buscando. Puede haber sido eliminado o no está disponible temporalmente.",
+      "goBack": "Volver",
+      "loginRequired": "¡Por favor inicia sesión primero!"
+    }
+  }
+}

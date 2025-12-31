@@ -1,0 +1,26 @@
+{
+  "header": {
+    "title": "Messages",
+    "searchPlaceholder": "Search messages..."
+  },
+  "loading": {
+    "message": "Loading conversations..."
+  },
+  "errors": {
+    "fetchFailed": "Failed to load conversations.",
+    "markReadFailed": "Failed to mark conversation as read.",
+    "noUserData": "User not logged in or missing user data."
+  },
+  "empty": {
+    "noConversations": "No conversations found"
+  },
+  "conversation": {
+    "noMessages": "No messages yet",
+    "aria": {
+      "settings": "Conversation settings",
+      "searchInput": "Search messages",
+      "searchButton": "Search",
+      "userAvatar": "User avatar for {{username}}"
+    }
+  }
+} 

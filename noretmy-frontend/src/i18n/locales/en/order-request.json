@@ -1,0 +1,32 @@
+{
+  "title": "Custom Order Request",
+  "description": "Request a custom order tailored to your needs. Fill out the form below and our team will get back to you as soon as possible.",
+  "card": {
+    "title": "Order Requests",
+    "description": "Manage your incoming order requests",
+    "type": {
+      "custom": "Custom Order",
+      "milestone": "Milestone Order"
+    },
+    "deliveryBy": "Delivery by:"
+  },
+  "empty": {
+    "title": "No Order Requests Yet",
+    "description": "You don't have any order requests at the moment. When clients send you custom or milestone order requests, they'll appear here."
+  },
+  "button": {
+    "return": "Return to Orders Page",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "dialog": {
+    "title": {
+      "custom": "Custom Order",
+      "milestone": "Milestone Order"
+    },
+    "description": "Review the order details before accepting"
+  },
+  "milestones": {
+    "title": "Milestones"
+  }
+} 

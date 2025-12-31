@@ -1,0 +1,46 @@
+{
+  "loading": {
+    "text": "CARGANDO"
+  },
+  "error": {
+    "prefix": "Error: "
+  },
+  "noResults": {
+    "title": "No pudimos encontrar servicios que coincidan con tu búsqueda",
+    "description": "Intenta con otra palabra clave para optimizar tu búsqueda."
+  },
+  "filters": {
+    "search": {
+      "placeholder": "Buscar servicios...",
+      "button": "Buscar",
+      "aria": {
+        "input": "Campo de búsqueda",
+        "button": "Botón de búsqueda"
+      }
+    },
+    "budget": {
+      "title": "Presupuesto",
+      "min": "Presupuesto mínimo",
+      "max": "Presupuesto máximo",
+      "aria": {
+        "minInput": "Entrada de presupuesto mínimo",
+        "maxInput": "Entrada de presupuesto máximo"
+      }
+    },
+    "delivery": {
+      "title": "Tiempo de Entrega",
+      "days": "días",
+      "aria": {
+        "input": "Tiempo de entrega en días"
+      }
+    },
+    "modal": {
+      "title": "Opciones de Filtro",
+      "apply": "Aplicar Filtros",
+      "cancel": "Cancelar",
+      "aria": {
+        "close": "Cerrar modal de filtros"
+      }
+    }
+  }
+} 

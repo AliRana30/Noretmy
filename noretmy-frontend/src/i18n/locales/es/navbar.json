@@ -1,0 +1,26 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "searchServices": "Buscar Servicios",
+    "orders": "Pedidos",
+    "chat": "Chat"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "join": "Registrarse",
+    "logout": "Cerrar Sesión"
+  },
+  "profile": {
+    "title": "Perfil",
+    "favorites": "Favoritos",
+    "payments": "Pagos",
+    "notifications": "Notificaciones",
+    "promote": "Promocionar",
+    "language": "Idioma"
+  },
+  "aria": {
+    "logo": "Logotipo",
+    "profileButton": "Abrir menú de perfil",
+    "closeModal": "Cerrar modal de perfil"
+  }
+} 

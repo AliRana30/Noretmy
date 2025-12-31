@@ -1,0 +1,146 @@
+{
+  "create": {
+    "title": "Create a New Gig",
+    "subtitle": "Share your services with the world",
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "I will...",
+      "category": "Category",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your service in detail",
+      "requirements": "Requirements",
+      "requirementsPlaceholder": "What do you need from the buyer?",
+      "pricing": {
+        "title": "Pricing",
+        "basic": "Basic",
+        "standard": "Standard",
+        "premium": "Premium",
+        "pro": "Pro",
+        "price": "Price",
+        "delivery": "Delivery Time",
+        "revisions": "Revisions"
+      },
+      "submit": "Create Gig",
+      "draft": "Save as Draft"
+    }
+  },
+  "edit": {
+    "title": "Edit Gig",
+    "submit": "Update Gig"
+  },
+  "search": {
+    "title": "Search Gigs",
+    "placeholder": "What service are you looking for?",
+    "filters": {
+      "title": "Filters",
+      "category": "Category",
+      "price": "Price Range",
+      "delivery": "Delivery Time",
+      "rating": "Rating",
+      "apply": "Apply Filters",
+      "clear": "Clear Filters"
+    },
+    "sort": {
+      "title": "Sort by",
+      "relevance": "Relevance",
+      "newest": "Newest",
+      "bestRated": "Best Rated",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low"
+    },
+    "noResults": "No gigs found",
+    "showing": "Showing {{count}} results"
+  },
+  "card": {
+    "startingAt": "Starting at",
+    "deliveryTime": "{{time}} Day Delivery",
+    "reviews": "{{count}} Reviews",
+    "noReviews": "No Reviews Yet"
+  },
+  "promotion": {
+    "title": "Promote Your Gig",
+    "plans": {
+      "basic": {
+        "title": "Basic Boost",
+        "description": "Get more visibility for your gig"
+      },
+      "premium": {
+        "title": "Premium Boost",
+        "description": "Maximum exposure for your services"
+      }
+    },
+    "duration": "Duration",
+    "price": "Price",
+    "boost": "Boost Now"
+  },
+  "single": {
+    "gigTop": {
+      "trustedSeller": "Trusted Seller",
+      "ordersCompleted": "Orders Completed",
+      "sales": "Sales",
+      "contactSeller": "Contact Seller",
+      "readMore": "Read More",
+      "showLess": "Show Less",
+      "imageCounter": "{{current}}/{{total}}"
+    },
+    "pricing": {
+      "title": "Choose Your Plan",
+      "subtitle": "Select the package that best suits your needs",
+      "basic": "Basic Package",
+      "premium": "Premium Package",
+      "pro": "Pro Package",
+      "popular": "Most Popular",
+      "deliveryTime": "Delivery in {{days}} days",
+      "dayDelivery": "day delivery",
+      "perProject": "/project",
+      "choosePlan": "Choose Plan",
+      "getStarted": "Get Started Now",
+      "moneyBackGuarantee": "30-Day Money-Back Guarantee",
+      "signInRequired": "Please sign in to purchase this service",
+      "freelancerRestriction": "Freelancers cannot order services. Switch to buyer account to order.",
+      "ownGigRestriction": "You cannot order your own gig.",
+      "freelancerOnly": "Freelancers Cannot Order",
+      "ownGig": "Your Own Gig",
+      "orderNow": "Order Now",
+      "freelancerNotice": "You are logged in as a freelancer. To order services, please switch to a buyer account.",
+      "sourceFile": "Source file included",
+      "commercialUse": "Commercial use",
+      "unlimitedRevisions": "Unlimited revisions",
+      "sendInvitation": "Send Invitation",
+      "invitationModalTitle": "Send Order Invitation",
+      "invitationModalSubtitle": "Send a request to the seller to work on your project",
+      "selectedPlanLabel": "Selected Plan",
+      "priceLabel": "Price",
+      "deliveryLabel": "Delivery",
+      "days": "days",
+      "messagePlaceholder": "Describe your project requirements, timeline, and any specific details...",
+      "sending": "Sending...",
+      "invitationSent": "Invitation sent successfully! The seller will review your request.",
+      "invitationFailed": "Failed to send invitation. Please try again.",
+      "contactSeller": "Contact Seller"
+    },
+    "invitation": {
+      "title": "Place Your Order",
+      "subtitle": "The freelancer will review and start working on your project",
+      "messageLabel": "Project Requirements (Optional)",
+      "messagePlaceholder": "Describe your project requirements, timeline, or any specific details...",
+      "send": "Place Order"
+    },
+    "reviews": {
+      "title": "Client Reviews",
+      "subtitle": "What clients say about me",
+      "anonymous": "Anonymous",
+      "noReviewText": "No review text provided"
+    },
+    "faqs": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find answers to common questions about our services"
+    },
+    "errors": {
+      "noGigTitle": "No Gig Information Available",
+      "noGigDescription": "We couldn't find the gig details you're looking for. It may have been removed or is temporarily unavailable.",
+      "goBack": "Go Back",
+      "loginRequired": "Please login first!"
+    }
+  }
+}

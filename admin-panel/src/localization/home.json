@@ -1,0 +1,42 @@
+{
+  "en": {
+    "dashboard": "Dashboard",
+    "latestTransactions": "Latest Transactions",
+    "last6MonthsRevenue": "Last 6 Months (Revenue)",
+    "totalSalesToday": "Total Sales Today",
+    "totalSales": "Total Sales",
+    "salesLastWeek": "Sales Last Week",
+    "salesLastMonth": "Sales Last Month",
+    "revenue": "Revenue",
+    "transactions": "Transactions",
+    "sales": "Sales",
+    "earnings": "Earnings",
+    "users": "Users",
+    "orders": "Orders",
+    "gigs": "Gigs",
+    "user": "User",
+    "order": "Order",
+    "gig": "Gig",
+    "earning": "Earning"
+  },
+  "es": {
+    "dashboard": "Panel de Control",
+    "latestTransactions": "Últimas Transacciones",
+    "last6MonthsRevenue": "Últimos 6 Meses (Ingresos)",
+    "totalSalesToday": "Ventas Totales Hoy",
+    "totalSales": "Ventas Totales",
+    "salesLastWeek": "Ventas de la Semana Pasada",
+    "salesLastMonth": "Ventas del Mes Pasado",
+    "revenue": "Ingresos",
+    "transactions": "Transacciones",
+    "sales": "Ventas",
+    "earnings": "Ganancias",
+    "users": "Usuarios",
+    "orders": "Pedidos",
+    "gigs": "Servicios",
+    "user": "Usuario",
+    "order": "Pedido",
+    "gig": "Servicio",
+    "earning": "Ganancia"
+  }
+} 

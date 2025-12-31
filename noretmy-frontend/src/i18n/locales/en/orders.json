@@ -1,0 +1,99 @@
+{
+  "list": {
+    "title": "My Orders",
+    "tabs": {
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "empty": "No orders found",
+    "filter": {
+      "title": "Filters",
+      "refine": "Refine your results",
+      "all": "All",
+      "buyer": "As Buyer",
+      "seller": "As Seller",
+      "dateRange": "Date Range",
+      "priceRange": "Price Range",
+      "orderType": "Order Type",
+      "last7": "Last 7 Days",
+      "last30": "Last 30 Days",
+      "last90": "Last 90 Days",
+      "custom": "Custom",
+      "start": "Start",
+      "end": "End",
+      "0-100": "$0 - $100",
+      "101-500": "$101 - $500",
+      "501-1000": "$501 - $1000",
+      "1001-5000": "$1001 - $5000",
+      "standard": "Standard Order",
+      "milestone": "Milestone Order",
+      "clear": "Clear All",
+      "apply": "Apply Filters"
+    }
+  },
+  "details": {
+    "title": "Order Details",
+    "notFound": "Order not found.",
+    "status": {
+      "title": "Status",
+      "pending": "Pending",
+      "created": "Created",
+      "inProgress": "In Progress",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "disputed": "Disputed"
+    },
+    "orderInfo": {
+      "title": "Order Information",
+      "orderId": "Order ID",
+      "orderDate": "Order Date",
+      "orderedOn": "Ordered on",
+      "dueDate": "Due Date",
+      "package": "Package",
+      "amount": "Amount",
+      "untitledGig": "Untitled Gig",
+      "na": "N/A"
+    },
+    "buyer": {
+      "title": "Buyer Information",
+      "name": "Name",
+      "email": "Email"
+    },
+    "seller": {
+      "title": "Seller Information",
+      "name": "Name",
+      "email": "Email",
+      "unknown": "Unknown Seller"
+    },
+    "requirements": {
+      "title": "Requirements",
+      "noRequirements": "No requirements provided"
+    },
+    "deliverables": {
+      "title": "Deliverables",
+      "noDeliverables": "No deliverables yet"
+    }
+  },
+  "actions": {
+    "accept": "Accept Order",
+    "decline": "Decline Order",
+    "cancel": "Cancel Order",
+    "deliver": "Deliver Now",
+    "revise": "Request Revision",
+    "complete": "Mark as Complete",
+    "dispute": "Open Dispute",
+    "viewDetails": "View Details",
+    "customOrder": "Custom Order Request"
+  },
+  "messages": {
+    "orderAccepted": "Order accepted successfully",
+    "orderDeclined": "Order declined successfully",
+    "orderCancelled": "Order cancelled successfully",
+    "orderDelivered": "Order delivered successfully",
+    "revisionRequested": "Revision requested successfully",
+    "orderCompleted": "Order completed successfully",
+    "disputeOpened": "Dispute opened successfully"
+  }
+} 

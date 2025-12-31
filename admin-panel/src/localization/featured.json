@@ -1,0 +1,18 @@
+{
+  "en": {
+    "totalRevenue": "Total Revenue",
+    "totalSalesMadeToday": "Total sales made today",
+    "previousTransactionsProcessing": "Previous transactions processing. Last payments may not be included.",
+    "target": "Target",
+    "lastWeek": "Last Week",
+    "lastMonth": "Last Month"
+  },
+  "es": {
+    "totalRevenue": "Ingresos Totales",
+    "totalSalesMadeToday": "Ventas totales realizadas hoy",
+    "previousTransactionsProcessing": "Transacciones anteriores en procesamiento. Los últimos pagos pueden no estar incluidos.",
+    "target": "Objetivo",
+    "lastWeek": "Semana Pasada",
+    "lastMonth": "Mes Pasado"
+  }
+} 

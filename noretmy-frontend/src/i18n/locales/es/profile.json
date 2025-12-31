@@ -1,0 +1,147 @@
+{
+  "header": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "viewPublic": "Ver Perfil Público"
+  },
+  "tabs": {
+    "overview": "Resumen",
+    "portfolio": "Portafolio",
+    "reviews": "Reseñas",
+    "earnings": "Ganancias",
+    "settings": "Configuración"
+  },
+  "overview": {
+    "personalInfo": {
+      "title": "Información Personal",
+      "name": "Nombre Completo",
+      "email": "Correo Electrónico",
+      "phone": "Número de Teléfono",
+      "location": "Ubicación",
+      "joinDate": "Miembro Desde"
+    },
+    "professionalInfo": {
+      "title": "Información Profesional",
+      "occupation": "Ocupación",
+      "skills": "Habilidades",
+      "languages": "Idiomas",
+      "description": "Descripción"
+    },
+    "statistics": {
+      "title": "Estadísticas",
+      "completedOrders": "Pedidos Completados",
+      "activeOrders": "Pedidos Activos",
+      "totalEarnings": "Ganancias Totales",
+      "avgRating": "Calificación Promedio"
+    }
+  },
+  "portfolio": {
+    "title": "Portafolio",
+    "addNew": "Agregar Nuevo Elemento",
+    "empty": "Aún no hay elementos en el portafolio",
+    "item": {
+      "title": "Título",
+      "description": "Descripción",
+      "category": "Categoría",
+      "date": "Fecha",
+      "link": "Enlace del Proyecto"
+    }
+  },
+  "reviews": {
+    "title": "Reseñas",
+    "asClient": "Como Cliente",
+    "asSeller": "Como Vendedor",
+    "empty": "Aún no hay reseñas",
+    "rating": "Calificación",
+    "date": "Fecha de Reseña"
+  },
+  "settings": {
+    "title": "Configuración",
+    "account": {
+      "title": "Configuración de Cuenta",
+      "email": "Correo Electrónico",
+      "password": "Contraseña",
+      "language": "Idioma",
+      "timezone": "Zona Horaria"
+    },
+    "notifications": {
+      "title": "Configuración de Notificaciones",
+      "email": "Notificaciones por Correo",
+      "push": "Notificaciones Push",
+      "marketing": "Comunicaciones de Marketing"
+    },
+    "privacy": {
+      "title": "Configuración de Privacidad",
+      "profile": "Visibilidad del Perfil",
+      "portfolio": "Visibilidad del Portafolio",
+      "contactInfo": "Visibilidad de Información de Contacto"
+    }
+  },
+  "actions": {
+    "save": "Guardar Cambios",
+    "cancel": "Cancelar",
+    "delete": "Eliminar Cuenta",
+    "upload": "Subir Foto"
+  },
+  "messages": {
+    "updateSuccess": "Perfil actualizado exitosamente",
+    "updateError": "Error al actualizar el perfil",
+    "deleteSuccess": "Cuenta eliminada exitosamente",
+    "deleteError": "Error al eliminar la cuenta"
+  },
+  "sellerDetails": {
+    "description": {
+      "title": "Descripción del Perfil",
+      "placeholder": "Cuéntanos sobre ti...",
+      "emptyState": "Sin descripción. Haz clic en el botón de editar para añadir la descripción de tu perfil.",
+      "aria": {
+        "edit": "Editar descripción",
+        "save": "Guardar descripción",
+        "textarea": "Campo de descripción del perfil"
+      }
+    },
+    "skills": {
+      "title": "Habilidades",
+      "emptyState": "Añade habilidades para mostrar tu experiencia",
+      "input": {
+        "placeholder": "Añadir una habilidad",
+        "addButton": "Añadir",
+        "aria": {
+          "input": "Campo de entrada de habilidad",
+          "addButton": "Añadir nueva habilidad",
+          "deleteButton": "Eliminar habilidad {{skill}}"
+        }
+      }
+    }
+  },
+  "profileCard": {
+    "about": "Sobre mí",
+    "expertise": "Experiencia",
+    "quickAccess": "Acceso Rápido",
+    "addTagline": "Añade una descripción profesional...",
+    "addExpertise": "Añadir experiencia",
+    "uploadingPhoto": "Subiendo...",
+    "navigation": {
+      "portfolio": "Portafolio",
+      "orders": "Pedidos",
+      "messages": "Mensajes",
+      "gigs": "Servicios"
+    },
+    "aria": {
+      "profilePicture": "Foto de perfil",
+      "uploadButton": "Subir nueva foto de perfil",
+      "editTagline": "Editar descripción",
+      "saveTagline": "Guardar descripción",
+      "taglineInput": "Campo de descripción profesional",
+      "removeSkill": "Eliminar habilidad {{skill}}",
+      "addSkill": "Añadir nueva habilidad",
+      "skillInput": "Campo de habilidad"
+    },
+    "stats": {
+      "rating": "Calificación",
+      "reviews": "reseñas",
+      "from": "De",
+      "memberSince": "Miembro desde"
+    }
+  }
+} 

@@ -1,0 +1,31 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "profile": "Perfil",
+    "orders": "Pedidos",
+    "messages": "Mensajes",
+    "settings": "Configuración"
+  },
+  "buttons": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "back": "Atrás",
+    "next": "Siguiente"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Por favor, introduce un correo electrónico válido",
+    "password": "La contraseña debe tener al menos 8 caracteres"
+  },
+  "passwordStrength": {
+    "label": "Seguridad de la Contraseña",
+    "weak": "Débil",
+    "fair": "Regular",
+    "good": "Buena",
+    "strong": "Fuerte",
+    "veryStrong": "Muy Fuerte"
+  }
+} 

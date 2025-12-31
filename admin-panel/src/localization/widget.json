@@ -1,0 +1,24 @@
+{
+  "en": {
+    "seeAllUsers": "See all users",
+    "viewAllOrders": "View all orders",
+    "viewNetEarnings": "View net earnings",
+    "seeDetails": "See details",
+    "seeAllGigs": "See all gigs",
+    "unknownType": "Unknown type",
+    "balance": "BALANCE",
+    "unknown": "UNKNOWN",
+    "percentage": "%"
+  },
+  "es": {
+    "seeAllUsers": "Ver todos los usuarios",
+    "viewAllOrders": "Ver todos los pedidos",
+    "viewNetEarnings": "Ver ganancias netas",
+    "seeDetails": "Ver detalles",
+    "seeAllGigs": "Ver todos los servicios",
+    "unknownType": "Tipo desconocido",
+    "balance": "SALDO",
+    "unknown": "DESCONOCIDO",
+    "percentage": "%"
+  }
+} 

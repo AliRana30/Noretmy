@@ -1,0 +1,24 @@
+{
+  "main": {
+    "home": "Inicio",
+    "searchServices": "Buscar Servicios",
+    "orders": "Pedidos",
+    "chat": "Chat"
+  },
+  "profile": {
+    "title": "Perfil",
+    "payments": "Pagos",
+    "orders": "Pedidos",
+    "notifications": "Notificaciones",
+    "promote": "Promocionar",
+    "settings": "Configuración"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "join": "Registrarse",
+    "logout": "Cerrar Sesión"
+  },
+  "modal": {
+    "close": "Cerrar"
+  }
+} 

@@ -1,0 +1,24 @@
+{
+  "main": {
+    "home": "Home",
+    "searchServices": "Search Services",
+    "orders": "Orders",
+    "chat": "Chat"
+  },
+  "profile": {
+    "title": "Profile",
+    "payments": "Payments",
+    "orders": "Orders",
+    "notifications": "Notifications",
+    "promote": "Promote",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "join": "Join",
+    "logout": "Logout"
+  },
+  "modal": {
+    "close": "Close"
+  }
+} 

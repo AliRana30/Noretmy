@@ -1,0 +1,561 @@
+{
+  "meta": {
+    "title": "Noretmy - Your Freelance Services Marketplace",
+    "description": "Noretmy is a professional gig marketplace where businesses connect with top freelancers to get digital services, custom solutions, and project-based work done efficiently and affordably."
+  },
+  "heroSection": {
+    "liveBadge": "{{count}}+ professionals active now",
+    "headline": "Find Expert Talent",
+    "headlineHighlight": "In Minutes, Not Months",
+    "subheadline": "Connect with verified professionals who deliver exceptional results.",
+    "trustCount": "10,000+ businesses",
+    "trustMessage": "trust us to get their projects done right.",
+    "verifiedExperts": "Verified Experts",
+    "securePayments": "Secure Payments",
+    "responseTime": "24h Response Time",
+    "moneyBack": "Money-Back Guarantee",
+    "findExpert": "Find Your Expert Now",
+    "freeBadge": "FREE",
+    "becomeSeller": "Become a Seller",
+    "earnAmount": "Earn $5K+/mo",
+    "paidToSellers": "Paid to Sellers",
+    "projectsDone": "Projects Done",
+    "satisfaction": "Satisfaction",
+    "fromReviews": "from 10,000+ reviews"
+  },
+  "socialProof": {
+    "trustedBy": "Trusted by 10,000+ businesses worldwide",
+    "averageRating": "Average Rating",
+    "expertSellers": "Expert Sellers",
+    "successRate": "Success Rate",
+    "countries": "Countries"
+  },
+  "problemSolution": {
+    "tagline": "Why Leading Companies Choose Us",
+    "headline": "Built for businesses that",
+    "headlineHighlight": "demand excellence",
+    "description": "We've reimagined the freelance experience. Our platform connects you with verified professionals who deliver results, backed by enterprise-grade security.",
+    "benefits": {
+      "fasterHiring": {
+        "label": "Faster Hiring",
+        "description": "Find pre-vetted talent in hours, not weeks"
+      },
+      "successRate": {
+        "label": "Success Rate",
+        "description": "Projects delivered on time and within budget"
+      },
+      "securePayments": {
+        "label": "Secure Payments",
+        "description": "Funds released only when you approve the work"
+      },
+      "support": {
+        "label": "Support",
+        "description": "Dedicated team to assist you at every step"
+      }
+    },
+    "features": {
+      "verified": "Verified professionals with proven track records",
+      "escrow": "Secure escrow payment protection",
+      "directCommunication": "Direct communication with sellers",
+      "unlimitedRevisions": "Unlimited revisions until satisfied"
+    },
+    "exploreServices": "Explore Services",
+    "becomeSeller": "Become a Seller"
+  },
+  "howItWorks": {
+    "tagline": "Simple Process",
+    "headline": "How it works",
+    "description": "Get started in minutes. Our streamlined process makes finding and hiring talent effortless.",
+    "steps": {
+      "search": {
+        "title": "Search & Discover",
+        "description": "Browse our curated marketplace of verified professionals. Filter by expertise, ratings, and budget."
+      },
+      "connect": {
+        "title": "Connect & Discuss",
+        "description": "Chat directly with sellers to discuss project requirements and receive tailored proposals."
+      },
+      "payment": {
+        "title": "Secure Payment",
+        "description": "Pay safely through our escrow system. Funds are released only after you approve the work."
+      },
+      "receive": {
+        "title": "Receive & Review",
+        "description": "Get your project delivered on time. Request revisions if needed until fully satisfied."
+      }
+    },
+    "getStarted": "Get Started Free",
+    "noCreditCard": "No credit card required • Free to browse"
+  },
+  "urgencyCTA": {
+    "limitedTime": "Limited Time Offer",
+    "discount": "Get 20% Off Your First Order",
+    "hours": "HRS",
+    "minutes": "MIN",
+    "seconds": "SEC",
+    "claimOffer": "Claim Offer"
+  },
+  "finalCTA": {
+    "headline": "Ready to get started?",
+    "description": "Join thousands of businesses finding top talent on our platform. Create your free account today.",
+    "emailPlaceholder": "Enter your email",
+    "getStarted": "Get Started",
+    "freeToJoin": "Free to join",
+    "noCreditCard": "No credit card required",
+    "cancelAnytime": "Cancel anytime",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in here →"
+  },
+  "searchSection": {
+    "headline": "What are you looking for?",
+    "description": "Find the perfect freelancer for your project",
+    "placeholder": "Search for any service...",
+    "placeholderFreelancers": "Search for freelancers by skill or name...",
+    "searchButton": "Search",
+    "searchGigs": "Services",
+    "searchFreelancers": "Freelancers",
+    "popular": "Popular",
+    "popularSearches": {
+      "webDevelopment": "Web Development",
+      "logoDesign": "Logo Design",
+      "contentWriting": "Content Writing",
+      "mobileApp": "Mobile App"
+    }
+  },
+  "search": {
+    "title": "Find the perfect talent for your project",
+    "subtitle": "Access our pool of pre-vetted professionals ready to bring your vision to life"
+  },
+  "newsletter": {
+    "success": "Subscribed successfully!",
+    "error": {
+      "default": "Error in subscribing to the newsletter!",
+      "unexpected": "An unexpected error occurred."
+    }
+  },
+  "slogan": {
+    "title": "Expand your <highlight>opportunities</highlight> online",
+    "subtitle": "Connect with more customers and grow your business with our marketplace of digital services and customized digital solutions.",
+    "cta": "Explore Services",
+    "secondary_cta": "Learn More",
+    "feature1": "Verified Professionals",
+    "feature2": "Quality Guaranteed",
+    "feature3": "Fast Delivery",
+    "stat1": "Projects Completed",
+    "stat2": "Happy Clients",
+    "stat3": "Success Rate",
+    "stat4": "Support",
+    "quality": "Quality",
+    "customerSatisfaction": "Customer Satisfaction"
+  },
+  "slider": {
+   "slides": [
+  {
+    "title": "Connect with Trusted Freelancers and Companies",
+    "description": "We facilitate connections between verified professionals and businesses seeking talent for successful projects."
+  },
+  {
+    "title": "Tailored Solutions for Every Need",
+    "description": "Whether you need a designer, developer, or writer, you can hire exactly the profile that fits your project."
+  },
+  {
+    "title": "Flexible, Limitless Growth",
+    "description": "Whether you're a freelancer or a company, scale your work or teams at your pace, with complete freedom."
+  }
+],
+    "cta": "Learn More",
+    "aria": {
+      "prevSlide": "Previous slide",
+      "nextSlide": "Next slide",
+      "goToSlide": "Go to slide"
+    }
+  },
+  "testimonials": {
+    "header": {
+      "title": "Voices of Success",
+      "subtitle": "Real Feedback from our Partners"
+    },
+    "items": [
+      {
+        "name": "Liam Carter",
+        "description": "Working with Noretmy was a game-changer. They built us a fast, scalable platform that exceeded expectations and helped our brand stand out in a crowded market.",
+        "attribute": "Founder at BrightNest",
+        "image": "/icons/maleicon.png"
+      },
+      {
+        "name": "Daniel Clarke",
+        "description": "From idea to execution, Noretmy was with us every step of the way. Their design thinking and technical skills turned our platform into a sleek, powerful product.",
+        "attribute": "CTO at TableSwift",
+        "image": "/images/steven.jpg"
+      },
+      {
+        "name": "Ethan Brooks",
+        "description": "Thanks to Noretmy, we now have a custom data dashboard that gives us real-time insights and helps our team make smarter, faster decisions.",
+        "attribute": "Head of Product at InsightLoop",
+        "image": "/images/testimonial2.jpg"
+      },
+      {
+        "name": "James Walker",
+        "description": "Noretmy's generative AI integration boosted our content automation process and helped us reduce manual work by over 60%—absolutely incredible!",
+        "attribute": "Co-founder at AutoWrite",
+        "image": "/images/testimonial1.png"
+      },
+      {
+        "name": "Oliver Scott",
+        "description": "The Noretmy team delivered quality work on a tight schedule. Their component-driven approach made our frontend development smooth and maintainable.",
+        "attribute": "Freelance Client",
+        "image": "/images/testimonial4.png"
+      }
+    ],
+    "aria": {
+      "prevButton": "Previous testimonial",
+      "nextButton": "Next testimonial",
+      "goToTestimonial": "Go to testimonial"
+    }
+  },
+  "gigPromotion": {
+    "header": {
+      "badge": "BOOST YOUR EARNINGS",
+      "title": "Take Your Services Listing to the Next Level",
+      "subtitle": "Stand out in a competitive marketplace and connect with premium clients using our powerful promotion tools"
+    },
+    "stats": {
+      "visibility": {
+        "value": "85% Increase",
+        "label": "in profile visibility"
+      },
+      "inquiries": {
+        "value": "3.2x More",
+        "label": "client inquiries"
+      },
+      "conversion": {
+        "value": "67% Higher",
+        "label": "conversion rate"
+      }
+    },
+    "whyPromote": {
+      "title": "Why Promote Your Gig?",
+      "description": "Freelancers who use promotional tools are <highlight>5x more likely</highlight> to receive orders in their first week. Boost your visibility, stand out in search results, and attract high-quality clients.",
+      "cta": "Explore Promotion Options"
+    },
+    "testimonial": {
+      "name": "Alex Walker",
+      "role": "Web Developer",
+      "quote": "After promoting my web development gig, I saw immediate results. My profile views increased by <highlight>200%</highlight> and I received multiple inquiries within 48 hours. The promotion paid for itself with my first order."
+    }
+  },
+  "sections": {
+    "slider": {
+      "title": "Discover Top Talent",
+      "subtitle": "Connect with skilled professionals for your projects"
+    },
+    "certifications": {
+      "title": "Trusted by Leading Companies",
+      "subtitle": "Our professionals are certified by industry leaders"
+    },
+    "services": {
+      "title": "Our Services",
+      "subtitle": "Comprehensive solutions for your business needs"
+    },
+    "testimonials": {
+      "title": "What Our Clients Say",
+      "subtitle": "Real stories from satisfied customers"
+    },
+    "industries": {
+      "title": "Industries We Serve",
+      "subtitle": "Specialized expertise across sectors"
+    },
+    "companies": {
+      "title": "Companies That Thrive With Us",
+      "subtitle": "Success stories from our business partners"
+    },
+    "transform": {
+      "title": "Transform Your Business",
+      "subtitle": "Stay updated with our newsletter",
+      "cta": "Subscribe Now"
+    }
+  },
+  "hero": {
+    "title": "Find the Perfect Digital Service for Your Business",
+    "subtitle": "Connect with top freelancers for your digital needs",
+    "cta": "Get Started"
+  },
+  "features": {
+    "title": "Why Choose Us",
+    "quality": {
+      "title": "Quality Work",
+      "description": "Get high-quality work from verified professionals"
+    },
+    "support": {
+      "title": "24/7 Support",
+      "description": "Our team is here to help you anytime"
+    },
+    "secure": {
+      "title": "Secure Payments",
+      "description": "Your transactions are protected and secure"
+    }
+  },
+  "industries": {
+    "header": {
+      "title": "Industries We Serve",
+      "subtitle": "Our specialized expertise spans across multiple industries, delivering tailored solutions that drive growth and success."
+    },
+    "items": [
+      {
+        "title": "Healthcare",
+        "description": "Empowering healthcare providers with IT-driven solutions, telemedicine platforms, and data management tools."
+      },
+      {
+        "title": "Retail",
+        "description": "Boosting retail operations with e-commerce platforms, inventory management systems, and digital marketing solutions."
+      },
+      {
+        "title": "Travel & Tourism",
+        "description": "Enhancing travel experiences with online booking systems, virtual tours, and customer engagement tools."
+      },
+      {
+        "title": "Real Estate",
+        "description": "Modernizing real estate with 3D property tours, online listings, and CRM tools for agents."
+      },
+      {
+        "title": "Entertainment",
+        "description": "Transforming entertainment with video streaming platforms, ticket booking systems, and social media integration."
+      },
+      {
+        "title": "Food & Beverage",
+        "description": "Streamlining the food industry with online ordering systems, digital menus, and delivery tracking solutions."
+      }
+    ],
+    "cta": "Explore All Industries",
+    "aria": {
+      "learnMore": "Learn more about {{industry}}"
+    }
+  },
+  "services": {
+    "header": {
+      "title": "How we work at noretmy ?"
+    },
+    "items": [
+      {
+        "title": "Connect with digital experts",
+        "description": "Instantly connect with skilled freelancers and trusted clients across the world — all in one platform.",
+        "image": "/images/slider-image1.jpg"
+      },
+      {
+        "title": "Hassle-free video calls",
+        "description": "Hire with confidence. Every project is backed by top-rated professionals and trusted reviews.",
+        "image": "/images/slider-image3.jpg"
+      },
+      {
+        "title": "Connect, create, and grow",
+        "description": "Grow your business with remote talent — no borders, no limits, just results",
+        "image": "/images/slider-image2.webp"
+      }
+    ],
+    "cta": "Learn More",
+    "aria": {
+      "selectService": "Select {{service}} service",
+      "currentService": "Currently selected service"
+    }
+  },
+  "companiesThrive": {
+    "header": {
+      "title": "How Companies Thrive With Us",
+      "subtitle": "Here's how businesses succeeded after switching to our custom services."
+    },
+    "slides": [
+      {
+        "description": "Implemented an AI system to tailor user experiences with real-time recommendations. This increased relevance and engagement across the platform.",
+        "image": "/images/thrive.jpg"
+      },
+      {
+        "description": "Integrated AI into FindxStorage, optimizing unit selection by analyzing customer behavior, leading to increased user satisfaction.",
+        "image": "/images/thrive2.png"
+      },
+      {
+        "description": "Implemented AI on Have a Seat, tailoring restaurant suggestions based on user preferences, enhancing booking efficiency.",
+        "image": "/images/thrive3.png"
+      },
+      {
+        "description": "Leveraged AI for Have a Seat to deliver dynamic dining recommendations, boosting user interaction and simplifying the reservation process.",
+        "image": "/images/thrive4.png"
+      }
+    ],
+    "stats": {
+      "clickThrough": {
+        "value": "40%",
+        "label": "Boost in Click-Through Rates"
+      },
+      "conversions": {
+        "value": "60%",
+        "label": "Increase in Conversions"
+      }
+    },
+    "cta": "Read the case study",
+    "aria": {
+      "prevSlide": "Previous case study",
+      "nextSlide": "Next case study",
+      "openAiLogo": "OpenAI logo",
+      "caseStudyImage": "Case study illustration"
+    }
+  },
+  "businessTransform": {
+    "header": {
+      "title": "Discover the power of global digital talent",
+      "subtitle": "Access a global network of talent and customized digital solutions. On our platform, connecting with experts has never been easier, all in one place. sJoin now and transform the way you work."
+    },
+    "form": {
+      "email": {
+        "placeholder": "Enter your email address",
+        "aria": "Email input field"
+      },
+      "submit": {
+        "label": "Subscribe",
+        "aria": "Subscribe to newsletter"
+      }
+    },
+    "video": {
+      "aria": "Background video showing space exploration"
+    }
+  },
+  "about": {
+    "description": "Noretmy provides custom solutions tailored to enhance business efficiency and drive success.",
+    "navigation": {
+      "company": {
+        "title": "Company",
+        "links": {
+          "industries": "Industries",
+          "services": "Services",
+          "testimonials": "Testimonials",
+          "caseStudies": "Case Studies"
+        }
+      },
+      "help": {
+        "title": "Help",
+        "links": {
+          "customerSupport": "Customer Support",
+          "faqs": "FAQS",
+          "privacyPolicy": "Privacy Policy",
+          "termsConditions": "Terms and Conditions",
+          "legalNotice": "Legal Notice"
+        }
+      }
+    },
+    "contact": {
+      "address": {
+        "title": "Address:",
+        "value": "2093 Philadelphia Pike #7584, Claymont, de 19703"
+      },
+      "contact": {
+        "title": "Contact:",
+        "email": "info@noretmy.com"
+      }
+    },
+    "social": {
+      "linkedin": "Visit our LinkedIn page",
+      "instagram": "Visit our Instagram page",
+      "facebook": "Visit our Facebook page"
+    },
+    "images": {
+      "logo": "Noretmy logo",
+      "linkedin": "LinkedIn icon",
+      "instagram": "Instagram icon",
+      "facebook": "Facebook icon"
+    }
+  },
+  "categories": {
+    "header": {
+      "explore": "Explore Categories",
+      "browseBy": "Browse by",
+      "expertise": "Expertise",
+      "discover": "Discover world-class talent across creative and technical disciplines"
+    },
+    "webDevelopment": {
+      "name": "Web Development",
+      "description": "Full-stack development, APIs, and modern frameworks"
+    },
+    "uiux": {
+      "name": "UI/UX Design",
+      "description": "User interface design and experience optimization"
+    },
+    "digitalMarketing": {
+      "name": "Digital Marketing",
+      "description": "SEO, social media, and content marketing strategies"
+    },
+    "graphicDesign": {
+      "name": "Graphic Design",
+      "description": "Brand identity, logos, and visual communication"
+    },
+    "photography": {
+      "name": "Photography",
+      "description": "Product photography, portraits, and image editing"
+    },
+    "motionGraphics": {
+      "name": "Motion Graphics",
+      "description": "Animation, video editing, and visual effects"
+    },
+    "seoAnalytics": {
+      "name": "SEO & Analytics",
+      "description": "Search optimization and data-driven insights"
+    },
+    "audioProduction": {
+      "name": "Audio Production",
+      "description": "Music production, podcasts, and sound design"
+    },
+    "appDevelopment": {
+      "name": "App Development",
+      "description": "Mobile and desktop app development for all platforms"
+    },
+    "aiIntegrations": {
+      "name": "AI Integrations",
+      "description": "Integrate AI solutions into your business workflows"
+    },
+    "artificialIntelligence": {
+      "name": "Artificial Intelligence",
+      "description": "Custom AI models, automation, and smart solutions"
+    },
+    "active": "Active",
+    "gigs": "Gigs"
+  },
+  "whyChooseUs": {
+    "header": {
+    "title": "Why  <1>{{brand}}</1> us?"
+  },
+    "features": [
+      {
+        "title": "Personalized Discounts",
+        "description": "Freelancers can apply personalized discounts, offering you competitive prices."
+      },
+      {
+        "title": "Milestone-Based Payments",
+        "description": "The first payment is made before starting each milestone; subsequent payments are made only if the work meets your expectations."
+      },
+      {
+        "title": "Flexibility & Quality Assurance",
+        "description": "If you're not satisfied, you can easily change freelancers. We guarantee quality by working with carefully selected professionals."
+      }
+    ],
+    "cta": {
+      "text": "Ready to experience the difference?",
+      "button": "Get Started"
+    }
+  },
+  "gigPromotionCard": {
+    "hero": {
+      "badge": " Boost Your Success",
+      "title1": "Promote Your Services &",
+      "title2": "Get Noticed",
+      "description": "Stand out from the crowd and attract more clients with our proven gig promotion strategies. Join thousands of successful freelancers who've transformed their business and boosted their earnings."
+    },
+    "stats": [
+      { "value": "500%", "label": "Average Visibility Increase" },
+      { "value": "10x", "label": "More Client Inquiries" },
+      { "value": "85%", "label": "Higher Conversion Rate" }
+    ],
+    "promotion": {
+      "title": "Ready to Boost Your Gig Success?",
+      "description": "Transform your freelance business with our powerful promotion tools. Get more visibility, attract quality clients, and increase your earnings starting today.",
+      "button": "Start Promoting Your Gigs"
+    }
+  }
+} 

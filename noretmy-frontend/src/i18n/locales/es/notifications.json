@@ -1,0 +1,18 @@
+{
+  "title": "Notificaciones",
+  "markAllAsRead": "Marcar todo como leído",
+  "empty": {
+    "title": "Sin notificaciones",
+    "description": "¡Estás al día!"
+  },
+  "error": {
+    "failed": "No se pudieron cargar las notificaciones."
+  },
+  "type": {
+    "message": "Mensaje",
+    "system": "Sistema",
+    "alert": "Alerta",
+    "default": "Notificación"
+  },
+  "delete": "Eliminar notificación"
+} 

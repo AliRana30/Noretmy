@@ -1,0 +1,26 @@
+{
+  "navigation": {
+    "home": "Home",
+    "searchServices": "Search Services",
+    "orders": "Orders",
+    "chat": "Chat"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "join": "Join",
+    "logout": "Logout"
+  },
+  "profile": {
+    "title": "Profile",
+    "favorites": "Favorites",
+    "payments": "Payments",
+    "notifications": "Notifications",
+    "promote": "Promote",
+    "language": "Language"
+  },
+  "aria": {
+    "logo": "Logo",
+    "profileButton": "Open profile menu",
+    "closeModal": "Close profile modal"
+  }
+} 

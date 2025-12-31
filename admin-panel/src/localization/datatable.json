@@ -1,0 +1,36 @@
+{
+  "en": {
+    "allUsers": "All Users",
+    "allOrders": "All Orders",
+    "allJobs": "All Jobs",
+    "allMessages": "All Messages",
+    "allDocuments": "All Documents",
+    "allFaqs": "All FAQs",
+    "allPrivacy": "All Privacy Policies",
+    "allWithdrawlRequests": "All Withdrawl Requests",
+    "allDocuments": "All Documents",
+    "allFaqs": "All FAQs",
+    "allPrivacy": "All Privacy Policies",
+    "allSensitiveMessages": "All Sensitive Messages",
+    "addNew": "Add New",
+    "pageSize": "Page Size",
+    "rowsPerPage": "Rows per page"
+  },
+  "es": {
+    "allUsers": "Todos los Usuarios",
+    "allOrders": "Todos los Pedidos",
+    "allJobs": "Todos los Trabajos",
+    "allMessages": "Todos los Mensajes",
+    "allDocuments": "Todos los Documentos",
+    "allFaqs": "Todas las FAQs",
+    "allPrivacy": "Todas las Políticas de Privacidad",
+    "allWithdrawlRequests": "Todas las Solicitudes de Retiro",
+    "allDocuments": "Todos los Documentos",
+    "allFaqs": "Todas las FAQs",
+    "allPrivacy": "Todas las Políticas de Privacidad",
+    "allSensitiveMessages": "Todos los Mensajes Sensibles",
+    "addNew": "Agregar Nuevo",
+    "pageSize": "Tamaño de página",
+    "rowsPerPage": "Filas por página"
+  }
+} 

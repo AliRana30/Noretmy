@@ -1,0 +1,26 @@
+{
+  "en": {
+    "gigId": "Gig ID",
+    "location": "Location",
+    "jobStatus": "Job Status",
+    "dateCreated": "Date Created",
+    "upgradeMethod": "Upgrade Method",
+    "paymentMethod": "Payment Method",
+    "status": "Status",
+    "image": "Image",
+    "upgradeOption": "Upgrade Option",
+    "method": "Method"
+  },
+  "es": {
+    "gigId": "ID del Servicio",
+    "location": "Ubicación",
+    "jobStatus": "Estado del Trabajo",
+    "dateCreated": "Fecha de Creación",
+    "upgradeMethod": "Método de Actualización",
+    "paymentMethod": "Método de Pago",
+    "status": "Estado",
+    "image": "Imagen",
+    "upgradeOption": "Opción de Actualización",
+    "method": "Método"
+  }
+} 
