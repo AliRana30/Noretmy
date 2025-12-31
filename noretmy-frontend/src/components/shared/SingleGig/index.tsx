@@ -183,6 +183,10 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         gigId={gig._id}
         pricingPlans={pricingPlans}
         sellerId={gig?.sellerId}
-        onPlanSelect={(plan) => };
+        onPlanSelect={() => { }}
+      />
+    </div>
+  );
+};
 
 export default GigDetailsSection;

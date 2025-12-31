@@ -20,7 +20,6 @@ interface PricingPlansProps {
   pricingPlans: PricingPlan[];
   sellerId?: string;
   onPlanSelect: (plan: PricingPlan | null) => void;
-  onBuyNow: (plan: PricingPlan) => void;
 }
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -30,7 +29,6 @@ const PricingPlans = ({
   pricingPlans,
   sellerId,
   onPlanSelect,
-  onBuyNow,
 }: PricingPlansProps) => {
   const [selectedPlan, setSelectedPlan] = useState<number>(1);
   const [showInvitationModal, setShowInvitationModal] = useState(false);
@@ -47,8 +45,7 @@ const PricingPlans = ({
   const userId = user?._id || user?.id;
   const isOwnGig = userId && sellerId ? String(userId) === String(sellerId) : false;
 
-  if (process.env.NODE_ENV === 'development') {
-    }
+
 
   const handlePlanSelect = (index: number) => {
     if (!isLoggedIn) {
