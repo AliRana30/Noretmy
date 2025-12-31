@@ -50,7 +50,8 @@ const allowedOrigins = [
   'https://www.noretmy.com',
   'https://www.api.noretmy.com',
   'https://noretmy.vercel.app',
-  'https://noretmy-admin.vercel.app'
+  'https://noretmy-admin.vercel.app',
+  'https://noretmy-admin-panel.vercel.app',
 ];
 
 const corsOptions = {

@@ -20,7 +20,9 @@ const verifyToken = (req, res, next) => {
         }
 
         req.userId = payload.id;
+        req.userRole = payload.role;
         req.isSeller = payload.isSeller;
+        req.isAdmin = payload.role === 'admin';
         next();
     });
 }
@@ -28,8 +30,8 @@ const verifyToken = (req, res, next) => {
 // Original role checking for backward compatibility - now supports both old and new role systems
 const checkRole = (allowedRoles) => async (req, res, next) => {
     try {
-        // First, try to get role from req.isSeller (old system)
-        let userRole = req.isSeller ? "seller" : "buyer";
+        // Support both req.userRole (new) and req.isSeller (old)
+        let userRole = req.userRole || (req.isSeller ? "seller" : "buyer");
         
         // If user data is available on the request (from enhanced middleware), use that
         if (req.user && req.user.role) {
