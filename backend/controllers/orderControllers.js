@@ -1478,21 +1478,18 @@ const acceptInvitation = async (req, res) => {
       return res.status(404).json({ message: "Invitation not found." });
     }
 
-    const sellerIdStr = String(invitation.sellerId).trim().toLowerCase();
-    const userIdStr = String(userId).trim().toLowerCase();
+    // Use robust ID comparison
+    const isSeller = invitation.sellerId?.toString() === userId?.toString();
     
-    // Check for admin role - admins can bypass this check if they need to help a user
-    const userRole = req.user?.role || (req.isSeller ? 'seller' : 'buyer');
-    const isAdmin = userRole === 'admin';
+    // Check for admin role - admins can bypass this check
+    // Since we use verifyToken, req.user might be undefined, so we check req.isSeller
+    // However, none of the standard verifyToken payloads would make isAdmin true here.
+    // We'll rely on the enhanced check if available, or a fallback.
+    const isAdmin = req.user?.role === 'admin' || req.isAdmin === true;
 
-    if (sellerIdStr !== userIdStr && !isAdmin) {
+    if (!isSeller && !isAdmin) {
       return res.status(403).json({ 
-        message: `Unauthorized. This invitation was sent to seller ${sellerIdStr}, but you are logged in as ${userIdStr}.`,
-        debug: { 
-          recordSellerId: sellerIdStr, 
-          requestUserId: userIdStr,
-          areEqual: sellerIdStr === userIdStr
-        }
+        message: "Unauthorized. You are not the seller this invitation was sent to."
       });
     }
 
