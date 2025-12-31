@@ -1,0 +1,745 @@
+
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const paypal = require('@paypal/checkout-server-sdk');
+
+const Freelancer = require('../models/Freelancer');
+const Order = require('../models/Order'); 
+const User = require('../models/User');
+
+const bodyParser = require('body-parser');
+const { sendUserNotificationEmail, sendOrderSuccessEmail,sendSellerOrderNotificationEmail, sendPromotionPlanEmail, sendAllGigsPromotionEmail } = require('../services/emailService');
+const Job = require('../models/Job');
+const Promotion = require('../models/Promotion'); // Legacy - kept for reference
+const PromotionPurchase = require('../models/PromotionPurchase'); // New: Single source of truth
+const { PROMOTION_PLANS, getPlan } = require('../utils/promotionPlans');
+const notificationService = require('../services/notificationService');
+const mongoose = require('mongoose');
+
+
+
+exports.createCustomerAndPaymentIntent = async (req, res) => {
+  const { amount, email } = req.body;
+
+  // Validate the inputs
+  if (!amount || typeof amount !== 'number' || amount <= 0) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email' });
+  }
+
+  try {
+    // Check if the customer already exists (optional step)
+    let customer = await stripe.customers.list({
+      email: email,
+      limit: 1
+    });
+
+    if (customer.data.length > 0) {
+      // If customer exists, use the existing customer
+      customer = customer.data[0];
+    } else {
+      // Otherwise, create a new customer
+      customer = await stripe.customers.create({
+        email,
+      });
+    }
+
+    // Create a Payment Intent linked to the customer
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'usd',
+      customer: customer.id,
+      payment_method_types: ['card'],
+    });
+
+    res.status(200).json({
+      client_secret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error('Error creating customer and payment intent:', error);
+    res.status(500).json({ error: 'Failed to create payment intent' });
+  }
+};
+
+
+
+exports.createCustomerAndPaymentIntentUtil = async (amount, email,paymentType,additionalData) => {
+  if (!amount || typeof amount !== 'number' || amount <= 0) {
+    throw new Error('Invalid amount');
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Invalid email');
+  }
+
+  // To get Metadata about payment
+  const metadata = setupPaymentMetadata(paymentType, additionalData);
+
+
+
+
+  try {
+
+
+    const totalAmountInCents = Math.round(amount * 100);
+
+    // Check if the customer already exists (optional step)
+    let customer = await stripe.customers.list({
+      email: email,
+      limit: 1,
+    });
+
+    if (customer.data.length > 0) {
+      // If customer exists, use the existing customer
+      customer = customer.data[0];
+    } else {
+      // Otherwise, create a new customer
+      customer = await stripe.customers.create({
+        email,
+      });
+    }
+
+    // Create a Payment Intent linked to the customer
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmountInCents,  // Amount is in cents
+      currency: 'usd',
+      customer: customer.id,
+      payment_method_types: ['card'],
+      metadata,
+
+    });
+
+    return { 
+      payment_intent: paymentIntent.id,
+      client_secret: paymentIntent.client_secret,
+    };
+    
+  } catch (error) {
+    console.error('Error creating customer and payment intent:', error);
+    throw new Error('Failed to create payment intent');
+  }
+};
+
+
+
+const setupPaymentMetadata = (paymentType, additionalData) => {
+  const metadata = { paymentType };
+
+  if (paymentType === 'order_payment') {
+    metadata.orderId = additionalData.orderId;
+    metadata.userId = additionalData.userId;
+    metadata.vatRate=additionalData.vatRate;
+    additionalData.discount > 0 ? (metadata.discount = additionalData.discount) : null;
+  } else if (paymentType === 'gig_promotion') {
+    metadata.gigId = additionalData.gigId;
+    metadata.userId = additionalData.userId;
+    metadata.promotionPlan = additionalData.promotionPlan;
+    metadata.vatRate = String(additionalData.vatRate || 0);
+    metadata.baseAmount = String(additionalData.baseAmount || 0);
+    metadata.vatAmount = String(additionalData.vatAmount || 0);
+    metadata.platformFee = String(additionalData.platformFee || 0);
+  } else if (paymentType === 'monthly_promotion') {
+    metadata.userId = additionalData.userId;
+    metadata.promotionPlan = additionalData.promotionPlan;
+    metadata.vatRate = String(additionalData.vatRate || 0);
+    metadata.baseAmount = String(additionalData.baseAmount || 0);
+    metadata.vatAmount = String(additionalData.vatAmount || 0);
+    metadata.platformFee = String(additionalData.platformFee || 0);
+  } else if (paymentType === 'timeline_extension') {
+    metadata.orderId = additionalData.orderId;
+    metadata.userId = additionalData.userId;
+    metadata.extensionDays = additionalData.extensionDays;
+    metadata.previousDeadline = additionalData.previousDeadline.toISOString();
+    metadata.newDeadline = additionalData.newDeadline.toISOString();
+    metadata.freelancerRevenue = additionalData.freelancerRevenue;
+    metadata.vatRate = additionalData.vatRate;
+  }
+
+  return metadata;
+};
+
+
+
+
+// exports.withdrawFunds = async (req, res) => {
+//     const { email, amount } = req.body; // Freelancer's email and withdrawal amount
+
+//     try {
+//         // Check if the freelancer account exists
+//         let freelancerAccount = await Freelancer.findOne({ email });
+
+//         // If the account doesn't exist, create it
+//         if (!freelancerAccount) {
+//             const account = await stripe.accounts.create({
+//                 type: 'standard', // You can choose 'standard' or 'express'
+//                 country: 'US', // Set the country for the connected account
+//                 email: email, // Freelancer's email
+//                 capabilities: {
+//                     card_payments: { requested: true },
+//                     transfers: { requested: true },
+//                 },
+//             });
+
+//             // Create a new Freelancer record in the database
+//             freelancerAccount = new Freelancer({
+//                 email,
+//                 stripeAccountId: account.id,
+//                 availableBalance: 30, //
+//             });
+
+//             await freelancerAccount.save();
+//         }
+
+//         // Check if the available balance is sufficient
+//         if (freelancerAccount.availableBalance < amount) {
+//             return res.status(400).json({ error: 'Insufficient funds' });
+//         }
+
+//         // Create a payout to the freelancer's connected account
+//         const payout = await stripe.payouts.create(
+//             {
+//                 amount: amount, 
+//                 currency: 'usd', 
+//             },
+//             {
+//                 stripeAccount: freelancerAccount.stripeAccountId, 
+//             }
+//         );
+
+//         freelancerAccount.availableBalance -= amount;
+//         await freelancerAccount.save();
+
+//         res.status(200).json({ success: true, payout });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+
+
+exports.paypalWithdrawFunds = async (req, res) => {
+    const { email, amount } = req.body; // Freelancer's email and withdrawal amount
+
+    try {
+        // Get PayPal access token
+        const tokenResponse = await axios.post(
+            'https://api-m.sandbox.paypal.com/v1/oauth2/token', // Use the live URL for production: 'https://api-m.paypal.com/v1/oauth2/token'
+            'grant_type=client_credentials',
+            {
+                auth: {
+                    username: process.env.PAYPAL_CLIENT_ID,
+                    password: process.env.PAYPAL_CLIENT_SECRET,
+                },
+            }
+        );
+
+        const accessToken = tokenResponse.data.access_token;
+
+        // Check if the freelancer exists in your database
+        const freelancer = await Freelancer.findOne({ email });
+        if (!freelancer) {
+            return res.status(404).json({ error: 'Freelancer account not found' });
+        }
+
+        // Check if the freelancer has sufficient balance
+        if (freelancer.availableBalance < amount) {
+            return res.status(400).json({ error: 'Insufficient funds' });
+        }
+
+        // Create a PayPal payout
+        const payoutResponse = await axios.post(
+            'https://api-m.sandbox.paypal.com/v1/payments/payouts', // Use the live URL for production: 'https://api-m.paypal.com/v1/payments/payouts'
+            {
+                sender_batch_header: {
+                    email_subject: 'You have a payout!',
+                    email_message: 'You have received a payout via PayPal.',
+                },
+                items: [
+                    {
+                        recipient_type: 'EMAIL',
+                        amount: {
+                            value: amount.toFixed(2), // Amount in USD
+                            currency: 'USD',
+                        },
+                        receiver: email, // PayPal email of the recipient
+                        note: 'Payout from platform',
+                    },
+                ],
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        // Deduct the amount from the freelancer's balance
+        freelancer.availableBalance -= amount;
+        await freelancer.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Payout successfully processed via PayPal',
+            payout: payoutResponse.data,
+        });
+    } catch (error) {
+        console.error('PayPal Payout Error:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.response?.data || error.message,
+        });
+    }
+};
+
+
+exports.withdrawFunds = async (req, res) => {
+    const { email, amount } = req.body; 
+
+    try {
+        let freelancerAccount = await Freelancer.findOne({ email });
+
+        // If the account doesn't exist, create it
+        if (!freelancerAccount) {
+            const account = await stripe.accounts.create({
+                type: 'express', // Type of account (can be 'express' or 'custom' based on your needs)
+                country: 'US', // Set the country for the connected account
+                email: email, // Freelancer's email
+                capabilities: {
+                    card_payments: { requested: true },
+                    transfers: { requested: true },
+                },
+            });
+
+            // Create a new Freelancer record in the database
+            freelancerAccount = new Freelancer({
+                email,
+                stripeAccountId: account.id,
+                availableBalance: 30, // You can update the balance as per your requirements
+            });
+
+            await freelancerAccount.save();
+
+            // Create the onboarding link if the freelancer has not completed onboarding
+            const accountLink = await stripe.accountLinks.create({
+                account: account.id,
+                refresh_url: 'https://your-platform.com/onboarding-refresh', // Redirect if freelancer needs to update information
+                return_url: 'https://your-platform.com/onboarding-success', // Redirect after successful onboarding
+                type: 'account_onboarding', // Type of onboarding flow
+            });
+
+            // Send the onboarding link to the freelancer
+            return res.status(200).json({ 
+                success: true,
+                message: 'Freelancer account created. Complete your onboarding.',
+                link: accountLink.url // Redirect the freelancer to this URL to complete onboarding
+            });
+        }
+
+        // If the freelancer already exists, check if they have completed onboarding
+        const account = await stripe.accounts.retrieve(freelancerAccount.stripeAccountId);
+
+        if (account.charges_enabled === false) {
+            // If the freelancer has not completed onboarding, ask them to do so
+            const accountLink = await stripe.accountLinks.create({
+                account: freelancerAccount.stripeAccountId,
+                refresh_url: 'https://noretmy.com/onboarding-refresh', // Redirect if freelancer needs to update information
+                return_url: 'https://noretmy.com/onboarding-success', // Redirect after successful onboarding
+                type: 'account_onboarding',
+            })
+
+            return res.status(400).json({
+                success: false,
+                message: 'Please complete the onboarding process before withdrawing funds.',
+                link: accountLink.url // Send the onboarding link
+            });
+        }
+
+        // Check if the available balance is sufficient
+        if (freelancerAccount.availableBalance < amount) {
+            return res.status(400).json({ error: 'Insufficient funds' });
+        }
+
+        // Create a payout to the freelancer's connected account
+        const payout = await stripe.payouts.create(
+            {
+                amount: amount * 100, // Amount is in cents
+                currency: 'usd',
+            },
+            {
+                stripeAccount: freelancerAccount.stripeAccountId, // Freelancer's Stripe account ID
+            }
+        );
+
+        // Update freelancer's balance after payout
+        freelancerAccount.availableBalance -= amount;
+        await freelancerAccount.save();
+
+        res.status(200).json({ success: true, payout });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+
+
+exports.processPayPalWithdrawal = async (email, amount) => {
+
+  try {
+      if (!email || amount <= 0) {
+          throw new Error('Invalid email or amount.');
+      }
+
+      // Prepare the payout request
+      const requestBody = {
+          sender_batch_header: {
+              email_subject: "You have a payment from Noretmy!",
+              email_message: "You have received your earnings. Thank you for working with Noretmy!",
+          },
+          items: [
+              {
+                  recipient_type: "EMAIL",
+                  receiver: email,
+                  amount: {
+                      value: Number(amount).toFixed(2), // Amount in USD
+                      currency: "USD",
+                  },
+                  note: "Withdrawal from Noretmy platform",
+              },
+          ],
+      };
+
+      const request = new paypal.payouts.PayoutsPostRequest();
+      request.requestBody(requestBody);
+
+      // Execute the payout
+      const response = await client.execute(request);
+
+      // Return success response
+      return {
+          success: true,
+          message: 'Withdrawal successful.',
+          payoutBatchId: response.result.batch_header.payout_batch_id,
+      };
+  } catch (error) {
+      console.error('PayPal Payout Error:', error.message || error);
+      return {
+          success: false,
+          message: 'Withdrawal failed. Please try again later.',
+          error: error.message || 'Unknown error occurred',
+      };
+  }
+};
+
+
+
+exports.processRefund = async (req, res) => {
+    const { chargeId, amount } = req.body; // Charge ID and refund amount
+
+    try {
+        // Create a refund
+        const refund = await stripe.refunds.create({
+            charge: chargeId,
+            amount: amount, // Amount in cents (optional, refund full amount if omitted)
+        });
+
+        res.status(200).json({ success: true, refund });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+
+
+ exports.handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature']; 
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
+  let event;
+
+  console.log('[Stripe Webhook] Received webhook request');
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log('[Stripe Webhook] Event constructed successfully:', event.type);
+
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        console.log('[Stripe Webhook] Processing payment_intent.succeeded');
+        console.log('[Stripe Webhook] Metadata:', event.data.object.metadata);
+        await handlePaymentIntentSucceeded(event.data.object);
+        console.log('[Stripe Webhook] payment_intent.succeeded processed successfully');
+        break;
+      case 'payment_intent.payment_failed':
+        console.log('[Stripe Webhook] Processing payment_intent.payment_failed');
+        await handlePaymentIntentFailed(event.data.object);
+        break;
+      default:
+        console.log(`[Stripe Webhook] Unhandled event type ${event.type}`);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('[Stripe Webhook] Error: ', err.message);
+    console.error('[Stripe Webhook] Stack:', err.stack);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+};
+
+// Function to handle successful payment intent
+const handlePaymentIntentSucceeded = async (paymentIntent) => {
+  const { id, amount_received, payment_method, metadata } = paymentIntent;
+  const { 
+    paymentType, 
+    orderId, 
+    userId, 
+    gigId, 
+    promotionPlan,
+    vatRate,
+    baseAmount,
+    vatAmount,
+    platformFee
+  } = metadata;
+
+  try {
+    if (paymentType === 'order_payment') {
+      // Handle Order Payment
+      const { getSellerPayout } = require('../services/priceUtil');
+      const statusHistoryEntry = { status: "started", createdAt: Date.now() };
+      const updatedOrder = await Order.findOneAndUpdate(
+        { payment_intent: id },
+        {
+          isCompleted: true,
+          status: 'started',
+          isPaid: true,
+          paymentStatus: 'completed',
+          paymentMethod: payment_method,
+          amountReceived: amount_received / 100,
+          $push: { 
+            statusHistory: statusHistoryEntry,
+            timeline: {
+              event: 'Payment Confirmed',
+              description: 'Payment secured in escrow. Order started.',
+              timestamp: new Date(),
+              actor: 'system'
+            }
+          },
+        },
+        { new: true }
+      );
+
+      if (!updatedOrder) {
+        console.error('Order not found for PaymentIntent ID:', id);
+        return;
+      }
+
+      // Fetch seller and buyer emails
+      const [seller, buyer] = await Promise.all([
+        User.findById(updatedOrder.sellerId),
+        User.findById(updatedOrder.buyerId),
+      ]);
+
+      // Add to escrow (pending balance)
+      if (seller) {
+        const netEarnings = getSellerPayout(updatedOrder.price);
+        seller.revenue.total += netEarnings;
+        seller.revenue.pending += netEarnings;
+        await seller.save();
+        console.log(`[Escrow] $${netEarnings} added to pending for ${seller.username}`);
+      }
+
+      console.log('Order successfully updated:', updatedOrder);
+
+      if (!seller || !buyer) {
+        throw new Error('Seller or buyer not found.');
+      }
+
+      const sellerEmail = seller.email;
+      const buyerEmail = buyer.email;
+
+      // Prepare messages
+     
+
+      const gig=  await Job.findById(updatedOrder.gigId)
+
+      const buyerData= {_id:updatedOrder._id,price:updatedOrder.price,createdAt:updatedOrder.createdAt,
+        vatRate:metadata.vatRate, customerName : buyer.username, gigTitle : gig.title, discount  : metadata.discount
+      }
+
+      const sellerData = {_id:updatedOrder._id,price:updatedOrder.price,createdAt:updatedOrder.createdAt ,gigTitle : gig.title, sellerName:seller.username}
+
+      // Send notifications
+      await Promise.all([
+        sendOrderSuccessEmail(buyerEmail,buyerData),
+        sendSellerOrderNotificationEmail(sellerEmail,sellerData)  ]);
+
+      console.log('Notifications sent to both seller and buyer.');
+    } else if (paymentType === 'gig_promotion' || paymentType === 'monthly_promotion') {
+      // ========== UNIFIED PROMOTION HANDLER ==========
+      // Uses PromotionPurchase as single source of truth
+      // Idempotent: checks for existing record before creating
+      
+      console.log(`[Promotion] Processing ${paymentType}. Plan: ${promotionPlan}, User: ${userId}, Gig: ${gigId || 'ALL'}`);
+      
+      // 1. Idempotency check - prevent duplicate processing
+      const existingPurchase = await PromotionPurchase.findOne({ stripePaymentIntentId: id });
+      if (existingPurchase) {
+        console.log('[Promotion] Already processed this payment intent:', id);
+        return;
+      }
+      
+      // 2. Get plan details from constants
+      const plan = getPlan(promotionPlan);
+      if (!plan) {
+        console.error('[Promotion] Invalid plan key:', promotionPlan);
+        return;
+      }
+      
+      // 3. Validate user exists
+      const user = await User.findById(userId);
+      if (!user) {
+        console.error('[Promotion] User not found:', userId);
+        return;
+      }
+      
+      // 4. For single gig promotions, validate gig exists
+      let gig = null;
+      if (paymentType === 'gig_promotion' && gigId) {
+        gig = await Job.findById(gigId);
+        if (!gig) {
+          console.error('[Promotion] Gig not found:', gigId);
+          return;
+        }
+      }
+      
+      // 5. Calculate dates
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+      
+      // 6. Create PromotionPurchase record (single source of truth)
+      const promotionPurchase = new PromotionPurchase({
+        stripePaymentIntentId: id,
+        userId: new mongoose.Types.ObjectId(userId),
+        planKey: plan.key,
+        planName: plan.name,
+        planPriority: plan.priority,
+        promotionType: paymentType === 'gig_promotion' ? 'single_gig' : 'all_gigs',
+        gigId: gigId ? new mongoose.Types.ObjectId(gigId) : null,
+        status: 'active',
+        purchasedAt: now,
+        activatedAt: now,
+        expiresAt: expiresAt,
+        baseAmount: parseFloat(baseAmount || plan.price),
+        vatRate: parseFloat(vatRate || 0),
+        vatAmount: parseFloat(vatAmount || 0),
+        platformFee: parseFloat(platformFee || 0),
+        totalAmount: amount_received / 100,
+        durationDays: plan.durationDays
+      });
+      
+      try {
+        await promotionPurchase.save();
+        console.log('[Promotion] PromotionPurchase created:', promotionPurchase._id, 'Status: active');
+      } catch (saveError) {
+        if (saveError.code === 11000) {
+          // Duplicate key - already processed
+          console.log('[Promotion] Duplicate prevented by unique index');
+          return;
+        }
+        console.error('[Promotion] Failed to save PromotionPurchase:', saveError);
+        return;
+      }
+      
+      // 7. Send email notification
+      try {
+        const emailData = {
+          promotionPlanId: promotionPurchase._id,
+          customerName: user.username,
+          gigTitle: gig ? gig.title : 'All Your Gigs',
+          createdAt: promotionPurchase.createdAt,
+          price: plan.price,
+          planName: plan.name,
+          expiresAt: expiresAt,
+          vatRate: vatRate || 0
+        };
+        
+        if (paymentType === 'gig_promotion') {
+          await sendPromotionPlanEmail(user.email, emailData);
+        } else {
+          await sendAllGigsPromotionEmail(user.email, emailData);
+        }
+        console.log('[Promotion] Email sent to:', user.email);
+      } catch (emailError) {
+        console.error('[Promotion] Email failed:', emailError.message);
+        // Don't fail the whole process for email errors
+      }
+      
+      // 8. Notify admins
+      try {
+        const admins = await User.find({ role: 'admin' });
+        const notificationPromises = admins.map(admin => {
+          return notificationService.createNotification({
+            userId: admin._id,
+            title: '💰 New Promotion Purchase',
+            message: `${user.username} purchased "${plan.name}" for $${(amount_received / 100).toFixed(2)}`,
+            type: 'payment',
+            link: '/admin/promotions'
+          });
+        });
+        await Promise.all(notificationPromises);
+      } catch (adminNotifError) {
+        console.error('[Promotion] Admin notification failed:', adminNotifError.message);
+      }
+      
+      console.log(`[Promotion] Successfully activated ${plan.name} for user ${user.username}`);
+
+    } else if (paymentType === 'timeline_extension') {
+      // Handle Timeline Extension Payment
+      const { processTimelineExtension } = require('./timelineExtensionController');
+      
+      const success = await processTimelineExtension(paymentIntent);
+      
+      if (success) {
+        console.log('Timeline extension processed successfully');
+      } else {
+        console.error('Failed to process timeline extension');
+      }
+    }
+  } catch (error) {
+    console.error('Error handling payment intent succeeded:', error.message);
+  }
+};
+
+
+async function handlePaymentIntentFailed(paymentIntent) {
+  const { id, last_payment_error } = paymentIntent;
+
+  try {
+    // Log the failed payment and update the order accordingly
+    console.log('Payment failed for PaymentIntent ID:', id, 'Error:', last_payment_error);
+
+    // Optionally, update the order's status to indicate a failed payment
+    const updatedOrder = await Order.findOneAndUpdate(
+      { payment_intent: id },
+      { 
+        isCompleted: false, 
+        error: last_payment_error.message 
+      },
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      console.log('Order updated to reflect payment failure:', updatedOrder);
+    }
+  } catch (err) {
+    console.error('Error handling failed payment intent:', err);
+  }
+}
+
