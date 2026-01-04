@@ -48,11 +48,13 @@ export default function RootLayout({
             <ToastContainer />
             <Toaster
               position="top-right"
+              containerStyle={{ zIndex: 99999 }}
               toastOptions={{
                 duration: 4000,
                 style: {
                   background: '#363636',
                   color: '#fff',
+                  zIndex: 99999,
                 },
                 success: {
                   style: {

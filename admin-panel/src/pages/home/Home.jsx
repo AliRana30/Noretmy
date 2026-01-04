@@ -181,10 +181,10 @@ const Home = () => {
   // Quick Stats Cards
   const QuickStats = () => {
     const stats = [
-      { label: 'Pending Orders', value: pendingOrders, icon: Clock, color: '#f59e0b' },
-      { label: 'Completed', value: completedOrders, icon: CheckCircle, color: '#22c55e' },
-      { label: 'Active Jobs', value: totalJobs, icon: Briefcase, color: '#3b82f6' },
-      { label: 'Growth', value: '+12%', icon: TrendingUp, color: '#8b5cf6' },
+      { label: getTranslation(homeTranslations, "pendingOrders") || 'Pending Orders', value: pendingOrders, icon: Clock, color: '#f59e0b' },
+      { label: getTranslation(homeTranslations, "completed") || 'Completed', value: completedOrders, icon: CheckCircle, color: '#22c55e' },
+      { label: getTranslation(homeTranslations, "activeJobs") || 'Active Jobs', value: totalJobs, icon: Briefcase, color: '#3b82f6' },
+      { label: getTranslation(homeTranslations, "growth") || 'Growth', value: '+12%', icon: TrendingUp, color: '#8b5cf6' },
     ];
 
     return (
@@ -222,13 +222,13 @@ const Home = () => {
         darkMode ? 'bg-[#1a1a2e]/80 border border-white/10' : 'bg-white border border-gray-100 shadow-lg'
       }`}>
         <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          User Overview
+          {getTranslation(homeTranslations, "userOverview") || "User Overview"}
         </h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Freelancers', value: adminStats?.users?.freelancers || 0, color: '#f97316' },
-            { label: 'Clients', value: adminStats?.users?.clients || 0, color: '#3b82f6' },
-            { label: 'Admins', value: adminStats?.users?.admins || 0, color: '#8b5cf6' },
+            { label: getTranslation(homeTranslations, "freelancers") || 'Freelancers', value: adminStats?.users?.freelancers || 0, color: '#f97316' },
+            { label: getTranslation(homeTranslations, "clients") || 'Clients', value: adminStats?.users?.clients || 0, color: '#3b82f6' },
+            { label: getTranslation(homeTranslations, "admins") || 'Admins', value: adminStats?.users?.admins || 0, color: '#8b5cf6' },
           ].map(({ label, value, color }) => (
             <div key={label} className={`p-4 rounded-xl text-center ${
               darkMode ? 'bg-white/5' : 'bg-gray-50'
@@ -245,13 +245,13 @@ const Home = () => {
         darkMode ? 'bg-[#1a1a2e]/80 border border-white/10' : 'bg-white border border-gray-100 shadow-lg'
       }`}>
         <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          Order Status
+          {getTranslation(homeTranslations, "orderStatus") || "Order Status"}
         </h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Pending', value: pendingOrders, color: '#f59e0b' },
-            { label: 'Completed', value: completedOrders, color: '#22c55e' },
-            { label: 'Total', value: totalOrders, color: '#6366f1' },
+            { label: getTranslation(homeTranslations, "pending") || 'Pending', value: pendingOrders, color: '#f59e0b' },
+            { label: getTranslation(homeTranslations, "completed") || 'Completed', value: completedOrders, color: '#22c55e' },
+            { label: getTranslation(homeTranslations, "total") || 'Total', value: totalOrders, color: '#6366f1' },
           ].map(({ label, value, color }) => (
             <div key={label} className={`p-4 rounded-xl text-center ${
               darkMode ? 'bg-white/5' : 'bg-gray-50'
@@ -268,16 +268,16 @@ const Home = () => {
   // Quick Actions
   const QuickActions = () => {
     const actions = [
-      { href: '/admin/users', icon: <Users className="w-6 h-6 text-orange-500" />, title: 'Manage Users', subtitle: `${totalUsers} total`, permission: 'user_management' },
-      { href: '/admin/orders', icon: <Package className="w-6 h-6 text-blue-500" />, title: 'View Orders', subtitle: `${pendingOrders} pending`, permission: 'order_management' },
-      { href: '/admin/withdrawals', icon: <DollarSign className="w-6 h-6 text-purple-500" />, title: 'Withdrawals', subtitle: 'Process requests', permission: 'payment_management' },
-      { href: '/admin/jobs', icon: <Briefcase className="w-6 h-6 text-slate-500" />, title: 'Manage Jobs', subtitle: `${totalJobs} active`, permission: 'content_moderation' },
+      { href: '/admin/users', icon: <Users className="w-6 h-6 text-orange-500" />, title: getTranslation(homeTranslations, "manageUsers") || 'Manage Users', subtitle: `${totalUsers} total`, permission: 'user_management' },
+      { href: '/admin/orders', icon: <Package className="w-6 h-6 text-blue-500" />, title: getTranslation(homeTranslations, "viewOrders") || 'View Orders', subtitle: `${pendingOrders} pending`, permission: 'order_management' },
+      { href: '/admin/withdrawals', icon: <DollarSign className="w-6 h-6 text-purple-500" />, title: getTranslation(homeTranslations, "withdrawals") || 'Withdrawals', subtitle: 'Process requests', permission: 'payment_management' },
+      { href: '/admin/jobs', icon: <Briefcase className="w-6 h-6 text-slate-500" />, title: getTranslation(homeTranslations, "manageJobs") || 'Manage Jobs', subtitle: `${totalJobs} active`, permission: 'content_moderation' },
     ];
 
     return (
       <div className="mb-6">
         <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          Quick Actions
+          {getTranslation(homeTranslations, "quickActions") || "Quick Actions"}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {actions.filter(a => hasPermission(a.permission)).map(({ href, icon, title, subtitle }) => (
@@ -421,7 +421,7 @@ const Home = () => {
           darkMode ? 'bg-[#1a1a2e]/80 border border-white/10' : 'bg-white border border-gray-100 shadow-lg'
         }`}>
           <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            System Status
+            {getTranslation(homeTranslations, "systemStatus") || "System Status"}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[

@@ -16,7 +16,6 @@ import Hero from '@/components/home/Hero';
 import SocialProof from '@/components/home/SocialProof';
 import ProblemSolution from '@/components/home/ProblemSolution';
 import HowItWorks from '@/components/home/HowItWorks';
-import FinalCTA from '@/components/home/FinalCTA';
 
 // Existing Components
 import CategoriesCarousel from '@/components/shared/CategoriesCarousel';
@@ -189,9 +188,9 @@ const Home = () => {
               {/* Why Choose Us: Key differentiators */}
               <WhyChooseUs />
 
-              {/* === ACTION PHASE === */}
-              {/* Final CTA: Strong closing with email capture and benefits */}
-              <FinalCTA />
+
+
+
             </>
           )}
         </PageTransitionWrapper>

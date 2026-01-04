@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getMyNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../utils/adminApi";
 import { toast } from "react-hot-toast";
+import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext();
 
@@ -8,8 +9,12 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
+    // Only fetch if authenticated and we have a user
+    if (!isAuthenticated() || !user) return;
+    
     try {
       setLoading(true);
       const response = await getMyNotifications();
@@ -23,7 +28,7 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, user]);
 
   const handleMarkAsRead = async (id) => {
     // Optimistic UI update
@@ -70,11 +75,13 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchNotifications();
-    // Poll for new notifications
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
+    if (isAuthenticated() && user) {
+      fetchNotifications();
+      // Poll for new notifications
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchNotifications, isAuthenticated, user]);
 
   return (
     <NotificationContext.Provider value={{

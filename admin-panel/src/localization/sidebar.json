@@ -27,7 +27,7 @@
     "adminDocuments": "Admin Documents",
     "websiteContent": "Website Content",
     "documentVerificationSection": "Document Verification",
-    "paymentWithdrawlApproval": "Payment Withdrawal Approval",
+    "paymentWithdrawalApproval": "Payment Withdrawal Approval",
     "systemHealth": "System Health",
     "logs": "Logs",
     "profile": "Profile",
@@ -61,10 +61,10 @@
     "adminDocuments": "Documentos Admin",
     "websiteContent": "Contenido del Sitio Web",
     "documentVerificationSection": "Verificación de Documentos",
-    "paymentWithdrawlApproval": "Aprobación de Retiro de Pago",
+    "paymentWithdrawalApproval": "Aprobación de Retiro de Pago",
     "systemHealth": "Salud del Sistema",
     "logs": "Registros",
     "profile": "Perfil",
     "logout": "Cerrar Sesión"
   }
-} 
+}

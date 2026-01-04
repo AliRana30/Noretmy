@@ -24,6 +24,7 @@ export const SIDEBAR_NAV_LIST = [
     label: 'Dashboard',
     icon: Home,
     allowedRoles: ['admin', 'user'],
+    translationKey: 'dashboard'
   },
   {
     id: '/admin/users',
@@ -31,6 +32,7 @@ export const SIDEBAR_NAV_LIST = [
     icon: Users,
     allowedRoles: ['admin'],
     requiredPermission: 'user_management',
+    translationKey: 'users'
   },
   {
     id: '/admin/orders',
@@ -38,6 +40,7 @@ export const SIDEBAR_NAV_LIST = [
     icon: ShoppingBag,
     allowedRoles: ['admin'],
     requiredPermission: 'order_management',
+    translationKey: 'orders'
   },
   {
     id: '/admin/jobs',
@@ -45,6 +48,7 @@ export const SIDEBAR_NAV_LIST = [
     icon: Briefcase,
     allowedRoles: ['admin'],
     requiredPermission: 'content_moderation',
+    translationKey: 'adminJobs'
   },
   {
     id: '/admin/withdrawals',
@@ -52,6 +56,7 @@ export const SIDEBAR_NAV_LIST = [
     icon: DollarSign,
     allowedRoles: ['admin'],
     requiredPermission: 'payment_management',
+    translationKey: 'adminWithdrawals'
   },
   {
     id: '/admin/sensitive-messages',
@@ -59,12 +64,14 @@ export const SIDEBAR_NAV_LIST = [
     icon: AlertTriangle,
     allowedRoles: ['admin'],
     requiredPermission: 'content_moderation',
+    translationKey: 'adminSensitiveMessages'
   },
   {
     id: '/notifications',
     label: 'Notifications',
     icon: Bell,
     allowedRoles: ['admin', 'user'],
+    translationKey: 'notifications'
   },
   {
     id: '/admin/documents',
@@ -72,12 +79,14 @@ export const SIDEBAR_NAV_LIST = [
     icon: FileCheck,
     allowedRoles: ['admin'],
     requiredPermission: 'user_management',
+    translationKey: 'adminDocuments'
   },
   {
-    id: '/withdrawl-requests',
+    id: '/withdrawal-requests',
     label: 'Payment Withdrawal Approval',
     icon: DollarSign,
     allowedRoles: ['admin', 'user'],
+    translationKey: 'paymentWithdrawalApproval'
   },
 ];
 
@@ -86,16 +95,19 @@ export const SIDEBAR_SERVICE_ITEMS = [
     id: 'system-health',
     label: 'System Health',
     icon: Settings,
+    translationKey: 'systemHealth'
   },
   {
     id: 'logs',
     label: 'Logs',
     icon: FolderOpen,
+    translationKey: 'logs'
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: Settings,
+    translationKey: 'settings'
   },
 ];
 
@@ -104,10 +116,12 @@ export const SIDEBAR_USER_ITEMS = [
     id: 'profile',
     label: 'Profile',
     icon: User,
+    translationKey: 'profile'
   },
   {
     id: 'logout',
     label: 'Logout',
     icon: LogOut,
+    translationKey: 'logout'
   },
 ];

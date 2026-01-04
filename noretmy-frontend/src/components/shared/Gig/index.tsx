@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
+import FallbackAvatar from '../FallbackAvatar';
 
 interface SellerBadgeInfo {
   level: 'new' | 'level_1' | 'level_2' | 'top_rated';
@@ -131,17 +132,6 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     }
   };
 
-  const getLevelColor = (level?: string) => {
-    switch (level) {
-      case 'Elite':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'Pro':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
-    }
-  };
-
   // Get badge display info based on seller badge level
   const getBadgeDisplayInfo = (badgeLevel?: string) => {
     switch (badgeLevel) {
@@ -247,18 +237,12 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
           {/* Seller Info */}
           {gig.seller && (
             <div className="flex items-center gap-2 mb-3">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-200 flex-shrink-0">
-                <Image
-                  src={gig.seller.profilePicture || '/default-avatar.png'}
-                  alt={gig.seller.username || 'Seller'}
-                  fill
-                  className="object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/default-avatar.png';
-                  }}
-                />
-              </div>
+              <FallbackAvatar
+                src={gig.seller.profilePicture}
+                alt={gig.seller.username || 'Seller'}
+                name={gig.seller.username}
+                size="sm"
+              />
               <span className="text-sm text-slate-600 font-medium truncate">
                 {gig.seller.username}
               </span>

@@ -619,19 +619,22 @@ const getAllJobs = async (req, res) => {
     const sellerMap = new Map();
     if (uniqueSellerIds.length > 0) {
       try {
-        const sellers = await User.find({
-          _id: { $in: uniqueSellerIds }
-        }).select('username profilePicture fullName').lean();
+        const [sellers, profiles] = await Promise.all([
+          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
+          UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
+        ]);
         
+        const profileMap = new Map();
+        profiles.forEach(p => profileMap.set(p.userId.toString(), p.profilePicture));
+
         sellers.forEach(seller => {
           sellerMap.set(seller._id.toString(), {
             username: seller.username || seller.fullName || 'Unknown',
-            profilePicture: seller.profilePicture || '/default-avatar.png'
+            profilePicture: profileMap.get(seller._id.toString()) || '/default-avatar.png'
           });
         });
-      } catch (sellerErr) {
-        console.error("Error fetching seller info:", sellerErr);
-        // Continue without seller info if there's an error
+      } catch (err) {
+        console.error("Error fetching seller info for search:", err);
       }
     }
 
@@ -868,9 +871,11 @@ const getFeaturedJobs = async (req, res) => {
     if (uniqueSellerIds.length > 0) {
       try {
         // Fetch badges
-        const badges = await SellerBadge.find({ 
-          userId: { $in: uniqueSellerIds } 
-        }).select('userId currentLevel trustScore isVerified').lean();
+        const [badges, sellers, profiles] = await Promise.all([
+          SellerBadge.find({ userId: { $in: uniqueSellerIds } }).select('userId currentLevel trustScore isVerified').lean(),
+          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
+          UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
+        ]);
         
         badges.forEach(badge => {
           badgeMap.set(badge.userId.toString(), {
@@ -880,15 +885,13 @@ const getFeaturedJobs = async (req, res) => {
           });
         });
 
-        // Fetch seller info
-        const sellers = await User.find({
-          _id: { $in: uniqueSellerIds }
-        }).select('username profilePicture fullName').lean();
-        
+        const profileMap = new Map();
+        profiles.forEach(p => profileMap.set(p.userId.toString(), p.profilePicture));
+
         sellers.forEach(seller => {
           sellerMap.set(seller._id.toString(), {
             username: seller.username || seller.fullName || 'Unknown',
-            profilePicture: seller.profilePicture || '/default-avatar.png'
+            profilePicture: profileMap.get(seller._id.toString()) || '/default-avatar.png'
           });
         });
       } catch (err) {

@@ -140,8 +140,8 @@ const Sidebar = () => {
         )}
 
         {filteredNavItems.map((item) => {
-          const translationKey = item.id === '/' ? 'dashboard' : 
-            item.id.replace('/admin/', '').replace(/\//g, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+          const translationKey = item.translationKey || (item.id === '/' ? 'dashboard' : 
+            item.id.replace('/admin/', '').replace(/\//g, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()));
           
           return (
             <SidebarItem

@@ -4,7 +4,6 @@ import { getOrders, getOrdersColumns } from "../../datatablesource";
 import { Link } from "react-router-dom";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
-import listTranslations from "../../localization/list.json";
 import commonTranslations from "../../localization/common.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import { Trash2, X, Eye, Package } from 'lucide-react';
@@ -72,12 +71,14 @@ const List = () => {
           >
             <Eye className="w-4 h-4" />
           </Link>
-          <div 
-            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-            onClick={() => openDeleteModal(params.row)}
-          >
-            {getTranslation(commonTranslations, "delete")}
-          </div>
+          {process.env.NODE_ENV !== 'production' && (
+            <div 
+              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+              onClick={() => openDeleteModal(params.row)}
+            >
+              {getTranslation(commonTranslations, "delete")}
+            </div>
+          )}
         </div>
       ),
     },

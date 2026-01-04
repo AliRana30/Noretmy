@@ -17,7 +17,24 @@
     "user": "User",
     "order": "Order",
     "gig": "Gig",
-    "earning": "Earning"
+    "earning": "Earning",
+    "pendingOrders": "Pending Orders",
+    "completed": "Completed",
+    "activeJobs": "Active Jobs",
+    "growth": "Growth",
+    "userOverview": "User Overview",
+    "freelancers": "Freelancers",
+    "clients": "Clients",
+    "admins": "Admins",
+    "orderStatus": "Order Status",
+    "pending": "Pending",
+    "total": "Total",
+    "quickActions": "Quick Actions",
+    "manageUsers": "Manage Users",
+    "viewOrders": "View Orders",
+    "withdrawals": "Withdrawals",
+    "manageJobs": "Manage Jobs",
+    "systemStatus": "System Status"
   },
   "es": {
     "dashboard": "Panel de Control",
@@ -37,6 +54,23 @@
     "user": "Usuario",
     "order": "Pedido",
     "gig": "Servicio",
-    "earning": "Ganancia"
+    "earning": "Ganancia",
+    "pendingOrders": "Pedidos Pendientes",
+    "completed": "Completados",
+    "activeJobs": "Trabajos Activos",
+    "growth": "Crecimiento",
+    "userOverview": "Resumen de Usuarios",
+    "freelancers": "Freelancers",
+    "clients": "Clientes",
+    "admins": "Administradores",
+    "orderStatus": "Estado del Pedido",
+    "pending": "Pendiente",
+    "total": "Total",
+    "quickActions": "Acciones Rápidas",
+    "manageUsers": "Gestionar Usuarios",
+    "viewOrders": "Ver Pedidos",
+    "withdrawals": "Retiros",
+    "manageJobs": "Gestionar Trabajos",
+    "systemStatus": "Estado del Sistema"
   }
-} 
+}

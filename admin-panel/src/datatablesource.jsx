@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_CONFIG, getApiUrl } from "./config/api";
+import { API_CONFIG, getApiUrl, getAuthHeaders } from "./config/api";
 import datatableColumnsTranslations from "./localization/datatableColumns.json";
 
 const handleApiError = (error) => {
@@ -645,6 +645,7 @@ export const getAdminContactColumns = (getTranslation) => {
 export const fetchData = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.USERS), {
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 
@@ -660,6 +661,7 @@ export const fetchData = async () => {
       isVerified: user.isVerified,
       isBlocked: user.isBlocked,
       isWarned: user.isWarned,
+      warningCount: user.warningCount || 0,
       createdAt: user.createdAt,
     }));
   } catch (error) {
@@ -671,11 +673,26 @@ export const fetchData = async () => {
 export const fetchDocumentsData = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.VERIFIED_SELLERS), {
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
-    } catch (error) {
-    console.error("Error fetching data:", error);
+    return response.data.map((user) => ({
+      _id: user._id,
+      id: user._id,
+      fullName: user.fullName,
+      username: user.username,
+      email: user.email,
+      img: user.profilePicture || "https://via.placeholder.com/40",
+      isCompany: user.isCompany,
+      documentUrl: user.documentImages?.[0] || user.documentVerify || user.documentUrl || "",
+      isWarned: user.isWarned,
+      warningCount: user.warningCount || 0,
+      isBlocked: user.isBlocked,
+      status: user.isBlocked ? "blocked" : user.isVerified ? "active" : "pending",
+    }));
+  } catch (error) {
+    console.error("Error fetching documents data:", error);
     handleApiError(error);
   }
 };
@@ -683,7 +700,8 @@ export const fetchDocumentsData = async () => {
 export const getOrders = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.ORDERS), {
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
     // Sort orders by date (descending)
@@ -701,6 +719,7 @@ export const getOrders = async () => {
 export const getJobs = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.JOBS), {
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 
@@ -751,6 +770,7 @@ export const getUserJobs = async (userId) => {
       userId: userId,
     }, {
       headers: {
+        ...getAuthHeaders(),
         'Content-Type': 'application/json',
       },
       withCredentials: true
@@ -790,6 +810,7 @@ export const getUserJobs = async (userId) => {
 export const getSensitiveMessages = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.SENSITIVE_MESSAGES), {
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 
@@ -814,6 +835,7 @@ export const getSensitiveMessages = async () => {
 export const getNotifications = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_NOTIFICATIONS) + '?limit=100', {
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 
@@ -831,6 +853,7 @@ export const getNotifications = async () => {
 export const getAllWithdrawalRequests = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.WITHDRAWALS), {
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 

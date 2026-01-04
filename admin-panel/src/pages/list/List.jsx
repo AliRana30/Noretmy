@@ -46,12 +46,14 @@ const List = () => {
           >
             {getTranslation(commonTranslations, "view")}
           </Link>
-          <div 
-            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-            onClick={() => handleDelete(params.row.id)}
-          >
-            {getTranslation(commonTranslations, "delete")}
-          </div>
+          {process.env.NODE_ENV !== 'production' && (
+            <div 
+              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+              onClick={() => handleDelete(params.row.id)}
+            >
+              {getTranslation(commonTranslations, "delete")}
+            </div>
+          )}
         </div>
       ),
     },

@@ -328,13 +328,15 @@ const ListJobs = () => {
                         <Eye className="w-4 h-4" />
                       </button>
 
-                      <button
-                        onClick={() => handleDelete(job)}
-                        className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {process.env.NODE_ENV !== 'production' && (
+                        <button
+                          onClick={() => handleDelete(job)}
+                          className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

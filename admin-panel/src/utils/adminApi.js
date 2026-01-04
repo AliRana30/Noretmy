@@ -82,9 +82,11 @@ adminAxios.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        // Session truly expired, redirect to login
+        // Session truly expired, redirect to login if not already there
         localStorage.removeItem('userData');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

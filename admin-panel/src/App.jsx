@@ -44,6 +44,7 @@ function App() {
     <div className={darkMode ? "app dark" : "app"}>
       <Toaster 
         position="top-right"
+        containerStyle={{ zIndex: 99999 }}
         toastOptions={{
           duration: 4000,
           style: {
@@ -57,6 +58,7 @@ function App() {
           error: {
             iconTheme: { primary: '#ef4444', secondary: '#fff' },
           },
+          zIndex: 99999, // Added zIndex to toastOptions
         }}
       />
       <AuthProvider>

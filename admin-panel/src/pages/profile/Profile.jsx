@@ -1,7 +1,7 @@
 import { useState, useContext, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DarkModeContext } from '../../context/darkModeContext';import { useLocalization } from '../../context/LocalizationContext';
-import profileTranslations from '../../localization/profile.json';import { API_CONFIG } from '../../config/api';
+import profileTranslations from '../../localization/profile.json';import { API_CONFIG, getAuthHeaders } from '../../config/api';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { User, Mail, Shield, Camera, Save, Key, Loader2, Upload } from 'lucide-react';
@@ -72,16 +72,19 @@ const Profile = () => {
         {
           withCredentials: true,
           headers: {
+            ...getAuthHeaders(),
             'Content-Type': 'multipart/form-data'
           }
         }
       );
       
-      if (response.data?.profilePicture) {
+      const updatedData = response.data?.data || response.data;
+      
+      if (updatedData?.profilePicture) {
         // Update the user context with new profile picture
         updateUser({ 
-          profilePicture: response.data.profilePicture,
-          img: response.data.profilePicture 
+          profilePicture: updatedData.profilePicture,
+          img: updatedData.profilePicture 
         });
         toast.success(t('profilePictureUpdated'));
       } else {
@@ -151,16 +154,20 @@ const Profile = () => {
       const response = await axios.put(
         `${API_CONFIG.BASE_URL}/api/users/profile`,
         updateData,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: getAuthHeaders()
+        }
       );
       
       // Update local user data on success
-      if (response.data) {
+      const responseData = response.data?.data || response.data;
+      if (responseData) {
         updateUser({
           fullName: formData.fullName,
           username: formData.username,
           email: formData.email,
-          ...response.data
+          ...responseData
         });
       }
       
