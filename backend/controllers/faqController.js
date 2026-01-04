@@ -133,7 +133,7 @@ const createFAQ = async (req, res) => {
       // Validate each FAQ
       const validFAQs = faqs.map(faq => ({
         ...faq,
-        createdBy: req.user.id,
+        createdBy: req.userId || req.user?._id,
         isActive: faq.isActive !== undefined ? faq.isActive : true,
         order: faq.order || 0
       }));
@@ -157,7 +157,7 @@ const createFAQ = async (req, res) => {
         answer,
         isActive,
         order,
-        createdBy: req.user.id
+        createdBy: req.userId || req.user?._id
       });
       
       await faq.save();
@@ -171,9 +171,9 @@ const createFAQ = async (req, res) => {
   } catch (error) {
     console.error('Error creating FAQ(s):', error);
     if (error.name === 'ValidationError') {
-      return res.status(400).json(createError('Invalid FAQ data'));
+      return res.status(400).json({ success: false, message: error.message || 'Invalid FAQ data' });
     }
-    res.status(500).json(createError('Failed to create FAQ(s)'));
+    res.status(500).json({ success: false, message: 'Failed to create FAQ(s)' });
   }
 };
 
@@ -186,15 +186,15 @@ const updateFAQ = async (req, res) => {
     // Check if it's bulk update
     if (faqIds && Array.isArray(faqIds)) {
       if (faqIds.length === 0) {
-        return res.status(400).json(createError('FAQ IDs array must not be empty'));
+        return res.status(400).json({ success: false, message: 'FAQ IDs array must not be empty' });
       }
       
       if (!updates || Object.keys(updates).length === 0) {
-        return res.status(400).json(createError('Updates object is required'));
+        return res.status(400).json({ success: false, message: 'Updates object is required' });
       }
       
       // Add updatedBy to updates
-      updates.updatedBy = req.user.id;
+      updates.updatedBy = req.userId || req.user?._id;
       
       const result = await FAQ.updateMany(
         { _id: { $in: faqIds } },
@@ -210,7 +210,7 @@ const updateFAQ = async (req, res) => {
       const faq = await FAQ.findById(id);
       
       if (!faq) {
-        return res.status(404).json(createError('FAQ not found'));
+        return res.status(404).json({ success: false, message: 'FAQ not found' });
       }
       
       // Update fields
@@ -220,7 +220,7 @@ const updateFAQ = async (req, res) => {
       if (isActive !== undefined) faq.isActive = isActive;
       if (order !== undefined) faq.order = order;
       
-      faq.updatedBy = req.user.id;
+      faq.updatedBy = req.userId || req.user?._id;
       
       await faq.save();
       
@@ -233,9 +233,9 @@ const updateFAQ = async (req, res) => {
   } catch (error) {
     console.error('Error updating FAQ(s):', error);
     if (error.name === 'ValidationError') {
-      return res.status(400).json(createError('Invalid FAQ data'));
+      return res.status(400).json({ success: false, message: error.message || 'Invalid FAQ data' });
     }
-    res.status(500).json(createError('Failed to update FAQ(s)'));
+    res.status(500).json({ success: false, message: 'Failed to update FAQ(s)' });
   }
 };
 

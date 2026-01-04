@@ -313,8 +313,24 @@ export const getAdminNotifications = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
+export const getMyNotifications = async () => {
+  return makeRequest('GET', API_CONFIG.ENDPOINTS.NOTIFICATIONS);
+};
+
 export const sendBroadcastNotification = async (title, message, type, targetRole) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_BROADCAST, { title, message, type, targetRole });
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+  return makeRequest('PUT', `/api/notification/${notificationId}/read`);
+};
+
+export const deleteNotification = async (notificationId) => {
+  return makeRequest('DELETE', `/api/notification/${notificationId}`);
+};
+
+export const markAllNotificationsAsRead = async () => {
+  return makeRequest('PUT', '/api/notification/mark-all-read');
 };
 
 // ===== PROJECT MANAGEMENT =====

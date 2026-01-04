@@ -100,7 +100,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
 
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch gig data:', error);
         setLoading(false);
       }
     };
@@ -137,7 +136,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         }
       }
     } catch (error) {
-      console.error('Error checking/creating conversation:', error);
+      // Silently handle conversation errors
     }
   };
 

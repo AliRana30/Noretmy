@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 import "./single.css";
 
+// Default fallback avatar SVG as data URI
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f97316'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
+
 const Single = () => {
   const { userId } = useParams();
   const [userData, setUserData] = useState({});
@@ -83,16 +86,15 @@ const Single = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* User Profile Card */}
         <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative user-card">
-          <button className="absolute top-4 right-4 text-xs font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-full transition-colors">
-            {t("editProfile")}
-          </button>
+
 
           <header className="flex flex-col items-center text-center mb-8">
             <div className="relative mb-4">
               <img
-                src={userData.img || userData.profilePicture || "https://via.placeholder.com/150"}
+                src={userData.img || userData.profilePicture || DEFAULT_AVATAR}
                 alt={userData.username}
                 className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-md"
+                onError={(e) => { e.target.onerror = null; e.target.src = DEFAULT_AVATAR; }}
               />
               <div className={`absolute -bottom-2 -right-2 p-1.5 rounded-lg shadow-sm border-2 border-white ${
                 userData.isVerified ? 'bg-orange-500' : 'bg-gray-400'
@@ -137,7 +139,11 @@ const Single = () => {
                 <div className="p-2 bg-gray-50 rounded-lg text-gray-500"><MapPin size={16}/></div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-semibold uppercase">{t("location")}</p>
-                  <p className="text-sm font-medium text-gray-800">{userData.country || userData.location || "Earth"}</p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {userData.city && userData.country 
+                      ? `${userData.city}, ${userData.country}` 
+                      : userData.country || userData.city || userData.location || "Unknown location"}
+                  </p>
                 </div>
               </div>
               {userData.phone && (
@@ -225,11 +231,23 @@ const Single = () => {
             {isFreelancer ? "Active Service Gigs" : "Recent Orders"}
           </h2>
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-            Showing {userData.recentActivity?.jobs?.length || 0} records
+            Showing {userData.recentActivity?.jobs?.length || userData.recentActivity?.orders?.length || 0} records
           </span>
         </div>
         <div className="p-2">
-          <List jobsData={userData.recentActivity?.jobs || []}/>
+          {(userData.recentActivity?.jobs?.length > 0 || userData.recentActivity?.orders?.length > 0) ? (
+            <List jobsData={userData.recentActivity?.jobs || userData.recentActivity?.orders || []}/>
+          ) : (
+            <div className="p-8 text-center">
+              <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg font-medium text-gray-500">
+                {isFreelancer ? "No active gigs yet" : "No orders yet"}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {isFreelancer ? "This user hasn't created any services" : "This user hasn't placed any orders"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

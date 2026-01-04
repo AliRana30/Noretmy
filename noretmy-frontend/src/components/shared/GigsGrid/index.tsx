@@ -140,14 +140,14 @@ const HomeGigs = () => {
             <div className="absolute bottom-0 right-0 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
 
             <div className="text-white text-center sm:text-left relative z-10">
-              <p className="font-bold text-xl mb-1">Can&apos;t find what you need?</p>
-              <p className="text-slate-300">Post a custom request and get offers from experts</p>
+              <p className="font-bold text-xl mb-1">Wan't your desired Service?</p>
+              <p className="text-slate-300">Start with yout first order Now!!</p>
             </div>
             <Link
-              href="/order-request"
+              href="/search-gigs"
               className="relative z-10 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-8 rounded-xl transition-all whitespace-nowrap shadow-lg shadow-orange-500/25"
             >
-              Post a Request
+              Search for Services
             </Link>
           </div>
         </div>

@@ -17,7 +17,9 @@ import {
   getFaqCategories
 } from '../../utils/adminApi';
 import { LoadingSpinner, ErrorMessage } from '../../components/ui';
-import { HelpCircle, Shield, Plus, RefreshCw, Edit, Trash2, X, Check } from 'lucide-react';
+import { HelpCircle, Shield, Plus, RefreshCw, Edit, Trash2, X, Check, Save } from 'lucide-react';
+import axios from 'axios';
+import { API_CONFIG } from '../../config/api';
 
 // Zod validation schema
 const faqSchema = z.object({
@@ -44,6 +46,45 @@ const ManageContent = () => {
       order: 0
     }
   });
+
+  // Privacy Policy state
+  const [privacyPolicy, setPrivacyPolicy] = useState('');
+  const [privacyLoading, setPrivacyLoading] = useState(false);
+  const [privacySaving, setPrivacySaving] = useState(false);
+
+  // Load Privacy Policy
+  const loadPrivacyPolicy = useCallback(async () => {
+    try {
+      setPrivacyLoading(true);
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/api/content/privacy-policy`, {
+        withCredentials: true
+      });
+      setPrivacyPolicy(response.data?.content || response.data?.privacyPolicy || '');
+    } catch (error) {
+      console.error('Error loading privacy policy:', error);
+      setPrivacyPolicy('');
+    } finally {
+      setPrivacyLoading(false);
+    }
+  }, []);
+
+  // Save Privacy Policy
+  const savePrivacyPolicy = async () => {
+    try {
+      setPrivacySaving(true);
+      await axios.put(`${API_CONFIG.BASE_URL}/api/content/privacy-policy`, {
+        content: privacyPolicy
+      }, {
+        withCredentials: true
+      });
+      showNotification('Privacy Policy saved successfully!');
+    } catch (error) {
+      console.error('Error saving privacy policy:', error);
+      showNotification(error.response?.data?.message || 'Failed to save Privacy Policy', 'error');
+    } finally {
+      setPrivacySaving(false);
+    }
+  };
 
   // State management
   const [activeTab, setActiveTab] = useState('faqs');
@@ -91,6 +132,13 @@ const ManageContent = () => {
     loadCategories();
     loadFaqs();
   }, [loadCategories, loadFaqs]);
+
+  // Load privacy policy when tab changes
+  useEffect(() => {
+    if (activeTab === 'privacy') {
+      loadPrivacyPolicy();
+    }
+  }, [activeTab, loadPrivacyPolicy]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });

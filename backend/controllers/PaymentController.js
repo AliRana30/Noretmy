@@ -62,7 +62,23 @@ exports.createCustomerAndPaymentIntent = async (req, res) => {
   }
 };
 
-exports.createCustomerAndPaymentIntentUtil = async (amount, email,paymentType,additionalData) => {
+exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, additionalData) => {
+  // Support both (amount, email, ...) signature and ({ amount, email, ... }) signature
+  let orderId = null;
+  let isMilestone = false;
+  
+  if (typeof amount === 'object') {
+    const params = amount;
+    email = params.email;
+    paymentType = params.paymentType;
+    additionalData = params.additionalData;
+    amount = params.amount;
+  }
+
+  if (additionalData && (additionalData.isMilestone || (additionalData.orderId && additionalData.orderId.isMilestone))) {
+     isMilestone = true;
+  }
+
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new Error('Invalid amount');
   }
@@ -73,6 +89,9 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email,paymentType,ad
 
   // To get Metadata about payment
   const metadata = setupPaymentMetadata(paymentType, additionalData);
+  if (isMilestone) {
+    metadata.milestoneEnabled = 'true';
+  }
 
   try {
 
@@ -94,15 +113,21 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email,paymentType,ad
       });
     }
 
-    // Create a Payment Intent linked to the customer
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmountInCents,  // Amount is in cents
+    const intentParams = {
+      amount: totalAmountInCents,  // Amount in cents
       currency: 'usd',
       customer: customer.id,
       payment_method_types: ['card'],
       metadata,
+    };
 
-    });
+    // Use manual capture for milestone orders
+    if (isMilestone || metadata.milestoneEnabled === 'true') {
+        intentParams.capture_method = 'manual';
+    }
+
+    // Create a Payment Intent linked to the customer
+    const paymentIntent = await stripe.paymentIntents.create(intentParams);
 
     return { 
       payment_intent: paymentIntent.id,
@@ -449,6 +474,9 @@ exports.processRefund = async (req, res) => {
       case 'payment_intent.payment_failed':
         await handlePaymentIntentFailed(event.data.object);
         break;
+      case 'payment_intent.amount_capturable_updated':
+        await handlePaymentIntentAuthorized(event.data.object);
+        break;
       default:
         }
 
@@ -457,6 +485,36 @@ exports.processRefund = async (req, res) => {
     console.error('[Stripe Webhook] Error: ', err.message);
     console.error('[Stripe Webhook] Stack:', err.stack);
     res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+};
+
+// Function to handle authorized payment (Milestones)
+const handlePaymentIntentAuthorized = async (paymentIntent) => {
+  const { id, metadata } = paymentIntent;
+  
+  try {
+    if (metadata.milestoneEnabled === 'true' && metadata.orderId) {
+      const { processAcceptedMilestone } = require('../services/paymentMilestoneService');
+      const order = await Order.findById(metadata.orderId);
+      
+      if (order && order.isMilestone && order.paymentMilestoneStage === 'order_placed') {
+         // Initialize FIRST milestone (Accepted - 10%)
+         // Note: The payment intent is now Authorized for Full Amount.
+         // Calling processAcceptedMilestone will set status to 'accepted'.
+         // It creates the milestone record.
+         await processAcceptedMilestone(order._id, order.sellerId);
+         
+         // Also update order status to started/accepted if not already
+         order.isPaid = false; // Not paid yet, just authorized
+         order.paymentStatus = 'authorized'; 
+         if (order.status === 'created') {
+             order.status = 'accepted'; 
+         }
+         await order.save();
+      }
+    }
+  } catch (err) {
+    console.error('Error handling authorized payment intent:', err);
   }
 };
 

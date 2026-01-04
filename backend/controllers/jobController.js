@@ -164,6 +164,9 @@ const createJob = async (req, res) => {
       return res.status(400).json({ message: "Invalid JSON format in one of the fields", error: err.message });
     }
 
+    // Ensure jobStatus is set to Active if not provided
+    const finalJobStatus = jobStatus && jobStatus.trim() !== '' ? jobStatus : 'Active';
+
     const newJob = new Job({
       title,
       cat,
@@ -174,7 +177,7 @@ const createJob = async (req, res) => {
       pricingPlan: parsedPricingPlan,
       addons: parsedAddons,
       faqs: parsedFaqs,
-      jobStatus,
+      jobStatus: finalJobStatus,
       photos: documentUrls,
       upgradeOption: "free",
       sellerId: userId,
@@ -182,7 +185,12 @@ const createJob = async (req, res) => {
 
     await newJob.save();
 
-    res.status(200).json(newJob);
+    res.status(201).json({ 
+      success: true, 
+      code: 'GIG_CREATED', 
+      message: 'Gig created successfully', 
+      data: newJob 
+    });
   } catch (error) {
     console.error("Error creating job:", error);
     res.status(500).json({ message: "Server Error", error: error.message });
@@ -494,7 +502,7 @@ const getAllJobs = async (req, res) => {
       cat: 1,
       subCat: 1,
       upgradeOption: 1,
-      "pricingPlan.premium": 1,
+      pricingPlan: 1,
       photos: 1,
       sales: 1,
       totalStars: 1,
@@ -607,9 +615,30 @@ const getAllJobs = async (req, res) => {
       return (badgeB.searchBoost || 1.0) - (badgeA.searchBoost || 1.0);
     });
 
+    // ----------- Fetch Seller Information -------------
+    const sellerMap = new Map();
+    if (uniqueSellerIds.length > 0) {
+      try {
+        const sellers = await User.find({
+          _id: { $in: uniqueSellerIds }
+        }).select('username profilePicture fullName').lean();
+        
+        sellers.forEach(seller => {
+          sellerMap.set(seller._id.toString(), {
+            username: seller.username || seller.fullName || 'Unknown',
+            profilePicture: seller.profilePicture || '/default-avatar.png'
+          });
+        });
+      } catch (sellerErr) {
+        console.error("Error fetching seller info:", sellerErr);
+        // Continue without seller info if there's an error
+      }
+    }
+
     // ----------- Build Final Response -------------
     const response = boostedSortedJobs.map(job => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
+      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
       
       return {
         _id: job._id,
@@ -618,13 +647,22 @@ const getAllJobs = async (req, res) => {
         subCat: job.subCat,
         upgradeOption: job.upgradeOption,
         premiumPlan: job.pricingPlan?.premium || null,
+        pricingPlan: job.pricingPlan || null,
         image: job.photos?.[0] || null,
+        photos: job.photos || [],
         sales: job.sales || 0,
         sellerId: job.sellerId,
         jobStatus: job.jobStatus,
+        totalStars: job.totalStars || 0,
+        starNumber: job.starNumber || 0,
+        reviews: job.starNumber || 0,
         rating: job.starNumber > 0
           ? +(job.totalStars / job.starNumber).toFixed(1)
           : 0,
+        seller: {
+          username: sellerInfo.username,
+          profilePicture: sellerInfo.profilePicture
+        },
         sellerBadge: sellerBadge ? {
           level: sellerBadge.level,
           trustScore: sellerBadge.trustScore,
@@ -794,22 +832,42 @@ const getFeaturedJobs = async (req, res) => {
   try {
     const { lang, limit = 12 } = req.query;
 
-    // ONLY show promoted/featured gigs on homepage (homepage, premium, sponsored upgradeOptions)
-    const promotedJobs = await Job.find({ 
-      upgradeOption: { $in: ["homepage", "premium", "sponsored"] },
+    // Show ALL active gigs, sorted by promotion level
+    const allJobs = await Job.find({ 
       jobStatus: { $in: ['Available', 'active', 'Active'] }
-    }).limit(parseInt(limit)).lean();
+    }).limit(parseInt(limit) * 2).lean(); // Fetch more to sort and limit
 
-    if (!promotedJobs || promotedJobs.length === 0) {
-      return res.status(200).json([]); // Return empty array if no promoted gigs
+    if (!allJobs || allJobs.length === 0) {
+      return res.status(200).json([]); // Return empty array if no gigs
     }
 
-    // Fetch seller badges for all promoted jobs
-    const uniqueSellerIds = [...new Set(promotedJobs.map(job => job.sellerId).filter(Boolean))];
+    // Sort by upgrade priority
+    const upgradePriority = {
+      homepage: 1,
+      premium: 2,
+      sponsored: 3,
+      standard: 4,
+      basic: 5,
+      featured: 6,
+      free: 7,
+      null: 8,
+      undefined: 9,
+    };
+
+    const sortedJobs = allJobs.sort((a, b) => {
+      const priorityA = upgradePriority[a.upgradeOption] ?? upgradePriority.null;
+      const priorityB = upgradePriority[b.upgradeOption] ?? upgradePriority.null;
+      return priorityA - priorityB;
+    }).slice(0, parseInt(limit));
+
+    // Fetch seller badges and seller info
+    const uniqueSellerIds = [...new Set(sortedJobs.map(job => job.sellerId).filter(Boolean))];
     let badgeMap = new Map();
+    let sellerMap = new Map();
     
     if (uniqueSellerIds.length > 0) {
       try {
+        // Fetch badges
         const badges = await SellerBadge.find({ 
           userId: { $in: uniqueSellerIds } 
         }).select('userId currentLevel trustScore isVerified').lean();
@@ -821,8 +879,20 @@ const getFeaturedJobs = async (req, res) => {
             isVerified: badge.isVerified || false
           });
         });
-      } catch (badgeErr) {
-        console.error("Error fetching seller badges for featured jobs:", badgeErr);
+
+        // Fetch seller info
+        const sellers = await User.find({
+          _id: { $in: uniqueSellerIds }
+        }).select('username profilePicture fullName').lean();
+        
+        sellers.forEach(seller => {
+          sellerMap.set(seller._id.toString(), {
+            username: seller.username || seller.fullName || 'Unknown',
+            profilePicture: seller.profilePicture || '/default-avatar.png'
+          });
+        });
+      } catch (err) {
+        console.error("Error fetching seller data for featured jobs:", err);
       }
     }
 
@@ -837,28 +907,37 @@ const getFeaturedJobs = async (req, res) => {
     const {countryCode, country} = await getCountryInfo(req);
 
     let rate = null;
-    let convertedJobs = promotedJobs;
+    let convertedJobs = sortedJobs;
 
     if (europeanCountryCodes.includes(countryCode)) {
       rate = await getUsdToEurRate();
-      convertedJobs = convertJobPricesToEur(promotedJobs, rate);
+      convertedJobs = convertJobPricesToEur(sortedJobs, rate);
     }
 
     convertedJobs = applyDiscountUtil(convertedJobs);
 
     if (lang && lang !== "en") {
       convertedJobs = await Promise.all(
-        promotedJobs.map((job) => translateJob(job, lang))
+        convertedJobs.map((job) => translateJob(job, lang))
       );
     }
 
-    // Add seller badge to each job
-    const jobsWithBadges = convertedJobs.map(job => ({
-      ...job,
-      sellerBadge: badgeMap.get(job.sellerId?.toString()) || null
-    }));
+    // Add seller badge and seller info to each job
+    const jobsWithExtras = convertedJobs.map(job => {
+      const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
+      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
       
-    return res.status(200).json(jobsWithBadges);
+      return {
+        ...job,
+        seller: {
+          username: sellerInfo.username,
+          profilePicture: sellerInfo.profilePicture
+        },
+        sellerBadge: sellerBadge
+      };
+    });
+      
+    return res.status(200).json(jobsWithExtras);
   } catch (error) {
     console.error("Error fetching featured jobs:", error);
     res.status(500).json({ message: "Server Error", error: error.message });
@@ -885,7 +964,11 @@ const deleteJob = async (req, res) => {
 
     await Job.findByIdAndDelete(req.params.id);
 
-    res.status(200).send("Gig has been deleted");
+    res.status(200).json({ 
+      success: true, 
+      code: 'GIG_DELETED', 
+      message: "Gig has been deleted" 
+    });
   } catch (error) {
     if (error.name === "CastError") {
       return res.status(400).json({ message: "Invalid Job ID" });
@@ -1131,11 +1214,16 @@ const editJob = async (req, res) => {
     // Update the job
     const updatedJob = await Job.findByIdAndUpdate(
       jobId,
-      { $set: updateFields }, // Only update fields provided in the request
-      { new: true } // Return the updated job
+      { $set: updateFields }, 
+      { new: true } 
     );
 
-    res.status(200).json({ message: "Job updated successfully!", updatedJob });
+    res.status(200).json({ 
+      success: true, 
+      code: 'GIG_UPDATED', 
+      message: "Job updated successfully!", 
+      data: updatedJob 
+    });
   } catch (error) {
     console.error("Error updating job:", error);
     res.status(500).json({ message: "Server Error", error: error.message });

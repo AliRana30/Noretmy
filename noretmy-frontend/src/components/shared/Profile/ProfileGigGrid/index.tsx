@@ -30,8 +30,7 @@ const Gigs: React.FC = () => {
       });
       setGigs(response.data);
     } catch (error) {
-      console.error('Error fetching gigs:', error);
-      // toast.error('Failed to load your gigs. Please try again.');
+      // Silently handle errors - user is notified via empty state
     } finally {
       setLoading(false);
     }
@@ -48,7 +47,6 @@ const Gigs: React.FC = () => {
         setGigs((prevGigs) => prevGigs.filter((gig) => gig._id !== id));
         toast.success('Gig deleted successfully');
       } catch (error) {
-        console.error('Error deleting gig:', error);
         toast.error('Failed to delete gig. Please try again.');
       } finally {
         setDeleteLoading(null);

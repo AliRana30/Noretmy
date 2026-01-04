@@ -141,10 +141,9 @@ const createOrder = async (req, res) => {
       }
     }
 
-    const feeAndTax = orderPrice * PLATFORM_FEE_RATE;
-    const buyerId = (isMilestone || isCustomOrder) ? custom_BuyerId : userId;
-    const buyerEmail = (isMilestone || isCustomOrder) ? user.email : user.email;
-
+    // Calculate VAT and Fees using the single source of truth
+    const vatBreakdown = await getVATForUser(userId, orderPrice);
+    
     let selectedPlan = null;
     if (price == gig.pricingPlan.basic.price) {
       selectedPlan = gig.pricingPlan.basic;
@@ -158,13 +157,32 @@ const createOrder = async (req, res) => {
     if (!isMilestone && selectedPlan) {
       deliveryDate = new Date();
       deliveryDate.setDate(deliveryDate.getDate() + selectedPlan.deliveryTime);
-
     }
+    
+    // Extract calculated values
+    const { 
+      platformFee, 
+      vatAmount, 
+      totalAmount, 
+      vatRate, 
+      clientCountry,
+      sellerEarnings 
+    } = vatBreakdown.breakdown || {};
+
+    const buyerId = (isMilestone || isCustomOrder) ? custom_BuyerId : userId;
+    const buyerEmail = (isMilestone || isCustomOrder) ? user.email : user.email;
 
     const newOrder = new Order({
       gigId: gigId,
       price: orderPrice,
-      feeAndTax: feeAndTax,
+      baseAmount: orderPrice,
+      feeAndTax: platformFee + (vatAmount || 0),
+      platformFee: platformFee,
+      vatAmount: vatAmount || 0,
+      vatRate: vatRate || 0,
+      totalAmount: totalAmount || (orderPrice + platformFee),
+      clientCountry: clientCountry,
+      platformFeeRate: PLATFORM_FEE_RATE,
       sellerId: gig.sellerId,
       buyerId: buyerId,
       payment_intent: "Temp",
@@ -172,19 +190,17 @@ const createOrder = async (req, res) => {
       type: isMilestone ? "milestone" : isCustomOrder ? "custom" : "simple",
       milestones: isMilestone ? updatedMilestones : [],
       ...(deliveryDate ? { deliveryDate } : {}),
-
     });
 
     const savedOrder = await newOrder.save();
-
     let client_secret = null;
 
     if (!isMilestone && !isCustomOrder) {
 
-      const rate = await getVatRate(userId);
+      const rate = vatRate;
       const additionalData = { orderId: savedOrder._id.toString(), userId, vatRate: rate, discount: gig.discount };
 
-      const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(totalAmountWithFeesAndTax, buyerEmail, "order_payment", additionalData);
+      const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(newOrder.totalAmount, buyerEmail, "order_payment", additionalData);
       const { client_secret: secret, payment_intent } = paymentIntentResponse;
 
       savedOrder.payment_intent = payment_intent;

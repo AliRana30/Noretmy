@@ -356,10 +356,10 @@ const SingleOrder = () => {
               {/* Platform Fee */}
               <div className="flex justify-between">
                 <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Platform Fee {order?.platformFeeRate ? `(${order.platformFeeRate}%)` : '(5%)'}
+                  Platform Fee {order?.platformFeeRate ? `(${(order.platformFeeRate * 100).toFixed(0)}%)` : '(5%)'}
                 </span>
                 <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  ${(order?.feeAndTax || order?.platformFee || ((order?.baseAmount || order?.price || 0) * 0.05)).toFixed(2)}
+                  ${(order?.platformFee || order?.feeAndTax || ((order?.baseAmount || order?.price || 0) * 0.05)).toFixed(2)}
                 </span>
               </div>
               
@@ -367,7 +367,7 @@ const SingleOrder = () => {
               {(order?.vatAmount > 0 || order?.vatRate > 0) && (
                 <div className="flex justify-between">
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    VAT {order?.vatRate ? `(${order.vatRate}%)` : ''} {order?.clientCountry ? `- ${order.clientCountry}` : ''}
+                    VAT {order?.vatRate ? `(${(order.vatRate * 100).toFixed(0)}%)` : ''} {order?.clientCountry ? `- ${order.clientCountry}` : ''}
                   </span>
                   <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                     ${(order?.vatAmount || 0).toFixed(2)}
@@ -378,7 +378,7 @@ const SingleOrder = () => {
               <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
                 <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Total</span>
                 <span className={`font-bold text-lg ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                  ${(order?.totalAmount || order?.totalPrice || ((order?.baseAmount || order?.price || 0) + (order?.feeAndTax || 0) + (order?.vatAmount || 0))).toFixed(2)}
+                  ${(order?.totalAmount || order?.totalPrice || ((order?.baseAmount || order?.price || 0) + (order?.platformFee || order?.feeAndTax || 0) + (order?.vatAmount || 0))).toFixed(2)}
                 </span>
               </div>
               
@@ -386,20 +386,20 @@ const SingleOrder = () => {
               <div className="flex justify-between pt-2">
                 <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Payment Status</span>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
-                  order?.isPaid || order?.paymentStatus === 'paid' 
+                  order?.isPaid || order?.paymentStatus === 'paid' ||  order?.stripeChargeId
                     ? 'bg-green-100 text-green-700' 
                     : 'bg-amber-100 text-amber-700'
                 }`}>
-                  {order?.isPaid ? 'Paid' : order?.paymentStatus || 'Pending'}
+                  {order?.isPaid || order?.stripeChargeId ? 'Paid' : order?.paymentStatus || 'Pending'}
                 </span>
               </div>
               
               {/* Seller Earnings */}
-              {order?.isPaid && (
+              {(order?.isPaid || order?.stripeChargeId) && (
                 <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Seller Earnings</span>
                   <span className={`font-medium text-green-500`}>
-                    ${((order?.baseAmount || order?.price || 0) * 0.95).toFixed(2)}
+                    ${((order?.baseAmount || order?.price || 0) - (order?.platformFee || ((order?.baseAmount || order?.price || 0) * 0.05))).toFixed(2)}
                   </span>
                 </div>
               )}

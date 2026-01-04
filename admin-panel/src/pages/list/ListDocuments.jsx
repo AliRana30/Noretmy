@@ -63,7 +63,7 @@ const ListDocuments = () => {
     try {
       setActionLoading(blockUserId);
       await axios.put(
-        `${API_CONFIG.BASE_URL}/api/users/block/${blockUserId}`,
+        `${API_CONFIG.BASE_URL}/api/admin/users/${blockUserId}/block`,
         { reason: blockReason },
         { withCredentials: true }
       );
@@ -89,7 +89,7 @@ const ListDocuments = () => {
     try {
       setActionLoading(userId + '-approve');
       await axios.put(
-        `${API_CONFIG.BASE_URL}/api/users/verify/${userId}`,
+        `${API_CONFIG.BASE_URL}/api/admin/users/${userId}/verify`,
         {},
         { withCredentials: true }
       );

@@ -57,9 +57,32 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       }
 
       // If verified, block duplicate signup
+      if (existingUserByEmail) {
+        const existingRole = existingUserByEmail.role === 'freelancer' ? 'freelancer' : 'client';
+        const requestedRole = isSeller === true || isSeller === 'true' ? 'freelancer' : 'client';
+        
+        if (existingRole !== requestedRole) {
+          return {
+            success: false,
+            code: 'DUPLICATE_EMAIL_DIFFERENT_ROLE',
+            message: `This email is already registered as a ${existingRole}. Noretmy allows only one account type per email. Please use a different email or log in as a ${existingRole}.`,
+            existingRole,
+            requestedRole
+          };
+        }
+        
+        return {
+          success: false,
+          code: 'DUPLICATE_EMAIL',
+          message: `Email already registered as ${existingRole}.`,
+          existingRole
+        };
+      }
+      
       return {
         success: false,
-        message: existingUserByEmail ? 'Email already in use' : 'Username already in use',
+        code: 'DUPLICATE_USERNAME',
+        message: 'Username already in use',
       };
     }
 
@@ -97,16 +120,53 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     await userProfile.save();
 
-    // Send verification email (non-blocking, don't fail signup if email fails)
+    // Send verification email with retry logic
     // Skip email in development if auto-verified
     if (process.env.NODE_ENV !== 'development' || !user.isVerified) {
-      sendVerificationEmail(user.email, token).catch(err => {
-        console.error('Failed to send verification email:', err.message);
-      });
+      const maxRetries = 3;
+      let emailSent = false;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`📧 Attempt ${attempt}/${maxRetries}: Sending verification email to ${user.email}`);
+          await sendVerificationEmail(user.email, token);
+          emailSent = true;
+          console.log(`✅ Verification email sent successfully to ${user.email}`);
+          break;
+        } catch (emailError) {
+          console.error(`❌ Email attempt ${attempt} failed:`, emailError.message);
+          if (attempt === maxRetries) {
+            console.error(`⚠️ All ${maxRetries} email attempts failed for ${user.email}`);
+            // Don't fail signup, just log the error
+          } else {
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+      }
+
+      return {
+        success: true,
+        code: 'SIGNUP_SUCCESS',
+        message: emailSent 
+          ? 'User registered successfully. Verification email sent.'
+          : 'User registered successfully, but email sending failed. Please request a new verification email.',
+        emailSent,
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          username: user.username,
+          role: user.role,
+          isSeller: user.isSeller,
+          isCompany: user.isCompany,
+        },
+      };
     }
 
     return {
       success: true,
+      code: 'SIGNUP_SUCCESS',
       message: 'User registered successfully. Verification email sent.',
       user: {
         id: user._id,
@@ -124,9 +184,17 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     if (error.code === 11000) {
       // Duplicate key error
       const field = Object.keys(error.keyPattern)[0];
-      throw new Error(`${field === 'email' ? 'Email' : 'Username'} already exists`);
+      return {
+        success: false,
+        code: field === 'email' ? 'DUPLICATE_EMAIL' : 'DUPLICATE_USERNAME',
+        message: `${field === 'email' ? 'Email' : 'Username'} already exists`
+      };
     }
-    throw new Error(error.message || 'Failed to create user account');
+    return {
+      success: false,
+      code: 'SIGNUP_ERROR',
+      message: error.message || 'Failed to create user account'
+    };
   }
 };
 
@@ -155,18 +223,21 @@ const signIn = async (email, password) => {
   if (!user) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
+    error.code = 'INVALID_CREDENTIALS';
     throw error;
   }
 
   if (!user.isVerified && user.role !== 'admin') {
-    const error = new Error('Email not verified');
+    const error = new Error('Email not verified. Please check your email for the verification link.');
     error.statusCode = 403;
+    error.code = 'EMAIL_NOT_VERIFIED';
     throw error;
   }
 
   if (user.isBlocked) {
-    const error = new Error('Your account has been blocked. Please contact support.');
+    const error = new Error(`Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}. Please contact support.`);
     error.statusCode = 403;
+    error.code = 'ACCOUNT_BLOCKED';
     throw error;
   }
 
@@ -174,6 +245,7 @@ const signIn = async (email, password) => {
   if (!isMatch) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
+    error.code = 'INVALID_CREDENTIALS';
     throw error;
   }
 

@@ -58,142 +58,95 @@ const sendEmailWithLogging = async (options) => {
     attachments = []
   } = options;
 
-  // Create log entry first
-  let emailLog = null;
-  try {
-    emailLog = new EmailLog({
-      recipient: to,
-      recipientName,
-      recipientType,
-      subject,
-      emailType,
-      userId,
-      orderId,
-      metadata,
-      status: 'pending'
-    });
-    await emailLog.save();
-  } catch (logError) {
-    console.error('Failed to create email log:', logError.message);
-  }
+  const maxRetries = 3;
+  let lastError = null;
 
-  try {
-    const transporter = createTransporter();
-    
-    const mailOptions = {
-      from: `"Noretmy" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-      attachments
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    
-    // Update log with success
-    if (emailLog) {
-      await emailLog.markAsSent({
-        messageId: result.messageId,
-        response: result.response,
-        accepted: result.accepted,
-        rejected: result.rejected
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // Create log entry for each attempt if needed, or update existing one
+    let emailLog = null;
+    try {
+      emailLog = new EmailLog({
+        recipient: to,
+        recipientName,
+        recipientType,
+        subject,
+        emailType,
+        userId,
+        orderId,
+        metadata: { ...metadata, attempt },
+        status: 'pending'
       });
+      await emailLog.save();
+    } catch (logError) {
+      console.error('Failed to create email log:', logError.message);
     }
-    
-    return { success: true, messageId: result.messageId };
-    
-  } catch (error) {
-    // Update log with failure
-    if (emailLog) {
-      await emailLog.markAsFailed(error);
+
+    try {
+      const transporter = createTransporter();
+      
+      const mailOptions = {
+        from: `"Noretmy" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+        attachments
+      };
+
+      console.log(`📧 [Attempt ${attempt}/${maxRetries}] Sending ${emailType} email to ${to}...`);
+      const result = await transporter.sendMail(mailOptions);
+      
+      if (emailLog) {
+        await emailLog.markAsSent({
+          messageId: result.messageId,
+          response: result.response,
+          accepted: result.accepted,
+          rejected: result.rejected
+        });
+      }
+      
+      console.log(`✅ ${emailType} email sent successfully to ${to}`);
+      return { success: true, messageId: result.messageId };
+      
+    } catch (error) {
+      lastError = error;
+      if (emailLog) {
+        await emailLog.markAsFailed(error);
+      }
+      
+      console.error(`❌ [Attempt ${attempt}/${maxRetries}] Email failed: ${emailType} to ${to} - ${error.message}`);
+      
+      if (attempt < maxRetries) {
+        const delay = 1000 * Math.pow(2, attempt - 1); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-    
-    console.error(`❌ Email failed: ${emailType} to ${to} - ${error.message}`);
-    return { success: false, error: error.message };
   }
+
+  return { success: false, error: lastError?.message || 'Failed after multiple attempts' };
 };
 
 const sendVerificationEmail = async (email, token) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, // Use environment variable
-      pass: process.env.EMAIL_PASS, // Use environment variable
-    },
-  });
-
   const emailSubject = 'Email Verification - Noretmy';
   const emailBody = `
     <html>
       <head>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            color: #333;
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 20px;
-          }
-          .header {
-            /* Set background color */
-            padding: 10px;
-            text-align: center;
-            color: white;
-          }
-          .header h1 {
-            font-family: 'Arial', sans-serif;
-            font-size: 36px;
-            font-weight: bold;
-            margin: 0;
-            color: #ea581e;
-            letter-spacing: 2px;
-          }
-          .content {
-            margin-top: 20px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #888;
-          }
-          .footer a {
-            color: #ea581e;
-            text-decoration: none;
-          }
-          .divider {
-            border-top: 1px solid #ddd;
-            margin: 10px 0;
-          }
-          .button {
-            display: inline-block;
-            padding: 15px 25px;
-            margin-top: 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #ea581e;
-            text-decoration: none;
-            color:white;
-            border-radius: 5px;
-          }
+          body { font-family: Arial, sans-serif; color: #333; background-color: #f7f7f7; margin: 0; padding: 20px; }
+          .header { padding: 10px; text-align: center; color: white; }
+          .header h1 { font-family: 'Arial', sans-serif; font-size: 36px; font-weight: bold; margin: 0; color: #ea581e; letter-spacing: 2px; }
+          .content { margin-top: 20px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+          .footer a { color: #ea581e; text-decoration: none; }
+          .divider { border-top: 1px solid #ddd; margin: 10px 0; }
+          .button { display: inline-block; padding: 15px 25px; margin-top: 20px; font-size: 16px; color: #fff; background-color: #ea581e; text-decoration: none; border-radius: 5px; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>noretmy</h1>
-        </div>
+        <div class="header"><h1>noretmy</h1></div>
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with Noretmy. To complete your registration, please verify your email address by clicking the button below:</p>
-
-          <a href="noretmy.com/verify-email?token=${token}&email=${email}" class="button">
-            Verify Your Email
-          </a>
-
+          <a href="https://noretmy.com/verify-email?token=${token}&email=${email}" class="button">Verify Your Email</a>
           <div class="divider"></div>
           <p>If you did not register for this account, please ignore this email.</p>
           <p>Best regards,<br>The Noretmy Team</p>
@@ -206,15 +159,13 @@ const sendVerificationEmail = async (email, token) => {
     </html>
   `;
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'verification',
+    metadata: { token }
+  });
 };
 
 const sendUserNotificationEmail = async (email, type, emailMessage, userType, orderDetails) => {
@@ -1193,65 +1144,17 @@ const sendResetPasswordEmail = async (email, resetLink) => {
     <html>
       <head>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            color: #333;
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 20px;
-          }
-          .header {
-            padding: 10px;
-            text-align: center;
-            color: white;
-          }
-          .header h1 {
-            font-family: 'Arial', sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
-            color: #ea581e;
-            letter-spacing: 2px;
-          }
-          .header h4 {
-            color: #000000;
-          }
-          .content {
-            margin-top: 10px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-          }
-          .button {
-            display: inline-block;
-            background-color: #ea581e;
-            color: white;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            margin-top: 20px;
-            font-weight: bold;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #888;
-          }
-          .footer a {
-            color: #e46625;
-            text-decoration: none;
-          }
+          body { font-family: Arial, sans-serif; color: #333; background-color: #f7f7f7; margin: 0; padding: 20px; }
+          .header { padding: 10px; text-align: center; color: white; }
+          .header h1 { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: bold; margin: 0; color: #ea581e; letter-spacing: 2px; }
+          .content { margin-top: 10px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; }
+          .button { display: inline-block; background-color: #ea581e; color: white; padding: 12px 24px; font-size: 16px; border-radius: 6px; text-decoration: none; margin-top: 20px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+          .footer a { color: #e46625; text-decoration: none; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>Noretmy</h1>
-          <h4>Password Reset Request</h4>
-        </div>
+        <div class="header"><h1>Noretmy</h1><h4>Password Reset Request</h4></div>
         <div class="content">
           <p>Dear User,</p>
           <p>You have requested to reset your password. Click the button below to proceed:</p>
@@ -1266,24 +1169,13 @@ const sendResetPasswordEmail = async (email, resetLink) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'password_reset',
+    metadata: { resetLink }
+  });
 };
 
 const sendOrderRequestEmail = async (email, requestDetails) => {

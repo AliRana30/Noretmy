@@ -12,8 +12,9 @@ import '@/i18n';
 import { useEffect } from 'react';
 import i18next from 'i18next';
 import { Toaster } from 'react-hot-toast';
+import { NotificationProvider } from '@/context/NotificationContext';
 
-const poppins = Poppins({ 
+const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
@@ -41,38 +42,40 @@ export default function RootLayout({
       </head>
       <body className={poppins.className}>
         <ReduxProvider store={store}>
-          <Navbar />
-          {children}
-          <ToastContainer />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
+          <NotificationProvider>
+            <Navbar />
+            {children}
+            <ToastContainer />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
                 style: {
-                  background: '#22c55e',
+                  background: '#363636',
+                  color: '#fff',
                 },
-                iconTheme: {
-                  primary: '#fff',
-                  secondary: '#22c55e',
+                success: {
+                  style: {
+                    background: '#22c55e',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#22c55e',
+                  },
                 },
-              },
-              error: {
-                style: {
-                  background: '#ef4444',
+                error: {
+                  style: {
+                    background: '#ef4444',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#ef4444',
+                  },
                 },
-                iconTheme: {
-                  primary: '#fff',
-                  secondary: '#ef4444',
-                },
-              },
-            }}
-          />
-          <About id="about-us" />
+              }}
+            />
+            <About id="about-us" />
+          </NotificationProvider>
         </ReduxProvider>
       </body>
     </html>

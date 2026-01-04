@@ -27,53 +27,38 @@ export const SIDEBAR_NAV_LIST = [
   },
   {
     id: '/admin/users',
-    label: 'Admin Users',
+    label: 'Users',
     icon: Users,
     allowedRoles: ['admin'],
     requiredPermission: 'user_management',
   },
   {
     id: '/admin/orders',
-    label: 'Admin Orders',
+    label: 'Orders',
     icon: ShoppingBag,
     allowedRoles: ['admin'],
     requiredPermission: 'order_management',
   },
   {
     id: '/admin/jobs',
-    label: 'Admin Jobs',
+    label: 'Jobs',
     icon: Briefcase,
     allowedRoles: ['admin'],
     requiredPermission: 'content_moderation',
   },
   {
     id: '/admin/withdrawals',
-    label: 'Admin Withdrawals',
+    label: 'Withdrawals',
     icon: DollarSign,
     allowedRoles: ['admin'],
     requiredPermission: 'payment_management',
   },
   {
     id: '/admin/sensitive-messages',
-    label: 'Admin Sensitive Messages',
+    label: 'Sensitive Messages',
     icon: AlertTriangle,
     allowedRoles: ['admin'],
     requiredPermission: 'content_moderation',
-  },
-  
-  {
-    id: '/admin/content',
-    label: 'Admin Content',
-    icon: Shield,
-    allowedRoles: ['admin'],
-    requiredPermission: 'content_moderation',
-  },
-  {
-    id: '/admin/documents',
-    label: 'Admin Documents',
-    icon: FileCheck,
-    allowedRoles: ['admin'],
-    requiredPermission: 'user_management',
   },
   {
     id: '/notifications',
@@ -82,10 +67,11 @@ export const SIDEBAR_NAV_LIST = [
     allowedRoles: ['admin', 'user'],
   },
   {
-    id: '/document-verify',
+    id: '/admin/documents',
     label: 'Document Verification',
     icon: FileCheck,
-    allowedRoles: ['admin', 'user'],
+    allowedRoles: ['admin'],
+    requiredPermission: 'user_management',
   },
   {
     id: '/withdrawl-requests',
@@ -125,4 +111,3 @@ export const SIDEBAR_USER_ITEMS = [
     icon: LogOut,
   },
 ];
-

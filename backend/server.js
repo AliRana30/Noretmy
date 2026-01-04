@@ -30,6 +30,7 @@ const badgeRoutes = require('./routes/badgeRoutes');
 const chatAttachmentRoutes = require('./routes/chatAttachmentRoutes');
 const paymentMilestoneRoutes = require('./routes/paymentMilestoneRoutes');
 const emailRoutes = require('./routes/emailRoutes');
+const contentRoutes = require('./routes/contentRoutes');
 
 // Cron jobs
 const { initBadgeCronJobs } = require('./services/badgeCronJobs');
@@ -159,12 +160,21 @@ app.use('/api/badges', badgeRoutes);
 app.use('/api/chat-attachments', chatAttachmentRoutes);
 app.use('/api/payment-milestones', paymentMilestoneRoutes);
 app.use('/api/emails', emailRoutes);
+app.use('/api/content', contentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  const errorStatus = err.status || 500;
+  const errorStatus = err.status || err.statusCode || 500;
   const errorMessage = err.message || "Something went wrong!";
-  return res.status(errorStatus).send(errorMessage);
+  
+  // Structured JSON error response
+  return res.status(errorStatus).json({
+    success: false,
+    status: errorStatus,
+    message: errorMessage,
+    ...(err.errors && { errors: err.errors }),
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 // Create HTTP server and integrate with Socket.io

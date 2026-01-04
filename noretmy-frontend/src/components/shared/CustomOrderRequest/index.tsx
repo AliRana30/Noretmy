@@ -76,7 +76,6 @@ const OrderRequestScreen = () => {
         setOrders(response.data);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
         setIsLoading(false);
       }
     };

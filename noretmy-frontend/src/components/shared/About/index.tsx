@@ -1,7 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
 import Paragraph from '@/components/ui/Paragraph';
-import Footer from '@/components/ui/Footer';
 import Link from 'next/link';
 import { useTranslations } from '@/hooks/useTranslations';
 
@@ -144,7 +143,12 @@ const About: React.FC<AboutProps> = ({ id }) => {
             />
           </Link>
         </div>
-        <Footer />
+        {/* Copyright */}
+        <div className="py-6 border-t border-slate-200">
+          <p className="text-center text-sm text-slate-600">
+            © {new Date().getFullYear()} Noretmy LLC. All rights reserved.
+          </p>
+        </div>
       </div>
     </section>
   );

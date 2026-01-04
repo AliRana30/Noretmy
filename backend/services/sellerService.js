@@ -110,12 +110,28 @@ const getSellerStatistics = async (sellerId) => {
     }) ?? 0;
 
     // Calculate on-time delivery rate
+    // Numerator: Completed orders delivered on time
     const onTimeDeliveries = await Order.countDocuments({
       sellerId,
       status: 'completed',
       $expr: { $lte: ['$updatedAt', '$deliveryDate'] }
     }) ?? 0;
-    const onTimeDeliveryRate = completedOrders > 0 ? Math.round((onTimeDeliveries / completedOrders) * 100) : 100;
+
+    // Denominator: Completed orders + Active Late orders
+    // Active Late = Status NOT completed/cancelled AND current time > deliveryDate
+    const currentDateForLate = new Date();
+    const activeLateOrders = await Order.countDocuments({
+      sellerId,
+      status: { $nin: ['completed', 'cancelled', 'refunded'] },
+      deliveryDate: { $lt: currentDateForLate }
+    }) ?? 0;
+
+    const totalForOnTimeRate = completedOrders + activeLateOrders;
+    
+    // If no relevant orders, default to 100%
+    const onTimeDeliveryRate = totalForOnTimeRate > 0 
+      ? Math.round((onTimeDeliveries / totalForOnTimeRate) * 100) 
+      : 100;
 
     // Aggregate earnings - from completed orders
     const earnings = await Order.aggregate([

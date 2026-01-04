@@ -67,7 +67,7 @@ const RegisterPage = () => {
       toast.success(t('auth:register.success') || 'Account created successfully! Please check your email to verify your account.');
       router.push('/login');
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || t('auth:register.error') || 'Registration failed. Please try again.';
+      const errorMessage = typeof error === 'string' ? error : (error?.response?.data?.message || error?.message || t('auth:register.error') || 'Registration failed. Please try again.');
       toast.error(errorMessage);
     }
   };

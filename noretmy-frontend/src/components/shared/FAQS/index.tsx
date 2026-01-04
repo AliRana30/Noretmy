@@ -226,9 +226,9 @@ const faqs: FAQ[] = [
   {
     category: 'Commission & Fees',
     question:
-      'Is the 2% client commission charged per transaction or per order?',
+      'Is the 5% client commission charged per transaction or per order?',
     answer:
-      'The 2% commission applies to the total order value at the time of purchase.',
+      'The 5% commission applies to the total order value at the time of purchase.',
   },
   {
     category: 'Commission & Fees',
@@ -277,9 +277,9 @@ const faqs: FAQ[] = [
   {
     category: 'VAT & Taxes',
     question:
-      'Does VAT and the 2% service fee apply to all transactions on the platform?',
+      'Does VAT and the 5% service fee apply to all transactions on the platform?',
     answer:
-      'Yes, both VAT and the 2% service fee apply to all purchases on the platform, whether made by clients or freelancers.',
+      'Yes, both VAT and the 5% service fee apply to all purchases on the platform, whether made by clients or freelancers.',
   },
 
   // General
@@ -503,7 +503,7 @@ const faqs: FAQ[] = [
   {
     category: 'Pricing & Fees',
     question: 'How much does it cost to use Noretmy as a client?',
-    answer: 'A commission of 2% per service contracted, plus applicable VAT.',
+    answer: 'A commission of 5% per service contracted, plus applicable VAT.',
   },
   {
     category: 'Quality Standards',
@@ -1090,15 +1090,15 @@ const FAQScreen: React.FC = () => {
                     <button
                       onClick={() => scrollToCategory(category)}
                       className={`w-full text-left px-6 py-4 font-medium transition-colors flex items-center justify-between group ${activeCategory === category
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-50'
                         }`}
                     >
                       <div className="flex items-center">
                         <span
                           className={`w-2 h-2 rounded-full mr-3 ${activeCategory === category
-                              ? 'bg-blue-600'
-                              : 'bg-gray-300'
+                            ? 'bg-blue-600'
+                            : 'bg-gray-300'
                             }`}
                         />
                         {category}

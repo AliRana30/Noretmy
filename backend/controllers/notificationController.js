@@ -154,7 +154,7 @@ const markAllNotificationsAsRead = async (req, res) => {
 // Delete a single notification
 const deleteNotification = async (req, res) => {
     try {
-        const { userId } = req;
+        const { userId, userRole, user } = req;
         const { notificationId } = req.params;
 
         if (!userId) {
@@ -171,14 +171,20 @@ const deleteNotification = async (req, res) => {
             return res.status(404).json({ error: 'Notification not found' });
         }
 
-        // Check ownership - user can only delete their own notifications
-        // Global notifications can't be deleted by users
-        if (notification.isGlobal) {
-            return res.status(403).json({ error: 'Cannot delete global notifications' });
-        }
+        // Admins can delete any notification
+        // Check multiple sources for admin role
+        const isAdmin = userRole === 'admin' || user?.role === 'admin' || req.isAdmin === true;
+        
+        if (!isAdmin) {
+            // Non-admins can only delete their own notifications
+            // Global notifications can't be deleted by regular users
+            if (notification.isGlobal) {
+                return res.status(403).json({ error: 'Cannot delete global notifications' });
+            }
 
-        if (notification.userId && notification.userId.toString() !== userId.toString()) {
-            return res.status(403).json({ error: 'You can only delete your own notifications' });
+            if (notification.userId && notification.userId.toString() !== userId.toString()) {
+                return res.status(403).json({ error: 'You can only delete your own notifications' });
+            }
         }
 
         await Notification.findByIdAndDelete(notificationId);

@@ -5,6 +5,19 @@ import { API_CONFIG, getAuthHeaders } from "../../config/api";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
+const validatePassword = (password) => {
+  const errors = [];
+  if (password.length < 8) errors.push('At least 8 characters');
+  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter');
+  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter');
+  if (!/[0-9]/.test(password)) errors.push('At least one number');
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push('At least one special character');
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
 const New = ({ inputs, title, apiEndpoint }) => {
   const [file, setFile] = useState("");
   const [info, setInfo] = useState({});
@@ -116,20 +129,38 @@ const New = ({ inputs, title, apiEndpoint }) => {
                       ))}
                     </select>
                   ) : (
-                    <input 
-                      onChange={handleChange}
-                      type={input.type} 
-                      name={input.name}
-                      placeholder={input.placeholder}
-                      className="w-full h-11 px-4 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-0 focus:border-amber-500 hover:border-gray-300"
-                    />
+                    <>
+                      <input 
+                        onChange={handleChange}
+                        type={input.type} 
+                        name={input.name}
+                        placeholder={input.placeholder}
+                        className={`w-full h-11 px-4 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-0 focus:border-amber-500 hover:border-gray-300 ${
+                          input.type === 'password' && info[input.name] && !validatePassword(info[input.name]).isValid ? 'border-red-300' : ''
+                        }`}
+                      />
+                      {input.type === 'password' && info[input.name] && (
+                        <div className="mt-2 text-xs space-y-1">
+                          {validatePassword(info[input.name]).errors.map((err, i) => (
+                            <p key={i} className="text-red-500 flex items-center gap-1">
+                              • {err}
+                            </p>
+                          ))}
+                          {validatePassword(info[input.name]).isValid && (
+                            <p className="text-green-600 flex items-center gap-1">
+                              ✓ Password meets all requirements
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
               <button 
                 onClick={handleClick}
                 type="submit"
-                disabled={loading}
+                disabled={loading || (inputs.some(input => input.type === 'password' && info[input.name] && !validatePassword(info[input.name]).isValid))}
                 className="w-full md:w-auto px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors mt-4 disabled:opacity-50"
               >
                 {loading ? "Sending..." : "Send"}

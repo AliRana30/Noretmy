@@ -112,25 +112,23 @@ export const AuthProvider = ({ children }) => {
         setError('Network error. Please check your connection and try again.');
       } else if (error.response) {
         // Server responded with error status
-        const statusCode = error.response.status;
-        const errorMessage = error.response.data?.message || error.response.data?.error || `Server error: ${statusCode}`;
+        // Prioritize actual backend error message
+        const errorMessage = error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
         
-        // Set specific error keys based on status code
+        setError(errorMessage);
+        
+        // Set specific error keys for internal logic if needed
+        const statusCode = error.response.status;
         if (statusCode === 401) {
           setErrorKey('invalidCredentials');
-          setError('Invalid email or password');
         } else if (statusCode === 403) {
           setErrorKey('accessDenied');
-          setError('Access denied');
         } else if (statusCode === 404) {
           setErrorKey('notFound');
-          setError('User not found');
         } else if (statusCode >= 500) {
           setErrorKey('serverError');
-          setError('Server error. Please try again later.');
         } else {
           setErrorKey('loginFailed');
-          setError(errorMessage);
         }
       } else {
         setErrorKey('loginFailed');

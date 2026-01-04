@@ -22,8 +22,8 @@ const List = ({jobsData}) => {
             <TableCell className="tableCell">{getTranslation(tableTranslations, "jobStatus")}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "dateCreated")}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "upgradeMethod")}</TableCell>
-            {/* <TableCell className="tableCell">{getTranslation(tableTranslations, "paymentMethod")}</TableCell> */}
-            {/* <TableCell className="tableCell">{getTranslation(tableTranslations, "status")}</TableCell> */}
+            <TableCell className="tableCell">{getTranslation(tableTranslations, "paymentMethod") || "Type"}</TableCell>
+            <TableCell className="tableCell">{getTranslation(tableTranslations, "status")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

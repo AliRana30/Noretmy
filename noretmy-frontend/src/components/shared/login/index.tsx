@@ -66,7 +66,7 @@ const LoginPage = () => {
       toast.success(t('auth:login.success') || 'Login successful!');
       router.push('/');
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || t('auth:login.error') || 'Login failed. Please check your credentials.';
+      const errorMessage = typeof error === 'string' ? error : (error?.response?.data?.message || error?.message || t('auth:login.error') || 'Login failed. Please check your credentials.');
       toast.error(errorMessage);
     }
   };

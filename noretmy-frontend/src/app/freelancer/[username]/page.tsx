@@ -83,6 +83,7 @@ interface FreelancerData {
     user: {
       fullName: string;
       username: string;
+      profilePicture?: string | null;
     };
     createdAt: string;
   }[];
@@ -177,9 +178,9 @@ const FreelancerProfileContent = () => {
 
       {/* Profile Header */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 pb-6">
-            <div className="flex flex-col md:flex-row md:items-end gap-x-6 gap-y-4 -mt-10 md:-mt-12 relative z-10 px-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row items-start gap-6 relative z-10">
               {/* Profile Picture */}
               <div className="relative">
                 <Image
@@ -187,17 +188,17 @@ const FreelancerProfileContent = () => {
                   alt={user.fullName}
                   width={128}
                   height={128}
-                  className="w-32 h-32 rounded-xl border-4 border-white shadow-lg object-cover"
+                  className="w-32 h-32 rounded-xl border-4 border-slate-50 shadow-sm object-cover"
                 />
                 {stats.averageRating >= 4.5 && (
-                  <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-1.5 rounded-full">
+                  <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-1.5 rounded-full border-2 border-white">
                     <Award className="w-4 h-4" />
                   </div>
                 )}
               </div>
 
               {/* Profile Info */}
-              <div className="flex-1 md:pb-2 mt-20">
+              <div className="flex-1 md:pb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold text-slate-900">{user.fullName}</h1>
                   {sellerBadge && (
@@ -479,10 +480,20 @@ const FreelancerProfileContent = () => {
                       className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                          <span className="text-slate-600 font-medium">
-                            {review.user?.fullName?.charAt(0).toUpperCase() || '?'}
-                          </span>
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                          {review.user?.profilePicture ? (
+                            <Image
+                              src={review.user.profilePicture}
+                              alt={review.user.fullName}
+                              width={40}
+                              height={40}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-slate-600 font-medium">
+                              {review.user?.fullName?.charAt(0).toUpperCase() || '?'}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">

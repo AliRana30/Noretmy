@@ -53,6 +53,10 @@ const paymentMilestoneSchema = new mongoose.Schema({
     type: String,
     default: 'USD'
   },
+  vatAmount: {
+    type: Number,
+    default: 0
+  },
   
   // Stripe payment tracking
   stripePaymentIntentId: {

@@ -13,6 +13,7 @@ const {
   updateUserRole,
   blockUser,
   unblockUser,
+  verifyUser,
   warnUser,
   deleteUser,
   
@@ -118,6 +119,7 @@ router.put('/users/:userId/role', ...requirePermission('user_management'), updat
 router.put('/users/:userId/permissions', ...requirePermission('user_management'), updateUserPermissions);
 router.put('/users/:userId/block', ...requirePermission('user_management'), blockUser);
 router.put('/users/:userId/unblock', ...requirePermission('user_management'), unblockUser);
+router.put('/users/:userId/verify', ...requireAdmin, verifyUser);
 router.put('/users/:userId/warn', ...requirePermission('user_management'), warnUser);
 router.delete('/users/:userId', ...requirePermission('user_management'), deleteUser);
 router.post('/users/bulk', ...requirePermission('user_management'), bulkUpdateUsers);

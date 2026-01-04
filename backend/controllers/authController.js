@@ -55,19 +55,27 @@ const handleSignup = async (req, res, next) => {
     if (!signUpResponse.success) {
       return res.status(400).json({
         success: false,
+        code: signUpResponse.code || 'SIGNUP_FAILED',
         message: signUpResponse.message,
+        ...(signUpResponse.existingRole && { existingRole: signUpResponse.existingRole }),
+        ...(signUpResponse.requestedRole && { requestedRole: signUpResponse.requestedRole })
       });
     }
 
     return res.status(201).json({
       success: true,
-      message: 'Verification email sent. Please check your email to verify your account.',
+      code: signUpResponse.code || 'SIGNUP_SUCCESS',
+      message: signUpResponse.emailSent 
+        ? 'Account created successfully. Please check your email to verify your account.'
+        : 'Account created successfully, but verification email failed. Please request a new verification email.',
+      emailSent: signUpResponse.emailSent !== false,
       user: signUpResponse.user,
     });
   } catch (error) {
     console.error('Signup error:', error);
     return res.status(500).json({
       success: false,
+      code: 'SIGNUP_SERVER_ERROR',
       message: error.message || 'Internal server error during signup',
     });
   }
@@ -81,25 +89,29 @@ const handleLogin = async (req, res) => {
     const token= sign({
       id:user.id,
       role:user.role,
-      isSeller:user.isSeller, // Keep for backward compatibility
+      isSeller:user.isSeller,
     },process.env.JWT_KEY)
-
-    // req.session.user = user;
-    // const {password,...info}=user;
 
     res.cookie("accessToken",token,{
       httpOnly:true,
       secure: true, 
-  sameSite: 'None',
-   maxAge: 30 * 24 * 60 * 60 * 1000
+      sameSite: 'None',
+      maxAge: 30 * 24 * 60 * 60 * 1000
     }).status(200)  
-    .json(user); 
+    .json({
+      success: true,
+      code: 'LOGIN_SUCCESS',
+      message: 'Login successful',
+      ...user,
+      token
+    }); 
 
   } catch (error) {
     const statusCode = error.statusCode || 500;
 
     res.status(statusCode).json({
       success: false,
+      code: error.code || 'LOGIN_ERROR',
       message: error.message || 'Internal Server Error',
     });
     }
@@ -107,45 +119,55 @@ const handleLogin = async (req, res) => {
 
 const handleVerifiedEmail = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email }); // Access email from req.body
+    const user = await User.findOne({ email: req.body.email });
     if (user && user.isVerified === true) {
-      res.status(200).send("User is verified!");
+      return res.status(200).json({ success: true, code: 'EMAIL_VERIFIED', message: "User is verified!" });
     } else if (user && user.isVerified === false) {
-      res.status(400).send("User is not verified");
+      return res.status(400).json({ success: false, code: 'EMAIL_NOT_VERIFIED', message: "User is not verified" });
     } else {
-      res.status(404).send("User not found");
+      return res.status(404).json({ success: false, code: 'USER_NOT_FOUND', message: "User not found" });
     }
   } catch (error) {
-    res.status(500).send("Server error");
+    return res.status(500).json({ success: false, code: 'SERVER_ERROR', message: "Server error" });
   }
 };
 
 const handleLogout = async (req, res) => {
-  res.clearCookie("accessToken",{
-    sameSite:"none",
-    secure:true,
-
-  }).status(200).send("User has been logged out!")
+  res.clearCookie("accessToken", {
+    sameSite: "none",
+    secure: true,
+  }).status(200).json({ 
+    success: true, 
+    code: 'LOGOUT_SUCCESS', 
+    message: "User has been logged out!" 
+  });
 };
 
-const handleEmailVerification = async (req, res,next) => {
+const handleEmailVerification = async (req, res, next) => {
   const { email, token } = req.query;
   try {
     await verifyEmail(email, token);
-    res.status(200).json({ message: 'Email verified successfully' });
+    res.status(200).json({ 
+      success: true, 
+      code: 'VERIFICATION_SUCCESS', 
+      message: 'Email verified successfully' 
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
-const handleResendVerificationEmail = async (req, res,next) => {
+const handleResendVerificationEmail = async (req, res, next) => {
   const { email } = req.body;
   try {
     await resendVerificationEmail(email);
-    res.status(200).json({ message: 'Verification email resent successfully' });
+    res.status(200).json({ 
+      success: true, 
+      code: 'RESEND_SUCCESS', 
+      message: 'Verification email resent successfully' 
+    });
   } catch (error) {
-    next(error)
-
+    next(error);
   }
 };
 
@@ -154,7 +176,11 @@ const handleForgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success: false, 
+        code: 'USER_NOT_FOUND', 
+        message: "User not found" 
+      });
     }
 
     // Generate reset token valid for 15 minutes
@@ -162,11 +188,28 @@ const handleForgotPassword = async (req, res) => {
 
     // Send email with reset link
     const resetLink = `https://noretmy.com/reset-password?token=${resetToken}`;
-    await sendResetPasswordEmail(user.email,resetLink);
+    const emailRes = await sendResetPasswordEmail(user.email, resetLink);
 
-    res.json({ message: "Password reset link sent to your email" });
+    if (!emailRes.success) {
+      return res.status(500).json({ 
+        success: false, 
+        code: 'EMAIL_SEND_FAILED', 
+        message: "Failed to send reset link. Please try again later." 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      code: 'FORGOT_PASSWORD_SUCCESS', 
+      message: "Password reset link sent to your email" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      code: 'SERVER_ERROR', 
+      message: "Server error", 
+      error: error.message 
+    });
   }
 };
 
@@ -201,6 +244,8 @@ const handleResetPassword = async (req, res) => {
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return res.status(400).json({
+        success: false,
+        code: 'INVALID_PASSWORD',
         message: 'Password does not meet security requirements',
         errors: passwordValidation.errors,
         requirements: getPasswordRequirements()
@@ -210,7 +255,11 @@ const handleResetPassword = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      return res.status(400).json({ message: "Invalid token or user does not exist" });
+      return res.status(400).json({ 
+        success: false, 
+        code: 'INVALID_TOKEN', 
+        message: "Invalid token or user does not exist" 
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -219,20 +268,37 @@ const handleResetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    res.json({ message: "Password reset successful. You can now log in." });
+    res.json({ 
+      success: true, 
+      code: 'RESET_PASSWORD_SUCCESS', 
+      message: "Password reset successful. You can now log in." 
+    });
 
   } catch (error) {
     console.error("Error during password reset:", error);
 
     if (error.name === "TokenExpiredError") {
-      return res.status(400).json({ message: "Token expired. Please request a new password reset link." });
+      return res.status(400).json({ 
+        success: false, 
+        code: 'TOKEN_EXPIRED', 
+        message: "Token expired. Please request a new password reset link." 
+      });
     }
     
     if (error.name === "JsonWebTokenError") {
-      return res.status(400).json({ message: "Invalid token." });
+      return res.status(400).json({ 
+        success: false, 
+        code: 'INVALID_TOKEN', 
+        message: "Invalid token." 
+      });
     }
 
-    res.status(400).json({ message: "Invalid or expired token", error: error.message });
+    res.status(400).json({ 
+      success: false, 
+      code: 'RESET_ERROR', 
+      message: "Invalid or expired token", 
+      error: error.message 
+    });
   }
 };
 

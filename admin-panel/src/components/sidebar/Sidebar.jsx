@@ -9,6 +9,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useLocalization } from '../../context/LocalizationContext';
 import sidebarTranslations from '../../localization/sidebar.json';
 
+// Bundled fallback avatar (public asset, works even when offline)
+const FALLBACK_AVATAR = "/fallback-avatar.svg";
+
+// Default fallback avatar SVG as data URI (backup for onError)
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f97316'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
+
 const Sidebar = () => {
   // Start collapsed on small screens
   const [isOpen, setIsOpen] = useState(() => {
@@ -124,7 +130,7 @@ const Sidebar = () => {
       <div className="flex flex-col flex-1 py-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
         {/* Main Section */}
         {isOpen && (
-          <div className="px-5 mb-3">
+          <div className="lg:px-5 md:px-4 px-2 mb-3">
             <p className={`text-[10px] font-bold uppercase tracking-wider ${
               darkMode ? 'text-gray-500' : 'text-gray-400'
             }`}>
@@ -230,13 +236,14 @@ const Sidebar = () => {
         <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center gap-3">
             <img
-              src={user?.img || user?.profilePicture || 'https://via.placeholder.com/150'}
+              src={user?.img || user?.profilePicture || FALLBACK_AVATAR}
               alt="User"
               className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-500/30"
+              onError={(e) => { e.target.onerror = null; e.target.src = DEFAULT_AVATAR; }}
             />
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {user?.fullName || 'Admin'}
+                {user?.fullName || user?.username || 'Admin'}
               </p>
               <p className={`text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 {user?.role || 'Administrator'}

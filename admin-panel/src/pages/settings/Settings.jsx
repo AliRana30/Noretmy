@@ -22,10 +22,7 @@ const Settings = () => {
     pushNotifications: true,
     weeklyDigest: false,
     twoFactorAuth: false,
-    sessionTimeout: '30',
     language: 'en',
-    timezone: 'UTC',
-    currency: 'USD',
   });
   
   const [saved, setSaved] = useState(false);
@@ -260,21 +257,6 @@ const Settings = () => {
               onToggle={() => handleToggle('twoFactorAuth')} 
             />
           </SettingRow>
-          <SettingRow 
-            label={t('sessionTimeout')} 
-            description={t('sessionTimeoutDesc')}
-          >
-            <SelectField
-              value={settings.sessionTimeout}
-              onChange={(val) => handleChange('sessionTimeout', val)}
-              options={[
-                { value: '15', label: t('minutes15') },
-                { value: '30', label: t('minutes30') },
-                { value: '60', label: t('hour1') },
-                { value: '120', label: t('hours2') },
-              ]}
-            />
-          </SettingRow>
         </SettingSection>
 
         {/* Localization */}
@@ -291,85 +273,6 @@ const Settings = () => {
                 { value: 'es', label: 'Español' },
               ]}
             />
-          </SettingRow>
-          <SettingRow 
-            label={t('timezone')} 
-            description={t('timezoneDesc')}
-          >
-            <SelectField
-              value={settings.timezone}
-              onChange={(val) => handleChange('timezone', val)}
-              options={[
-                { value: 'UTC', label: 'UTC' },
-                { value: 'EST', label: 'Eastern Time (EST)' },
-                { value: 'PST', label: 'Pacific Time (PST)' },
-                { value: 'GMT', label: 'Greenwich Mean Time (GMT)' },
-                { value: 'PKT', label: 'Pakistan Time (PKT)' },
-              ]}
-            />
-          </SettingRow>
-          <SettingRow 
-            label={t('currency')} 
-            description={t('currencyDesc')}
-          >
-            <SelectField
-              value={settings.currency}
-              onChange={(val) => handleChange('currency', val)}
-              options={[
-                { value: 'USD', label: 'USD ($)' },
-                { value: 'EUR', label: 'EUR (€)' },
-                { value: 'GBP', label: 'GBP (£)' },
-                { value: 'PKR', label: 'PKR (₨)' },
-              ]}
-            />
-          </SettingRow>
-        </SettingSection>
-
-        {/* Data & Storage */}
-        <SettingSection icon={Database} title={t('dataStorage')}>
-          <SettingRow 
-            label={t('exportData')} 
-            description={t('exportDataDesc')}
-          >
-            <button 
-              onClick={handleExportData}
-              disabled={exporting}
-              className="px-4 py-2 bg-orange-500/20 text-orange-500 rounded-lg hover:bg-orange-500/30 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
-            >
-              {exporting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                  {t('exporting')}
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  {t('export')}
-                </>
-              )}
-            </button>
-          </SettingRow>
-          <SettingRow 
-            label={t('clearCache')} 
-            description={t('clearCacheDesc')}
-          >
-            <button 
-              onClick={handleClearCache}
-              disabled={clearing}
-              className="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
-            >
-              {clearing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                  {t('clearing')}
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4" />
-                  {t('clear')}
-                </>
-              )}
-            </button>
           </SettingRow>
         </SettingSection>
 

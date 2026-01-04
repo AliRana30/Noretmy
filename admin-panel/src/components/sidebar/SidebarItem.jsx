@@ -1,4 +1,22 @@
 const SidebarItem = ({ icon: Icon, label, isOpen, isSelected, onClick, darkMode, isLogout }) => {
+  // Format label: add space between characters for 2-char labels (e.g., "US" -> "U S")
+  // and convert to Title Case
+  const formatLabel = (text) => {
+    if (!text) return text;
+    
+    // For 2-character labels (ignoring case), convert each to uppercase and add space
+    if (text.length === 2 && /^[a-zA-Z]{2}$/.test(text.trim())) {
+      return text.trim().toUpperCase().split('').join(' ');
+    }
+    
+    // Convert to Title Case (capitalize first letter of each word)
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+  
   const getItemClasses = () => {
     if (isLogout) {
       return darkMode 
@@ -45,7 +63,7 @@ const SidebarItem = ({ icon: Icon, label, isOpen, isSelected, onClick, darkMode,
       )}
       {isOpen && (
         <span className={`lg:text-sm md:text-sm text-xs font-medium truncate ${getLabelClasses()}`}>
-          {label}
+          {formatLabel(label)}
         </span>
       )}
       

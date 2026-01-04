@@ -7,6 +7,7 @@ import { Star, ShoppingBag, MessageCircle, ChevronLeft, ChevronRight } from 'luc
 import Link from 'next/link';
 import { useTranslations } from '@/hooks/useTranslations';
 import SellerBadge from '@/components/shared/SellerBadge';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 interface GigTopProps {
   seller: string;
@@ -146,15 +147,13 @@ const GigTop: React.FC<GigTopProps> = ({
 
             {/* Seller Info */}
             <Link href={`/portfolio/${seller}`} className="flex items-center gap-3 group">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-600">
-                {avatar ? (
-                  <Image src={avatar} alt={seller} fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                    {seller?.charAt(0) || 'S'}
-                  </div>
-                )}
-              </div>
+              <FallbackAvatar
+                src={avatar}
+                alt={seller}
+                name={seller}
+                size="md"
+                className=""
+              />
               <div>
                 <p className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
                   {seller}

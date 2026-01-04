@@ -66,6 +66,7 @@ router.get('/order/:orderId/history', verifyToken, async (req, res) => {
         id: m._id,
         stage: m.stage,
         amount: m.amount,
+        vatAmount: m.vatAmount,
         displayAmount: `$${m.amount.toFixed(2)}`,
         percentage: m.percentageOfTotal,
         status: m.paymentStatus,

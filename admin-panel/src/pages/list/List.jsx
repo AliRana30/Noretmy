@@ -63,7 +63,7 @@ const List = () => {
   return (
     <div className="w-full">
       <div className="w-full">
-        <Datatable data={data} columns={getUserColumns(getTranslation).concat(actionColumn)} />
+        <Datatable data={data} columns={getUserColumns(getTranslation).concat(actionColumn)} showAddButton={false} />
       </div>
     </div>
   );

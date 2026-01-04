@@ -748,384 +748,318 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-t border-gray-200">
-          <button
-            className={`flex-1 py-4 text-center font-medium transition-all ${activeTab === 'order'
-              ? 'text-orange-600 border-b-2 border-orange-500 bg-orange-50'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-            onClick={() => setActiveTab('order')}
-          >
-            <span className="flex items-center justify-center">
-              <FaHistory className="mr-2" />
-              Order Timeline
-            </span>
-          </button>
-          <button
-            className={`flex-1 py-4 text-center font-medium transition-all ${activeTab === 'chat'
-              ? 'text-orange-600 border-b-2 border-orange-500 bg-orange-50'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-            onClick={() => setActiveTab('chat')}
-          >
-            <span className="flex items-center justify-center">
-              <FaComments className="mr-2" />
-              Message Center
-            </span>
-          </button>
-        </div>
+
       </div>
 
-      {activeTab === 'order' && (
-        <div className="p-6">
-          {/* Order Summary - Card with improved design */}
-          <div className="mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
-            <OrderCard
-              orderId={orderDetails.orderId}
-              gigTitle={orderDetails.gigTitle}
-              sellerImage={sellerImage}
-              sellerUsername={sellerUsername}
-              orderPrice={orderDetails.orderPrice}
-              createdAt={orderDetails.createdAt || orderDetails.orderDate}
-              dueDate={orderDetails.deliveryDate}
-            />
-          </div>
-
-          {/* Payment Milestones - Escrow Protection */}
-          <div className="mb-8">
-            <PaymentMilestones
-              orderId={orderDetails.orderId}
-              isSeller={isOrderSeller}
-              onMilestoneUpdate={onOperationComplete}
-            />
-          </div>
-
-          {/* Order Progress Timeline - Upwork Style */}
-          <div className="mb-8">
-            <OrderTimeline
-              status={orderStatus}
-              timeline={orderDetails.timeline || []}
-              isPaid={orderDetails.isPaid}
-              orderDate={orderDetails.createdAt}
-              deliveryDate={orderDetails.deliveryDate}
-              orderCompletionDate={orderDetails.orderCompletionDate}
-              isUserSeller={isOrderSeller}
-              isUserBuyer={isOrderBuyer}
-              orderId={orderDetails.orderId}
-              onApproveDelivery={handleAcceptDelivery}
-              onAdvanceStatus={handleAdvanceOrderStatus}
-            />
-
-            {/* Extend Timeline Button - Only for buyers on active orders */}
-            {isOrderBuyer && ['accepted', 'requirementsSubmitted', 'started', 'halfwayDone', 'delivered', 'requestedRevision'].includes(orderStatus) && (
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => setShowExtendTimeline(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all"
-                >
-                  <FaCalendarAlt className="w-4 h-4" />
-                  Extend Timeline
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Extend Timeline Modal */}
-          {showExtendTimeline && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                  <FaCalendarAlt className="w-5 h-5 mr-2 text-blue-600" />
-                  Extend Order Timeline
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Add extra days to the delivery deadline. The freelancer will be notified of this extension.
-                </p>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Days (1-30)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={extendDays}
-                    onChange={(e) => setExtendDays(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason (optional)
-                  </label>
-                  <textarea
-                    value={extendReason}
-                    onChange={(e) => setExtendReason(e.target.value)}
-                    placeholder="Why are you extending the timeline?"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowExtendTimeline(false);
-                      setExtendDays(1);
-                      setExtendReason('');
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleExtendTimeline}
-                    disabled={isExtending}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50"
-                  >
-                    {isExtending ? 'Extending...' : `Extend by ${extendDays} day${extendDays > 1 ? 's' : ''}`}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Order Timeline - Vertical with improved visual design */}
-          <div className="mt-10">
-            <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-              <div className="bg-gray-100 p-2 rounded-full mr-3 text-black">
-                <FaHistory className="w-5 h-5" />
-              </div>
-              Order Timeline
-            </h2>
-            <div className="relative">
-              {/* Vertical line with gradient */}
-              <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-gray-400 via-gray-400 to-gray-300 rounded-full"></div>
-
-              <div className="space-y-8">
-                {filteredDropdownItems.map((item: any) => {
-                  const isOpen = openDropdown === item.key;
-                  const currentStatusData = statusHistory.find(
-                    (history: HistoryItem) => history._id === item.key,
-                  );
-                  const isCurrentStatus = item.status === orderStatus;
-                  const isCompleted =
-                    statusOrder.indexOf(item.status) <
-                    statusOrder.indexOf(orderStatus);
-
-                  return (
-                    <div key={item.key} className="relative pl-16">
-                      {/* Timeline dot with animation on hover */}
-                      <div
-                        className={`absolute left-4 w-6 h-6 rounded-full flex items-center justify-center 
-                        transform transition-all duration-300 ${isCurrentStatus
-                            ? `${item.bgColor} ring-4 ring-white border ${item.borderColor} scale-125 shadow-md`
-                            : isCompleted
-                              ? 'bg-gray-800 shadow-md'
-                              : 'bg-gray-200'
-                          } ${isOpen ? 'scale-125 shadow-lg' : ''}`}
-                      >
-                        {isCompleted && !isCurrentStatus && (
-                          <FaCheckCircle className="text-white text-xs" />
-                        )}
-                      </div>
-
-                      <div
-                        className={`border rounded-xl transition-all duration-300 ${isCurrentStatus
-                          ? `border-2 ${item.borderColor} shadow-lg`
-                          : 'border-gray-200 hover:shadow-md'
-                          } ${isOpen ? 'shadow-lg transform scale-101' : ''}`}
-                      >
-                        <button
-                          className={`flex justify-between items-center w-full p-5 rounded-t-xl focus:outline-none ${isCurrentStatus
-                            ? `${item.bgColor}`
-                            : 'bg-white hover:bg-gray-50'
-                            } transition-all`}
-                          onClick={() =>
-                            setOpenDropdown(isOpen ? null : item.key)
-                          }
-                        >
-                          <span className="flex items-center gap-3">
-                            <div
-                              className={`p-2 rounded-full ${isCurrentStatus
-                                ? 'bg-white bg-opacity-50'
-                                : isCompleted
-                                  ? 'bg-gray-100'
-                                  : 'bg-gray-100'
-                                }`}
-                            >
-                              <span
-                                className={`${isCurrentStatus ? 'text-black' : isCompleted ? 'text-black' : 'text-gray-500'}`}
-                              >
-                                {item.icon}
-                              </span>
-                            </div>
-                            <div>
-                              <span
-                                className={`font-semibold text-base ${isCurrentStatus ? 'text-black' : isCompleted ? 'text-gray-700' : 'text-gray-700'}`}
-                              >
-                                {item.label}
-                              </span>
-                              {isCurrentStatus && (
-                                <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-gray-800 shadow-sm">
-                                  Active
-                                </span>
-                              )}
-                              {currentStatusData && currentStatusData.date && (
-                                <div className="text-xs text-gray-500 mt-1 flex items-center">
-                                  <FaCalendarAlt className="mr-1 text-gray-400" />
-                                  {new Date(
-                                    currentStatusData.date,
-                                  ).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          </span>
-                          <span
-                            className={`transition-all duration-300 transform ${isOpen ? 'rotate-180' : ''} 
-                                          bg-white p-2 rounded-full text-gray-500 shadow-sm ${isOpen ? 'bg-gray-100' : ''}`}
-                          >
-                            <FaChevronDown className="h-4 w-4" />
-                          </span>
-                        </button>
-
-                        {isOpen && (
-                          <div className="p-5 border-t border-gray-200 bg-white rounded-b-xl transition-all">
-                            {renderActions(item.status, currentStatusData)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Key Metrics Footer with improved design - Single Row */}
-          <div className="mt-10 p-5 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-lg">
-            <h3 className="text-gray-800 font-medium mb-4 flex items-center">
-              <FaChartLine className="mr-2 text-gray-600" />
-              Order Metrics
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Time Elapsed Card */}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-md bg-gray-100 mr-3">
-                    <FaCalendarAlt className="text-gray-600 h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Time Elapsed</div>
-                    <div className="font-semibold text-gray-800">
-                      {metrics.daysSinceCreation} {metrics.daysSinceCreation === 1 ? 'day' : 'days'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Time Remaining Card */}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-md bg-gray-100 mr-3">
-                    <FaClock className="text-gray-600 h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Time Remaining</div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-bold text-lg text-gray-800">{timeLeft.days}</span>
-                      <span className="text-xs text-gray-500">DAYS</span>
-                      <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.hours}</span>
-                      <span className="text-xs text-gray-500">HOURS</span>
-                      <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.minutes}</span>
-                      <span className="text-xs text-gray-500">MINUTES</span>
-                      <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.seconds}</span>
-                      <span className="text-xs text-gray-500">SECONDS</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Total Revisions Card */}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-md bg-gray-100 mr-3">
-                    <FaSync className="text-gray-600 h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Total Revisions</div>
-                    <div className="font-semibold text-gray-800">
-                      {metrics.totalRevisions}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Completion Card */}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center">
-                  <div className="p-2 rounded-md bg-gray-100 mr-3">
-                    <FaPercent className="text-gray-600 h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Completion</div>
-                    <div className="font-semibold text-gray-800">
-                      {progressPercentage}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="p-6">
+        {/* Order Summary - Card with improved design */}
+        <div className="mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
+          <OrderCard
+            orderId={orderDetails.orderId}
+            gigTitle={orderDetails.gigTitle}
+            sellerImage={sellerImage}
+            sellerUsername={sellerUsername}
+            orderPrice={orderDetails.orderPrice}
+            createdAt={orderDetails.createdAt || orderDetails.orderDate}
+            dueDate={orderDetails.deliveryDate}
+          />
         </div>
-      )}
 
-      {activeTab === 'chat' && (
-        <div className="p-6">
-          <div className="flex flex-col items-center justify-center h-64 bg-orange-50 rounded-lg border border-dashed border-orange-200">
-            <div className="text-center max-w-lg p-6">
-              <div className="mb-4 bg-orange-100 text-orange-600 p-3 rounded-full inline-flex">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-gray-800 font-medium text-xl mb-3">
-                Your Messages with {sellerName}
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Messages related to this order will appear here. You can discuss
-                requirements, ask questions, or request updates.
-              </p>
-              <button className="px-5 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-md flex items-center justify-center mx-auto"
-                onClick={handleChatClick}
+        {/* Payment Milestones - Escrow Protection */}
+        <div className="mb-8">
+          <PaymentMilestones
+            orderId={orderDetails.orderId}
+            isSeller={isOrderSeller}
+            onMilestoneUpdate={onOperationComplete}
+          />
+        </div>
+
+        {/* Order Progress Timeline - Upwork Style */}
+        <div className="mb-8">
+          <OrderTimeline
+            status={orderStatus}
+            timeline={orderDetails.timeline || []}
+            isPaid={orderDetails.isPaid}
+            orderDate={orderDetails.createdAt}
+            deliveryDate={orderDetails.deliveryDate}
+            orderCompletionDate={orderDetails.orderCompletionDate}
+            isUserSeller={isOrderSeller}
+            isUserBuyer={isOrderBuyer}
+            orderId={orderDetails.orderId}
+            onApproveDelivery={handleAcceptDelivery}
+            onAdvanceStatus={handleAdvanceOrderStatus}
+          />
+
+          {/* Extend Timeline Button - Only for buyers on active orders */}
+          {isOrderBuyer && ['accepted', 'requirementsSubmitted', 'started', 'halfwayDone', 'delivered', 'requestedRevision'].includes(orderStatus) && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowExtendTimeline(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all"
               >
-                <FaComments className="inline-block mr-2" />
-                Start Conversation
+                <FaCalendarAlt className="w-4 h-4" />
+                Extend Timeline
               </button>
             </div>
+          )}
+        </div>
+
+        {/* Extend Timeline Modal */}
+        {showExtendTimeline && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <FaCalendarAlt className="w-5 h-5 mr-2 text-blue-600" />
+                Extend Order Timeline
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Add extra days to the delivery deadline. The freelancer will be notified of this extension.
+              </p>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Additional Days (1-30)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={extendDays}
+                  onChange={(e) => setExtendDays(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason (optional)
+                </label>
+                <textarea
+                  value={extendReason}
+                  onChange={(e) => setExtendReason(e.target.value)}
+                  placeholder="Why are you extending the timeline?"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowExtendTimeline(false);
+                    setExtendDays(1);
+                    setExtendReason('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExtendTimeline}
+                  disabled={isExtending}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50"
+                >
+                  {isExtending ? 'Extending...' : `Extend by ${extendDays} day${extendDays > 1 ? 's' : ''}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Order Timeline - Vertical with improved visual design */}
+        <div className="mt-10">
+          <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+            <div className="bg-gray-100 p-2 rounded-full mr-3 text-black">
+              <FaHistory className="w-5 h-5" />
+            </div>
+            Order Timeline
+          </h2>
+          <div className="relative">
+            {/* Vertical line with gradient */}
+            <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-gray-400 via-gray-400 to-gray-300 rounded-full"></div>
+
+            <div className="space-y-8">
+              {filteredDropdownItems.map((item: any) => {
+                const isOpen = openDropdown === item.key;
+                const currentStatusData = statusHistory.find(
+                  (history: HistoryItem) => history._id === item.key,
+                );
+                const isCurrentStatus = item.status === orderStatus;
+                const isCompleted =
+                  statusOrder.indexOf(item.status) <
+                  statusOrder.indexOf(orderStatus);
+
+                return (
+                  <div key={item.key} className="relative pl-16">
+                    {/* Timeline dot with animation on hover */}
+                    <div
+                      className={`absolute left-4 w-6 h-6 rounded-full flex items-center justify-center 
+                        transform transition-all duration-300 ${isCurrentStatus
+                          ? `${item.bgColor} ring-4 ring-white border ${item.borderColor} scale-125 shadow-md`
+                          : isCompleted
+                            ? 'bg-gray-800 shadow-md'
+                            : 'bg-gray-200'
+                        } ${isOpen ? 'scale-125 shadow-lg' : ''}`}
+                    >
+                      {isCompleted && !isCurrentStatus && (
+                        <FaCheckCircle className="text-white text-xs" />
+                      )}
+                    </div>
+
+                    <div
+                      className={`border rounded-xl transition-all duration-300 ${isCurrentStatus
+                        ? `border-2 ${item.borderColor} shadow-lg`
+                        : 'border-gray-200 hover:shadow-md'
+                        } ${isOpen ? 'shadow-lg transform scale-101' : ''}`}
+                    >
+                      <button
+                        className={`flex justify-between items-center w-full p-5 rounded-t-xl focus:outline-none ${isCurrentStatus
+                          ? `${item.bgColor}`
+                          : 'bg-white hover:bg-gray-50'
+                          } transition-all`}
+                        onClick={() =>
+                          setOpenDropdown(isOpen ? null : item.key)
+                        }
+                      >
+                        <span className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${isCurrentStatus
+                              ? 'bg-white bg-opacity-50'
+                              : isCompleted
+                                ? 'bg-gray-100'
+                                : 'bg-gray-100'
+                              }`}
+                          >
+                            <span
+                              className={`${isCurrentStatus ? 'text-black' : isCompleted ? 'text-black' : 'text-gray-500'}`}
+                            >
+                              {item.icon}
+                            </span>
+                          </div>
+                          <div>
+                            <span
+                              className={`font-semibold text-base ${isCurrentStatus ? 'text-black' : isCompleted ? 'text-gray-700' : 'text-gray-700'}`}
+                            >
+                              {item.label}
+                            </span>
+                            {isCurrentStatus && (
+                              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-gray-800 shadow-sm">
+                                Active
+                              </span>
+                            )}
+                            {currentStatusData && currentStatusData.date && (
+                              <div className="text-xs text-gray-500 mt-1 flex items-center">
+                                <FaCalendarAlt className="mr-1 text-gray-400" />
+                                {new Date(
+                                  currentStatusData.date,
+                                ).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        </span>
+                        <span
+                          className={`transition-all duration-300 transform ${isOpen ? 'rotate-180' : ''} 
+                                          bg-white p-2 rounded-full text-gray-500 shadow-sm ${isOpen ? 'bg-gray-100' : ''}`}
+                        >
+                          <FaChevronDown className="h-4 w-4" />
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="p-5 border-t border-gray-200 bg-white rounded-b-xl transition-all">
+                          {renderActions(item.status, currentStatusData)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Key Metrics Footer with improved design - Single Row */}
+        <div className="mt-10 p-5 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-lg">
+          <h3 className="text-gray-800 font-medium mb-4 flex items-center">
+            <FaChartLine className="mr-2 text-gray-600" />
+            Order Metrics
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Time Elapsed Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center">
+                <div className="p-2 rounded-md bg-gray-100 mr-3">
+                  <FaCalendarAlt className="text-gray-600 h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Time Elapsed</div>
+                  <div className="font-semibold text-gray-800">
+                    {metrics.daysSinceCreation} {metrics.daysSinceCreation === 1 ? 'day' : 'days'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Time Remaining Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center">
+                <div className="p-2 rounded-md bg-gray-100 mr-3">
+                  <FaClock className="text-gray-600 h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Time Remaining</div>
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-lg text-gray-800">{timeLeft.days}</span>
+                    <span className="text-xs text-gray-500">DAYS</span>
+                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.hours}</span>
+                    <span className="text-xs text-gray-500">HOURS</span>
+                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.minutes}</span>
+                    <span className="text-xs text-gray-500">MINUTES</span>
+                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.seconds}</span>
+                    <span className="text-xs text-gray-500">SECONDS</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Revisions Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center">
+                <div className="p-2 rounded-md bg-gray-100 mr-3">
+                  <FaSync className="text-gray-600 h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Total Revisions</div>
+                  <div className="font-semibold text-gray-800">
+                    {metrics.totalRevisions}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Completion Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center">
+                <div className="p-2 rounded-md bg-gray-100 mr-3">
+                  <FaPercent className="text-gray-600 h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Completion</div>
+                  <div className="font-semibold text-gray-800">
+                    {progressPercentage}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,11 +1,13 @@
 import { useState, useEffect, useContext } from "react";
 import { getJobs } from "../../datatablesource";
+import { deleteJob } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import { API_CONFIG } from "../../config/api";
 import commonTranslations from "../../localization/common.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-import { Briefcase, Search, Filter, Eye, Trash2, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Briefcase, Search, Filter, Eye, Trash2, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
+import toast from "react-hot-toast";
 
 const ListJobs = () => {
   const { darkMode } = useContext(DarkModeContext);
@@ -15,6 +17,10 @@ const ListJobs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const itemsPerPage = 10;
   const { getTranslation } = useLocalization();
 
@@ -34,9 +40,28 @@ const ListJobs = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this job?')) {
-      setData((prevData) => prevData.filter((item) => item._id !== id));
+  const handleDelete = (job) => {
+    setJobToDelete(job);
+    setDeleteReason('');
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!jobToDelete) return;
+    
+    try {
+      setDeleting(true);
+      await deleteJob(jobToDelete._id, deleteReason || 'Removed by admin');
+      setData((prevData) => prevData.filter((item) => item._id !== jobToDelete._id));
+      toast.success('Job deleted successfully');
+      setDeleteModalOpen(false);
+      setJobToDelete(null);
+      setDeleteReason('');
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      toast.error('Failed to delete job: ' + (error.message || 'Unknown error'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -72,6 +97,63 @@ const ListJobs = () => {
 
   return (
     <div className="w-full">
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className={`w-full max-w-md p-6 rounded-2xl shadow-xl ${
+            darkMode ? 'bg-gray-900 border border-white/10' : 'bg-white'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Delete Job
+              </h3>
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className={`p-1 rounded-lg ${darkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
+            </p>
+            <div className="mb-4">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Reason (optional)
+              </label>
+              <input
+                type="text"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Enter reason for deletion..."
+                className={`w-full px-4 py-2 rounded-lg ${
+                  darkMode 
+                    ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                } focus:outline-none focus:border-orange-500`}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium ${
+                  darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -247,7 +329,7 @@ const ListJobs = () => {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(job._id)}
+                        onClick={() => handleDelete(job)}
                         className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
                         title="Delete"
                       >

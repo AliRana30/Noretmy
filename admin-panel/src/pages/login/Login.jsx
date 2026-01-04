@@ -16,7 +16,6 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -152,7 +151,8 @@ const Login = () => {
                     color: '#fca5a5'
                   }}
                 >
-                  {errorKey ? getTranslation(loginTranslations, errorKey) : error}
+                  {/* Always show actual error message from backend */}
+                  {error}
                 </div>
               )}
               
@@ -251,23 +251,8 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex justify-between items-center">
-                <label className="flex items-center cursor-pointer text-sm">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    className="mr-2 w-4 h-4 rounded"
-                    style={{ accentColor: '#f97316' }}
-                  />
-                  <span className="text-gray-400">
-                    {getTranslation(loginTranslations, "rememberMe") || "Remember me"}
-                  </span>
-                </label>
-                
+              {/* Forgot Password */}
+              <div className="flex justify-end items-center">
                 <a href="/forgot-password" 
                   className="text-sm font-medium transition-colors"
                   style={{ color: '#f97316' }}

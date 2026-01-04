@@ -141,19 +141,71 @@ const getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       Order.aggregate([
         { $match: { status: 'completed', createdAt: { $gte: today } } },
-        { $group: { _id: null, total: { $sum: { $ifNull: ['$totalAmount', '$price'] } } } }
+        { 
+          $group: { 
+            _id: null, 
+            total: { 
+              $sum: { 
+                $cond: [
+                  { $gt: ['$platformFee', null] }, 
+                  '$platformFee', 
+                  { $subtract: [{ $ifNull: ['$feeAndTax', 0] }, { $ifNull: ['$vatAmount', 0] }] }
+                ] 
+              } 
+            } 
+          } 
+        }
       ]),
       Order.aggregate([
         { $match: { status: 'completed', createdAt: { $gte: startOfWeek } } },
-        { $group: { _id: null, total: { $sum: { $ifNull: ['$totalAmount', '$price'] } } } }
+        { 
+          $group: { 
+            _id: null, 
+            total: { 
+              $sum: { 
+                $cond: [
+                  { $gt: ['$platformFee', null] }, 
+                  '$platformFee', 
+                  { $subtract: [{ $ifNull: ['$feeAndTax', 0] }, { $ifNull: ['$vatAmount', 0] }] }
+                ] 
+              } 
+            } 
+          } 
+        }
       ]),
       Order.aggregate([
         { $match: { status: 'completed', createdAt: { $gte: startOfMonth } } },
-        { $group: { _id: null, total: { $sum: { $ifNull: ['$totalAmount', '$price'] } } } }
+        { 
+          $group: { 
+            _id: null, 
+            total: { 
+              $sum: { 
+                $cond: [
+                  { $gt: ['$platformFee', null] }, 
+                  '$platformFee', 
+                  { $subtract: [{ $ifNull: ['$feeAndTax', 0] }, { $ifNull: ['$vatAmount', 0] }] }
+                ] 
+              } 
+            } 
+          } 
+        }
       ]),
       Order.aggregate([
         { $match: { status: 'completed' } },
-        { $group: { _id: null, total: { $sum: { $ifNull: ['$totalAmount', '$price'] } } } }
+        { 
+          $group: { 
+            _id: null, 
+            total: { 
+              $sum: { 
+                $cond: [
+                  { $gt: ['$platformFee', null] }, 
+                  '$platformFee', 
+                  { $subtract: [{ $ifNull: ['$feeAndTax', 0] }, { $ifNull: ['$vatAmount', 0] }] }
+                ] 
+              } 
+            } 
+          } 
+        }
       ])
     ]);
 
@@ -181,7 +233,15 @@ const getDashboardStats = async (req, res) => {
             year: { $year: '$createdAt' },
             month: { $month: '$createdAt' }
           },
-          revenue: { $sum: { $ifNull: ['$totalAmount', '$price'] } }
+          revenue: { 
+            $sum: { 
+              $cond: [
+                { $gt: ['$platformFee', null] }, 
+                '$platformFee', 
+                { $subtract: [{ $ifNull: ['$feeAndTax', 0] }, { $ifNull: ['$vatAmount', 0] }] }
+              ] 
+            } 
+          }
         }
       },
       { $sort: { '_id.year': 1, '_id.month': 1 } }
@@ -443,7 +503,8 @@ const getUserDetails = async (req, res) => {
 
     try {
       userStats.completedOrders = await Order.countDocuments({
-        sellerId: userId, status: 'completed'
+        $or: [{ buyerId: userId }, { sellerId: userId }],
+        status: 'completed'
       });
     } catch (e) {}
 
@@ -515,16 +576,43 @@ const getUserDetails = async (req, res) => {
       }
     } catch (e) { }
 
+    // Map recent activity for the frontend table
+    const formattedJobs = userJobs.map(job => ({
+      id: job._id,
+      img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
+      location: job.location || "N/A",
+      jobStatus: job.jobStatus || (job.isActive ? 'Active' : 'Inactive'),
+      date: new Date(job.createdAt).toLocaleDateString(),
+      upgradeOption: job.upgradeOption || "None",
+      method: "GIG",
+      status: job.jobStatus === 'Available' || job.jobStatus === 'active' || job.jobStatus === 'Active' ? 'Approved' : 'Pending'
+    }));
+
+    const formattedOrders = userOrders.map(order => ({
+      id: order._id,
+      img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
+      location: "Order",
+      jobStatus: order.status,
+      date: new Date(order.createdAt).toLocaleDateString(),
+      upgradeOption: `$${order.totalAmount || order.price}`,
+      method: "ORDER",
+      status: order.status === 'completed' ? 'Approved' : 'Pending'
+    }));
+
     res.status(200).json({
       success: true,
       data: {
-        user: { ...user.toObject(), img: user.profilePicture || "https://via.placeholder.com/150" },
+        user: { 
+          ...user.toObject(), 
+          img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
+          profilePicture: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150"
+        },
         profile: userProfile,
         stats: userStats,
         chartData: chartData,
         recentActivity: {
-          jobs: userJobs,
-          orders: userOrders,
+          jobs: formattedJobs,
+          orders: formattedOrders,
           reviews: userReviews
         }
       }
@@ -647,6 +735,48 @@ const unblockUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to unblock user',
+      error: error.message
+    });
+  }
+};
+
+const verifyUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        code: 'USER_NOT_FOUND',
+        message: 'User not found'
+      });
+    }
+
+    // Set user as verified
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiry = undefined;
+    user.verifiedAt = new Date();
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      code: 'USER_VERIFIED',
+      message: 'User verified successfully',
+      data: {
+        userId,
+        isVerified: true,
+        verifiedAt: user.verifiedAt
+      }
+    });
+  } catch (error) {
+    console.error('Verify user error:', error);
+    res.status(500).json({
+      success: false,
+      code: 'VERIFY_USER_ERROR',
+      message: 'Failed to verify user',
       error: error.message
     });
   }
@@ -2638,6 +2768,7 @@ module.exports = {
   updateUserRole,
   blockUser,
   unblockUser,
+  verifyUser,
   warnUser,
   deleteUser,
   

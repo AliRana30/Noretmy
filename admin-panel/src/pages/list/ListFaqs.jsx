@@ -199,7 +199,7 @@ const ListFaqs = () => {
           severity: 'success'
         });
       } else {
-        await updateFaq(selectedFaq.id, formData);
+        await updateFaq(selectedFaq._id, formData);
         setSnackbar({
           open: true,
           message: 'FAQ updated successfully!',

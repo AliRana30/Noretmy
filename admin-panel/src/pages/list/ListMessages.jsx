@@ -1,15 +1,17 @@
 import Datatable from "../../components/datatable/Datatable";
 import { useState, useEffect, useContext } from "react";
-import { getNotifications, getNotificationColumns } from "../../datatablesource";
-import { useNavigate } from "react-router-dom";
-import { useLocalization } from "../../context/LocalizationContext.jsx";
-import { DarkModeContext } from "../../context/darkModeContext.jsx";
-import listTranslations from "../../localization/list.json";
-import commonTranslations from "../../localization/common.json";
-import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-import { Bell, RefreshCw } from 'lucide-react';
+  import { getNotifications, getNotificationColumns } from "../../datatablesource";
+  import { deleteNotification } from "../../utils/adminApi";
+  import { useNavigate } from "react-router-dom";
+  import { useLocalization } from "../../context/LocalizationContext.jsx";
+  import { DarkModeContext } from "../../context/darkModeContext.jsx";
+  import listTranslations from "../../localization/list.json";
+  import commonTranslations from "../../localization/common.json";
+  import { LoadingSpinner, ErrorMessage } from "../../components/ui";
+  import { Bell, RefreshCw } from 'lucide-react';
+  import toast from 'react-hot-toast';
 
-const ListMessages = () => {
+  const ListMessages = () => {
   const { darkMode } = useContext(DarkModeContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +36,15 @@ const ListMessages = () => {
     loadData();
   }, []);
 
-  const handleDelete = (id) => {
-    setData((prevData) => prevData.filter((item) => item._id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteNotification(id);
+      setData((prevData) => prevData.filter((item) => item._id !== id));
+      toast.success('Notification deleted successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete notification');
+    }
   };
 
   const actionColumn = [

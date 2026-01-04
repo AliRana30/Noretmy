@@ -97,17 +97,33 @@ const Profile = () => {
     }
   };
 
+  // Password validation helper
+  const validatePasswordStrength = (password) => {
+    const errors = [];
+    if (password.length < 8) errors.push('At least 8 characters');
+    if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter');
+    if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter');
+    if (!/[0-9]/.test(password)) errors.push('At least one number');
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push('At least one special character');
+    return errors;
+  };
+
+  const [passwordErrors, setPasswordErrors] = useState([]);
+
   const handleSave = async (e) => {
     e.preventDefault();
     
     // Validate password if changing
     if (formData.newPassword) {
-      if (formData.newPassword !== formData.confirmPassword) {
-        toast.error(t('passwordsNotMatch'));
+      const pwdErrors = validatePasswordStrength(formData.newPassword);
+      if (pwdErrors.length > 0) {
+        setPasswordErrors(pwdErrors);
         return;
       }
-      if (formData.newPassword.length < 6) {
-        toast.error(t('passwordTooShort'));
+      setPasswordErrors([]);
+      
+      if (formData.newPassword !== formData.confirmPassword) {
+        toast.error(t('passwordsNotMatch'));
         return;
       }
       if (!formData.currentPassword) {
@@ -118,10 +134,11 @@ const Profile = () => {
     
     setIsSaving(true);
     try {
-      // Update profile information
+      // Update profile information - send to backend
       const updateData = {
         fullName: formData.fullName,
         username: formData.username,
+        email: formData.email,
       };
       
       // Add password change if provided
@@ -130,11 +147,22 @@ const Profile = () => {
         updateData.newPassword = formData.newPassword;
       }
       
-      // Update local user data
-      updateUser({
-        fullName: formData.fullName,
-        username: formData.username,
-      });
+      // Make API call to persist changes to backend
+      const response = await axios.put(
+        `${API_CONFIG.BASE_URL}/api/users/profile`,
+        updateData,
+        { withCredentials: true }
+      );
+      
+      // Update local user data on success
+      if (response.data) {
+        updateUser({
+          fullName: formData.fullName,
+          username: formData.username,
+          email: formData.email,
+          ...response.data
+        });
+      }
       
       toast.success(t('profileUpdated'));
       setIsEditing(false);
@@ -146,9 +174,11 @@ const Profile = () => {
         newPassword: '',
         confirmPassword: ''
       }));
+      setPasswordErrors([]);
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error(error.response?.data?.message || t('updateFailed'));
+      const errorMessage = error.response?.data?.message || t('updateFailed');
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -364,6 +394,30 @@ const Profile = () => {
                     />
                   </div>
                 </div>
+
+                {/* Password Requirements Display */}
+                {passwordErrors.length > 0 && (
+                  <div className={`p-4 rounded-xl ${darkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
+                    <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                      Password Requirements:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {passwordErrors.map((error, index) => (
+                        <li key={index} className={`text-xs ${darkMode ? 'text-red-300' : 'text-red-500'}`}>
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {formData.newPassword && passwordErrors.length === 0 && (
+                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-orange-50 border border-orange-100'}`}>
+                    <p className={`text-xs ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                      ✓ Password meets all requirements
+                    </p>
+                  </div>
+                )}
 
                 <button
                   type="submit"

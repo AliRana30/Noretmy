@@ -198,7 +198,12 @@ const createOrUpdateProfile = async (req, res) => {
     // Save the profile to the database
     await userProfile.save();
 
-    res.status(200).json({ message: 'User profile updated successfully', data: userProfile });
+    res.status(200).json({ 
+      success: true, 
+      code: 'PROFILE_UPDATE_SUCCESS', 
+      message: 'User profile updated successfully', 
+      data: userProfile 
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -257,17 +262,26 @@ const updateSingleAttribute = async (req, res) => {
     
     // Separate updates for User and UserProfile models
     for (let key in updates) {
-      if (updates[key] !== undefined) {
+      if (updates[key] !== undefined && updates[key] !== '') {
         if (userFields.includes(key)) {
           userUpdates[key] = updates[key];
-        } else {
+        } else if (key !== 'currentPassword' && key !== 'newPassword') {
           profileUpdates[key] = updates[key];
         }
       }
     }
     
-    // Update User model if there are user field updates
-    if (Object.keys(userUpdates).length > 0) {
+    // Handle password update
+    if (updates.newPassword && updates.currentPassword) {
+      const user = await User.findById(userId);
+      const isMatch = await user.matchPassword(updates.currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      user.password = updates.newPassword;
+      await user.save(); // This will trigger the pre-save hook to hash the password
+    } else if (Object.keys(userUpdates).length > 0) {
+      // Update User model for other fields
       await User.findByIdAndUpdate(userId, userUpdates);
     }
     
@@ -307,10 +321,13 @@ const updateSingleAttribute = async (req, res) => {
     const updatedUser = await User.findById(userId).select('-password');
 
     res.status(200).json({
-      ...userProfile.toObject(),
-      fullName: updatedUser?.fullName,
-      username: updatedUser?.username,
-      email: updatedUser?.email
+      success: true,
+      code: 'PROFILE_UPDATE_SUCCESS',
+      message: "Profile updated successfully",
+      data: {
+        ...userProfile.toObject(),
+        ...updatedUser.toObject()
+      }
     });
   } catch (error) {
     console.error("Error updating profile:", error);
@@ -496,6 +513,8 @@ const updateDocumentStatus = async (req, res) => {
     await user.save();
 
     res.status(200).json({
+      success: true,
+      code: 'DOCUMENT_STATUS_UPDATED',
       message: `Document status updated to "${status}" successfully.`,
       user: {
         id: user._id,
@@ -504,7 +523,7 @@ const updateDocumentStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating document status:', error);
-    res.status(500).json({ message: 'Internal server error.' });
+    res.status(500).json({ success: false, code: 'SERVER_ERROR', message: 'Internal server error.' });
   }
 };
 

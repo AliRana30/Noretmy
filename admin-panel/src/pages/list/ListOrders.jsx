@@ -7,7 +7,7 @@ import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import listTranslations from "../../localization/list.json";
 import commonTranslations from "../../localization/common.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, Eye, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const List = () => {
@@ -67,9 +67,10 @@ const List = () => {
         <div className="flex items-center gap-2">
           <Link
             to={`/admin/orders/${params.row._id}`}
-            className="px-3 py-1 bg-gradient-to-r from-amber-400 to-pink-500 hover:from-amber-500 hover:to-pink-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
+            className="p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-colors"
+            title={getTranslation(commonTranslations, "view")}
           >
-            {getTranslation(commonTranslations, "view")}
+            <Eye className="w-4 h-4" />
           </Link>
           <div 
             className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -100,8 +101,23 @@ const List = () => {
           />
         )}
 
-        {/* Main Content - Only show when not loading and no error */}
-        {!loading && !error && (
+        {/* Empty State */}
+        {!loading && !error && data.length === 0 && (
+          <div className={`flex flex-col items-center justify-center py-12 rounded-2xl ${darkMode ? 'bg-[#1a1a2e] border border-white/10' : 'bg-white border border-gray-100 shadow-sm'}`}>
+            <div className={`p-4 rounded-full w-16 h-16 mb-4 flex items-center justify-center ${darkMode ? 'bg-white/10' : 'bg-gray-50'}`}>
+              <Package className={`w-8 h-8 ${darkMode ? 'text-white' : 'text-gray-400'}`} />
+            </div>
+            <h3 className={`text-lg font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              No Orders Found
+            </h3>
+            <p className={`text-sm text-center max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              There are no orders to display at the moment.
+            </p>
+          </div>
+        )}
+
+        {/* Main Content - Only show when not loading, no error, and HAS data */}
+        {!loading && !error && data.length > 0 && (
           <Datatable 
             data={data} 
             columns={getOrdersColumns(getTranslation).concat(actionColumn)} 
