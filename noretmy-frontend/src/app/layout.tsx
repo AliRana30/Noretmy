@@ -2,7 +2,8 @@
 
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import About from '@/components/shared/About';
+import Footer from '@/components/ui/Footer';
+
 import Navbar from '@/components/shared/Navbar';
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/store/store';
@@ -76,7 +77,8 @@ export default function RootLayout({
                 },
               }}
             />
-            <About id="about-us" />
+
+            <Footer />
           </NotificationProvider>
         </ReduxProvider>
       </body>
