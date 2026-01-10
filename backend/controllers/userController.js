@@ -964,8 +964,12 @@ const getFreelancerProfile = async (req, res) => {
       .select('profilePicture profileHeadline description skills location country countryCode languages education certifications');
 
     // Get all gigs by this freelancer
-    const gigs = await Job.find({ sellerId: userId.toString() })
+    let gigs = await Job.find({ sellerId: userId.toString() })
       .select('_id title cat subCat description pricingPlan photos sales totalStars starNumber createdAt');
+
+    // Apply promotion priorities
+    const { applyPromotionPriorities } = require('../utils/gigVisibility');
+    gigs = await applyPromotionPriorities(gigs);
 
     // Get all reviews for this freelancer's gigs
     const gigIds = gigs.map(g => g._id);
@@ -1063,7 +1067,8 @@ const getFreelancerProfile = async (req, res) => {
         sales: gig.sales || 0,
         rating: +gigRating.toFixed(1),
         reviewCount: gigReviews.length,
-        createdAt: gig.createdAt
+        createdAt: gig.createdAt,
+        promotionPriority: gig.promotionPriority || 0
       };
     });
 

@@ -1,6 +1,6 @@
 const express = require('express');
-const { 
-  allJobsPromotionMonthlySubscription, 
+const {
+  allJobsPromotionMonthlySubscription,
   singleJobPromotionMonthlySubscriptionController,
   completePromotionAfterPayment,
   getUserGigPromotions,
@@ -9,7 +9,8 @@ const {
   deletePromotion,
   cancelPromotion,
   getPromotionHistory,
-  getPromotionPlans
+  getPromotionPlans,
+  checkActivePromotion
 } = require('../controllers/promotionController');
 const { verifyToken, checkRole } = require('../middleware/jwt');
 

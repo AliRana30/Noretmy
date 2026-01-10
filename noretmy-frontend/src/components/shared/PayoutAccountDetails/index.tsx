@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface PayoutAccount {
   id: string;
@@ -39,11 +39,21 @@ const PayoutAccountsComponent: React.FC<PayoutAccountsComponentProps> = ({
 }) => {
   const [showForm, setShowForm] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [withdrawalMethod, setwithdrawalMethod] = useState<'stripe' | 'paypal'>('stripe');
+  const [withdrawalMethod, setwithdrawalMethod] = useState<'stripe' | 'paypal'>(() => {
+    const existing = account?.withdrawalMethod;
+    return existing === 'stripe' || existing === 'paypal' ? existing : 'paypal';
+  });
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [processing, setProcessing] = useState<boolean>(false);
+
+  useEffect(() => {
+    const existing = account?.withdrawalMethod;
+    if (existing === 'stripe' || existing === 'paypal') {
+      setwithdrawalMethod(existing);
+    }
+  }, [account?.withdrawalMethod]);
 
   const handlewithdrawalMethodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setwithdrawalMethod(e.target.value as 'stripe' | 'paypal');
@@ -97,8 +107,9 @@ const PayoutAccountsComponent: React.FC<PayoutAccountsComponentProps> = ({
   const handleEdit = () => {
     // Pre-fill form fields with existing account data
     if (account) {
-      setwithdrawalMethod(account.withdrawalMethod);
-      setEmail(account.email);
+      const existing = account.withdrawalMethod;
+      setwithdrawalMethod(existing === 'stripe' || existing === 'paypal' ? existing : 'paypal');
+      setEmail(account.email || '');
       setIsEditing(true);
       setShowForm(true);
     }

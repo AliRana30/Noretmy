@@ -1,6 +1,7 @@
 const Freelancer = require('../models/Freelancer');
 const Order = require('../models/Order');
 const Reviews = require('../models/Review')
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 // Helper function to calculate the first day of the current month
@@ -144,10 +145,28 @@ const getSellerStatistics = async (sellerId) => {
     ]);
     const totalEarnings = earnings?.[0]?.totalEarnings ?? 0;
 
-    // Handle available balance gracefully
-    const freelancer = await Freelancer.findOne({ userId: sellerId }) || {};
-    const availableForWithdrawalAmount = freelancer?.availableBalance ?? 0;
-    const pendingClearance = freelancer?.pendingBalance ?? 0;
+    // Handle available balance gracefully - check both Freelancer and User revenue
+    const freelancer = await Freelancer.findOne({ userId: sellerId }) || null;
+    const user = await User.findById(sellerId).select('revenue') || null;
+
+    const freelancerRevenueAvailable = freelancer?.revenue?.available ?? 0;
+    const freelancerAvailableBalance = freelancer?.availableBalance ?? 0;
+    const userRevenueAvailable = user?.revenue?.available ?? 0;
+
+    // Use the max to avoid showing 0 when one store is out-of-sync
+    const availableForWithdrawalAmount = Math.max(
+      freelancerRevenueAvailable,
+      freelancerAvailableBalance,
+      userRevenueAvailable
+    );
+    console.log('[Seller Stats] Withdrawal Calculation:', {
+      userId: sellerId,
+      freelancerRevenueAvailable,
+      freelancerAvailableBalance,
+      userRevenueAvailable,
+      finalAmount: availableForWithdrawalAmount
+    });
+    const pendingClearance = freelancer?.revenue?.pending ?? 0;
 
     // Earnings in the current month
     const currentMonthEarnings = await Order.aggregate([

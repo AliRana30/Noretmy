@@ -245,12 +245,16 @@ export const getAdminWithdrawals = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
+export const getAdminWithdrawalDetail = async (withdrawalId) => {
+  return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_DETAIL, null, { withdrawalId });
+};
+
 export const approveWithdrawal = async (withdrawalId, adminNote) => {
-  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_APPROVE, { adminNote }, { withdrawalId });
+  return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_APPROVE.replace(':withdrawalId', withdrawalId), { requestId: withdrawalId, adminNote });
 };
 
 export const rejectWithdrawal = async (withdrawalId, reason) => {
-  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_REJECT, { reason }, { withdrawalId });
+  return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_REJECT, { requestId: withdrawalId, reason });
 };
 
 // ===== CONTENT MANAGEMENT =====
@@ -647,6 +651,7 @@ export default {
   // Financial Management
   getAdminFinancialOverview,
   getAdminWithdrawals,
+  getAdminWithdrawalDetail,
   approveWithdrawal,
   rejectWithdrawal,
   

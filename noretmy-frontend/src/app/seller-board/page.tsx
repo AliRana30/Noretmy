@@ -207,10 +207,8 @@ const SellerDashboard = () => {
                   </h1>
                   {/* Seller Level Badge */}
                   <div
-                    className="px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1"
-                    style={{ backgroundColor: `${dashboardData.sellerLevel.color}20`, color: dashboardData.sellerLevel.color }}
+                    className="text-sm font-semibold text-gray-700"
                   >
-                    <span>{dashboardData.sellerLevel.badge}</span>
                     <span>{dashboardData.sellerLevel.label}</span>
                   </div>
                 </div>

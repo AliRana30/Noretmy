@@ -51,14 +51,6 @@ export const SIDEBAR_NAV_LIST = [
     translationKey: 'adminJobs'
   },
   {
-    id: '/admin/withdrawals',
-    label: 'Withdrawals',
-    icon: DollarSign,
-    allowedRoles: ['admin'],
-    requiredPermission: 'payment_management',
-    translationKey: 'adminWithdrawals'
-  },
-  {
     id: '/admin/sensitive-messages',
     label: 'Sensitive Messages',
     icon: AlertTriangle,
@@ -82,11 +74,12 @@ export const SIDEBAR_NAV_LIST = [
     translationKey: 'adminDocuments'
   },
   {
-    id: '/withdrawal-requests',
-    label: 'Payment Withdrawal Approval',
+    id: '/admin/withdrawals',
+    label: 'Withdrawal Requests',
     icon: DollarSign,
-    allowedRoles: ['admin', 'user'],
-    translationKey: 'paymentWithdrawalApproval'
+    allowedRoles: ['admin'],
+    requiredPermission: 'payment_management',
+    translationKey: 'adminWithdrawals'
   },
 ];
 

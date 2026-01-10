@@ -86,7 +86,7 @@ const PromotionalPlansScreen = () => {
       popular: false,
     },
     {
-      id: 'homepage',
+      id: 'ultimate',
       title: 'Ultimate Exposure',
       description: 'Maximum visibility across all platforms',
       price: 70,
@@ -102,7 +102,7 @@ const PromotionalPlansScreen = () => {
     },
   ];
 
-  // Check for active promotions on mount
+  // Check for active promotions on mount and when returning to page
   useEffect(() => {
     const checkActivePromotions = async () => {
       try {
@@ -110,23 +110,34 @@ const PromotionalPlansScreen = () => {
           withCredentials: true
         });
 
-        if (response.data?.activePromotions?.length > 0) {
-          const active = response.data.activePromotions[0];
+        if (response.data?.hasActivePromotion && response.data?.activePromotion) {
+          const active = response.data.activePromotion;
           setActivePromotion({
             plan: active.promotionPlan,
             startDate: active.promotionStartDate,
             endDate: active.promotionEndDate,
             remainingDays: active.remainingDays
           });
+        } else {
+          setActivePromotion(null);
         }
       } catch (error: any) {
         // User might not be a seller or no active promotions
-        } finally {
+        setActivePromotion(null);
+      } finally {
         setLoading(false);
       }
     };
 
     checkActivePromotions();
+
+    // Re-check when window gains focus (user returns from another tab/payment)
+    const handleFocus = () => {
+      checkActivePromotions();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [BACKEND_URL]);
 
   const handleSelectPlan = (planId: string) => {

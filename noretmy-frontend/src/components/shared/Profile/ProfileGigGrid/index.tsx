@@ -75,7 +75,7 @@ const Gigs: React.FC = () => {
     <div className="max-w-6xl mx-auto space-y-8" id="gigs">
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-white">
+        <h2 className="text-2xl md:text-3xl font-bold text-black">
           Your <span className="text-orange-600">Gigs</span>
         </h2>
         <Link

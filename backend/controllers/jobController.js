@@ -733,9 +733,13 @@ const getUserJobs = async (req, res) => {
     const userIdString = userId.toString();
     console.log('[getUserJobs] Searching for sellerId:', userIdString);
     
-    const jobs = await Job.find({ sellerId: userIdString });
+    let jobs = await Job.find({ sellerId: userIdString });
     
     console.log('[getUserJobs] Found', jobs?.length || 0, 'jobs for user:', userIdString);
+
+    // Apply promotion priorities
+    const { applyPromotionPriorities } = require('../utils/gigVisibility');
+    jobs = await applyPromotionPriorities(jobs);
 
     // Return empty array instead of 404 to allow frontend to handle gracefully
     res.status(200).json(jobs || []);
@@ -836,8 +840,9 @@ const convertJobPricesToEur = (jobs, rate) => {
 const getFeaturedJobs = async (req, res) => {
   try {
     const { lang, limit = 12 } = req.query;
+    const { sortGigsByPromotion } = require('../utils/gigVisibility');
 
-    // Show ALL active gigs, sorted by promotion level
+    // Show ALL active gigs, will be sorted by promotion level
     const allJobs = await Job.find({ 
       jobStatus: { $in: ['Available', 'active', 'Active'] }
     }).limit(parseInt(limit) * 2).lean(); // Fetch more to sort and limit
@@ -846,24 +851,9 @@ const getFeaturedJobs = async (req, res) => {
       return res.status(200).json([]); // Return empty array if no gigs
     }
 
-    // Sort by upgrade priority
-    const upgradePriority = {
-      homepage: 1,
-      premium: 2,
-      sponsored: 3,
-      standard: 4,
-      basic: 5,
-      featured: 6,
-      free: 7,
-      null: 8,
-      undefined: 9,
-    };
-
-    const sortedJobs = allJobs.sort((a, b) => {
-      const priorityA = upgradePriority[a.upgradeOption] ?? upgradePriority.null;
-      const priorityB = upgradePriority[b.upgradeOption] ?? upgradePriority.null;
-      return priorityA - priorityB;
-    }).slice(0, parseInt(limit));
+    // Apply promotion-based sorting using the gigVisibility utility
+    const sortedByPromotion = await sortGigsByPromotion(allJobs);
+    const sortedJobs = sortedByPromotion.slice(0, parseInt(limit));
 
     // Fetch seller badges and seller info
     const uniqueSellerIds = [...new Set(sortedJobs.map(job => job.sellerId).filter(Boolean))];

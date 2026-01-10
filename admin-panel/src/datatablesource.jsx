@@ -275,9 +275,9 @@ export const getWithdrawalRequestsColumns = (getTranslation) => {
       headerName: getTranslatedHeader(getTranslation, "status"),
       width: 160,
       renderCell: (params) => {
-        // Log the status value to check what's being passed
-        // Dynamically assign class based on status
-        const status = params.row.status.toLowerCase();
+        // Older records may have missing status; default to pending.
+        const statusRaw = params.row.status || 'pending';
+        const status = String(statusRaw).toLowerCase();
         return (
           <div className={`cellWithStatus ${status}`}>
             {status.charAt(0).toUpperCase() + status.slice(1)}

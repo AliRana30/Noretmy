@@ -83,8 +83,6 @@ function App() {
                   <Route path="orders" element={<AdminRoute requiredPermissions={['order_management']}><ListOrders /></AdminRoute>} />
                   <Route path="orders/:orderId" element={<AdminRoute requiredPermissions={['order_management']}><SingleOrder /></AdminRoute>} />
                   <Route path="jobs" element={<AdminRoute requiredPermissions={['content_moderation']}><ListJobs /></AdminRoute>} />
-                  <Route path="withdrawals" element={<AdminRoute requiredPermissions={['payment_management']}><ListWithdrawlRequests /></AdminRoute>} />
-                  <Route path="withdrawals/:requestId" element={<AdminRoute requiredPermissions={['payment_management']}><ViewWithdrawalRequest /></AdminRoute>} />
                   <Route path="sensitive-messages" element={<AdminRoute requiredPermissions={['content_moderation']}><ListSensitive /></AdminRoute>} />
                   <Route path="contacts" element={<AdminRoute requiredPermissions={['content_moderation']}><ListMessages /></AdminRoute>} />
                   <Route path="contacts/reply" element={<AdminRoute requiredPermissions={['content_moderation']}><ReplyEmail /></AdminRoute>} />
@@ -92,6 +90,8 @@ function App() {
                   <Route path="content/faqs" element={<AdminRoute requiredPermissions={['content_moderation']}><ListFaqs /></AdminRoute>} />
                   <Route path="content/privacy" element={<AdminRoute requiredPermissions={['content_moderation']}><ListPrivacy /></AdminRoute>} />
                   <Route path="documents" element={<AdminRoute requiredPermissions={['user_management']}><ListDocuments /></AdminRoute>} />
+                  <Route path="withdrawals" element={<AdminRoute requiredPermissions={['payment_management']}><ListWithdrawlRequests /></AdminRoute>} />
+                  <Route path="withdrawals/:withdrawalId" element={<AdminRoute requiredPermissions={['payment_management']}><ViewWithdrawalRequest /></AdminRoute>} />
                 </Route>
 
                 {/* Regular User Routes */}
@@ -158,14 +158,6 @@ function App() {
                   />
                 </Route>
 
-                <Route path="withdrawl-requests">
-                  <Route index element={<ListWithdrawlRequests/>} />
-                  <Route path=":requestId" element={<ViewWithdrawalRequest />} />
-                  <Route
-                    path="new"
-                    element={<New inputs={userInputs} title="Add New User" />}
-                  />
-                </Route>
               </Route>
           </Routes>
           </BrowserRouter>

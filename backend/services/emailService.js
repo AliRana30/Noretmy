@@ -11,14 +11,25 @@ const EmailLog = require('../models/EmailLog');
 
 // Create reusable transporter
 const createTransporter = () => {
+  const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
+  const smtpPort = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587', 10);
+  const smtpService = process.env.SMTP_SERVICE;
+  const smtpUser = process.env.SMTP_MAIL || process.env.EMAIL_USER;
+  const smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
+  const smtpSecure = (process.env.SMTP_SECURE || '').toLowerCase() === 'true' || smtpPort === 465;
+
+  if (!smtpUser || !smtpPass) {
+    throw new Error('Email configuration missing: set SMTP_MAIL/SMTP_PASSWORD (preferred) or EMAIL_USER/EMAIL_PASS.');
+  }
+
   return nodemailer.createTransport({
-    service: process.env.SMTP_SERVICE || 'gmail',
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
+    service: smtpService,
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: smtpUser,
+      pass: smtpPass,
     },
     // Connection pool for better performance
     pool: true,
@@ -29,6 +40,17 @@ const createTransporter = () => {
     greetingTimeout: 10000,
     socketTimeout: 30000,
   });
+};
+
+const getFrontendBaseUrl = () => {
+  const raw =
+    process.env.FRONTEND_URL ||
+    process.env.CLIENT_URL ||
+    process.env.APP_URL ||
+    process.env.WEBSITE_URL ||
+    'https://noretmy.com';
+
+  return String(raw).replace(/\/$/, '');
 };
 
 // Verify transporter connection
@@ -84,8 +106,9 @@ const sendEmailWithLogging = async (options) => {
     try {
       const transporter = createTransporter();
       
+      const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_MAIL || process.env.EMAIL_USER;
       const mailOptions = {
-        from: `"Noretmy" <${process.env.EMAIL_USER}>`,
+        from: fromAddress ? `"Noretmy" <${fromAddress}>` : 'Noretmy',
         to,
         subject,
         html,
@@ -130,6 +153,8 @@ const sendEmailWithLogging = async (options) => {
 
 const sendVerificationEmail = async (email, token) => {
   const emailSubject = 'Email Verification - Noretmy';
+  const frontendBaseUrl = getFrontendBaseUrl();
+  const verifyUrl = `${frontendBaseUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
   const emailBody = `
     <html>
       <head>
@@ -149,7 +174,7 @@ const sendVerificationEmail = async (email, token) => {
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with Noretmy. To complete your registration, please verify your email address by clicking the button below:</p>
-          <a href="https://noretmy.com/verify-email?token=${token}&email=${email}" class="button">Verify Your Email</a>
+          <a href="${verifyUrl}" class="button">Verify Your Email</a>
           <div class="divider"></div>
           <p>If you did not register for this account, please ignore this email.</p>
           <p>Best regards,<br>The Noretmy Team</p>
@@ -176,6 +201,8 @@ const sendWelcomeEmail = async (email, fullName, isSeller) => {
   const firstName = fullName.split(' ')[0];
   const userRole = isSeller ? 'freelancer' : 'client';
   const emailSubject = 'Welcome to Noretmy!';
+  const frontendBaseUrl = getFrontendBaseUrl();
+  const ctaUrl = `${frontendBaseUrl}/${isSeller ? 'dashboard' : 'search-gigs'}`;
   
   const emailBody = `
     <!DOCTYPE html>
@@ -338,7 +365,7 @@ const sendWelcomeEmail = async (email, fullName, isSeller) => {
             <p>Ready to get started? Click the button below to complete your profile and ${isSeller ? 'create your first gig' : 'find the perfect freelancer'}.</p>
             
             <center>
-              <a href="https://noretmy.com/${isSeller ? 'dashboard' : 'search-gigs'}" class="cta-button">Get Started</a>
+              <a href="${ctaUrl}" class="cta-button">Get Started</a>
             </center>
             
             <div class="divider"></div>
@@ -371,14 +398,6 @@ const sendWelcomeEmail = async (email, fullName, isSeller) => {
 };
 
 const sendUserNotificationEmail = async (email, type, emailMessage, userType, orderDetails) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const isSellerUser = userType === 'seller';
   const recipientLabel = isSellerUser ? 'Seller' : 'Client';
 
@@ -508,27 +527,31 @@ const sendUserNotificationEmail = async (email, type, emailMessage, userType, or
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
     to: email,
     subject,
     html,
     ...(attachments.length > 0 ? { attachments } : {}),
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    console.log(`📧 [sendUserNotificationEmail] Sending type=${type} to=${email} subject="${subject}"`);
+    const result = await sendEmailWithLogging({
+      ...mailOptions,
+      emailType: `user_notification_${type || 'generic'}`,
+      recipientType: isSellerUser ? 'seller' : 'buyer',
+      recipientName: recipientLabel,
+      metadata: { type, userType, hasOrderDetails: !!orderDetails },
+    });
+    console.log(`✅ [sendUserNotificationEmail] Sent to=${email} messageId=${result?.messageId || 'n/a'}`);
+    return result;
+  } catch (err) {
+    console.error(`❌ [sendUserNotificationEmail] Failed to send type=${type} to=${email}:`, err?.message || err);
+    throw err;
+  }
 };
 
 const sendWithdrawalStripeNotificationEmail = async (email, stripeLink) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, 
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const mailOptions = {
-    from: process.env.EMAIL_USER, 
     to: email,
     subject: 'Complete Onboarding to Withdraw Funds',
     html: `
@@ -557,23 +580,18 @@ const sendWithdrawalStripeNotificationEmail = async (email, stripeLink) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmailWithLogging({
+      ...mailOptions,
+      emailType: 'withdrawal_onboarding',
+      metadata: { stripeLink },
+    });
     } catch (error) {
     console.error('Error sending payment notification email:', error.message);
   }
 };
 
 const sendWithdrawalSuccessEmail = async (email, amount) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, 
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const mailOptions = {
-    from: process.env.EMAIL_USER, 
     to: email,
     subject: 'Withdrawal Request Successful',
     html: `
@@ -599,23 +617,18 @@ const sendWithdrawalSuccessEmail = async (email, amount) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmailWithLogging({
+      ...mailOptions,
+      emailType: 'withdrawal_success',
+      metadata: { amount },
+    });
     } catch (error) {
     console.error('Error sending withdrawal success email:', error.message);
   }
 };
 
 const sendWithdrawalRejectionEmail = async (email, reason) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const mailOptions = {
-    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Withdrawal Request Rejected',
     html: `
@@ -640,7 +653,11 @@ const sendWithdrawalRejectionEmail = async (email, reason) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmailWithLogging({
+      ...mailOptions,
+      emailType: 'withdrawal_rejected',
+      metadata: { reason },
+    });
     } catch (error) {
     console.error('Error sending withdrawal rejection email:', error.message);
   }
@@ -798,29 +815,21 @@ const sendWithdrawalRejectionEmail = async (email, reason) => {
       </html>
     `;
 
-    // Email transporter setup
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    return sendEmailWithLogging({
       to: email,
       subject: emailSubject,
       html: emailBody,
-
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
+      emailType: 'order_invoice',
+      orderId,
+      recipientName: customerName,
+      recipientType: 'buyer',
+      metadata: { gigTitle, price, vatRate, discount, discountedPrice, totalAmount },
+    });
   };
 
 const sendSellerOrderNotificationEmail = async (email, orderDetails) => {
   const { _id: orderId, price, gigTitle, sellerName,createdAt } = orderDetails;
+  const frontendBaseUrl = getFrontendBaseUrl();
 
   // Email Content
   const emailSubject = `New Order Received - #${orderId}`;
@@ -916,7 +925,7 @@ const sendSellerOrderNotificationEmail = async (email, orderDetails) => {
 
           <div class="divider"></div>
 
-          <p>Please visit your <a href="https://www.noretmy.com/orders" target="_blank">dashboard</a> to start working on the order.</p>
+          <p>Please visit your <a href="${frontendBaseUrl}/orders" target="_blank">dashboard</a> to start working on the order.</p>
           <p>If you have any questions, feel free to reach out to us at <a href="mailto:info@noretmy.com">info@noretmy.com</a>.</p>
         </div>
         <div class="footer">
@@ -927,24 +936,16 @@ const sendSellerOrderNotificationEmail = async (email, orderDetails) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'seller_order_notification',
+    orderId,
+    recipientName: sellerName,
+    recipientType: 'seller',
+    metadata: { gigTitle, price, createdAt },
+  });
 };
 
 const sendPromotionPlanEmail = async (email, promotionDetails) => {
@@ -1086,24 +1087,15 @@ const sendPromotionPlanEmail = async (email, promotionDetails) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'promotion_invoice_single_gig',
+    recipientName: customerName,
+    recipientType: 'user',
+    metadata: { promotionPlanId, gigTitle, createdAt, price, vatRate, vatAmount, platformFee, totalAmount },
+  });
 };
 
 const sendAllGigsPromotionEmail = async (email, promotionDetails) => {
@@ -1239,24 +1231,15 @@ const sendAllGigsPromotionEmail = async (email, promotionDetails) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'promotion_invoice_all_gigs',
+    recipientName: customerName,
+    recipientType: 'user',
+    metadata: { promotionPlanId, createdAt, price, vatRate, vatAmount, platformFee, totalAmount },
+  });
 };
 
 const sendOnboardingEmail = async (email, freelancerName, onboardingLink) => {
@@ -1340,24 +1323,15 @@ const sendOnboardingEmail = async (email, freelancerName, onboardingLink) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'withdrawal_onboarding',
+    recipientName: freelancerName,
+    recipientType: 'seller',
+    metadata: { onboardingLink },
+  });
 };
 
 const sendResetPasswordEmail = async (email, resetLink) => {
@@ -1402,6 +1376,7 @@ const sendResetPasswordEmail = async (email, resetLink) => {
 
 const sendOrderRequestEmail = async (email, requestDetails) => {
   const { _id: requestId, details, price, senderName, createdAt, description } = requestDetails;
+  const frontendBaseUrl = getFrontendBaseUrl();
 
   // Email Content
   const emailSubject = `New Custom Order Request - #${requestId}`;
@@ -1524,7 +1499,7 @@ const sendOrderRequestEmail = async (email, requestDetails) => {
           <p>Please review this custom order request and respond at your earliest convenience. You can accept, decline, or negotiate the terms of this request.</p>
           
           <p style="text-align: center;">
-            <a href="http://localhost:3000/order-request/${requestId}" class="cta-button" target="_blank">View Request Details</a>
+            <a href="${frontendBaseUrl}/order-request/${requestId}" class="cta-button" target="_blank">View Request Details</a>
           </p>
           
           <p>If you have any questions about this request, you can contact the sender or reach out to our support team at <a href="mailto:support@noretmy.com">support@noretmy.com</a>.</p>
@@ -1538,24 +1513,14 @@ const sendOrderRequestEmail = async (email, requestDetails) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  return sendEmailWithLogging({
     to: email,
     subject: emailSubject,
     html: emailBody,
-  };
-
-  // Send the email
-  await transporter.sendMail(mailOptions);
+    emailType: 'custom_order_request',
+    recipientType: 'user',
+    metadata: { requestId, senderName, createdAt, price },
+  });
 };
 
 const sendNewsletterWelcomeEmail = async (email, subscriberName) => {
@@ -1662,25 +1627,14 @@ const sendNewsletterWelcomeEmail = async (email, subscriberName) => {
     </html>
   `;
 
-  // Email transporter setup
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: emailSubject,
-    html: emailBody,
-  };
-
-  // Send the email
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmailWithLogging({
+      to: email,
+      subject: emailSubject,
+      html: emailBody,
+      emailType: 'newsletter_welcome',
+      recipientType: 'user',
+    });
     return { success: true };
   } catch (error) {
     console.error(`Failed to send newsletter welcome email to ${email}:`, error);

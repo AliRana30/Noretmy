@@ -3,6 +3,7 @@ const onlineUsers = new Map(); // userId -> { socketId, lastSeen }
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
+      console.log('🔌 [Socket] Connected:', socket.id);
       // Handle user going online
       socket.on('userOnline', (userId) => {
         if (userId) {
@@ -11,6 +12,11 @@ const socketHandler = (io) => {
             lastSeen: new Date()
           });
           socket.userId = userId;
+
+          // Join per-user room to support io.to(`user_${id}`) emits
+          const userRoom = `user_${userId}`;
+          socket.join(userRoom);
+          console.log('🟢 [Socket] userOnline:', { userId, socketId: socket.id, room: userRoom });
           
           // Broadcast user's online status to all connected clients
           io.emit('userStatusChange', {
@@ -110,9 +116,11 @@ const socketHandler = (io) => {
             status: 'offline',
             lastSeen: new Date()
           });
-          
-          } else {
-          }
+
+          console.log('🔴 [Socket] Disconnected:', { userId, socketId: socket.id });
+        } else {
+          console.log('🔴 [Socket] Disconnected:', { socketId: socket.id });
+        }
       });
   
       // Handle errors

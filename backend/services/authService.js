@@ -43,15 +43,29 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
           existingUser.verificationTokenExpiry = now + TOKEN_EXPIRY_DURATION;
           await existingUser.save();
 
-          await sendVerificationEmail(existingUser.email, newToken);
+          try {
+            console.log(`📧 Resending verification email to existing unverified user: ${existingUser.email}`);
+            await sendVerificationEmail(existingUser.email, newToken);
+            console.log(`✅ Verification email resent successfully to ${existingUser.email}`);
+          } catch (emailError) {
+            console.error(`❌ Failed to resend verification email to ${existingUser.email}:`, emailError.message);
+            return {
+              success: false,
+              code: 'VERIFICATION_EMAIL_SEND_FAILED',
+              message: 'Your account already exists but is not verified. We could not send a new verification email right now. Please try again later.',
+              emailSent: false,
+            };
+          }
           return {
             success: false,
             message: 'Your previous signup was incomplete. A new verification email has been sent.',
+            emailSent: true,
           };
         } else {
           return {
             success: false,
             message: 'Please check your email to verify your account.',
+            emailSent: false,
           };
         }
       }
@@ -148,64 +162,69 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       console.error('Failed to send admin notification:', notifError.message);
     }
 
-    // Send verification email with retry logic
-    // Skip email in development if auto-verified
-    if (process.env.NODE_ENV !== 'development' || !user.isVerified) {
-      try {
-        console.log(`📧 Sending verification email to ${user.email}`);
-        await sendVerificationEmail(user.email, token);
-        console.log(`✅ Verification email sent successfully to ${user.email}`);
+    // Send verification email with retry logic.
+    // If running in development with auto-verified users, the email may be intentionally skipped.
+    const shouldSendVerificationEmail = process.env.NODE_ENV !== 'development' || !user.isVerified;
 
-        return {
-          success: true,
-          code: 'SIGNUP_SUCCESS',
-          message: 'User registered successfully. Verification email sent.',
-          emailSent: true,
-          user: {
-            id: user._id,
-            email: user.email,
-            fullName: user.fullName,
-            username: user.username,
-            role: user.role,
-            isSeller: user.isSeller,
-            isCompany: user.isCompany,
-          },
-        };
-      } catch (emailError) {
-        console.error(`❌ Failed to send verification email:`, emailError.message);
-        // Don't fail signup, user can request resend
-        return {
-          success: true,
-          code: 'SIGNUP_SUCCESS',
-          message: 'User registered successfully, but email sending failed. Please request a new verification email.',
-          emailSent: false,
-          user: {
-            id: user._id,
-            email: user.email,
-            fullName: user.fullName,
-            username: user.username,
-            role: user.role,
-            isSeller: user.isSeller,
-            isCompany: user.isCompany,
-          },
-        };
-      }
+    if (!shouldSendVerificationEmail) {
+      console.log(`ℹ️ Skipping verification email (development auto-verify). email=${user.email}, isVerified=${user.isVerified}`);
+      return {
+        success: true,
+        code: 'SIGNUP_SUCCESS',
+        message: 'User registered successfully. Account is auto-verified in development; no verification email was sent.',
+        emailSent: false,
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          username: user.username,
+          role: user.role,
+          isSeller: user.isSeller,
+          isCompany: user.isCompany,
+        },
+      };
     }
 
-    return {
-      success: true,
-      code: 'SIGNUP_SUCCESS',
-      message: 'User registered successfully. Verification email sent.',
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        username: user.username,
-        role: user.role,
-        isSeller: user.isSeller,
-        isCompany: user.isCompany,
-      },
-    };
+    try {
+      console.log(`📧 Sending verification email to ${user.email}`);
+      const emailResult = await sendVerificationEmail(user.email, token);
+      const messageIdInfo = emailResult && emailResult.messageId ? ` (messageId=${emailResult.messageId})` : '';
+      console.log(`✅ Verification email sent successfully to ${user.email}${messageIdInfo}`);
+
+      return {
+        success: true,
+        code: 'SIGNUP_SUCCESS',
+        message: 'User registered successfully. Verification email sent.',
+        emailSent: true,
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          username: user.username,
+          role: user.role,
+          isSeller: user.isSeller,
+          isCompany: user.isCompany,
+        },
+      };
+    } catch (emailError) {
+      console.error(`❌ Failed to send verification email to ${user.email}:`, emailError.message);
+      // Don't fail signup, user can request resend
+      return {
+        success: true,
+        code: 'SIGNUP_SUCCESS',
+        message: 'User registered successfully, but email sending failed. Please request a new verification email.',
+        emailSent: false,
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          username: user.username,
+          role: user.role,
+          isSeller: user.isSeller,
+          isCompany: user.isCompany,
+        },
+      };
+    }
   } catch (error) {
     console.error('Signup error:', error);
     // Return more specific error message
@@ -329,7 +348,16 @@ const resendVerificationEmail = async (email) => {
   await user.save();
 
   // Send new verification email
-  await sendVerificationEmail(user.email, newToken);
+  try {
+    console.log(`📧 Resending verification email to ${user.email}`);
+    await sendVerificationEmail(user.email, newToken);
+    console.log(`✅ Verification email resent successfully to ${user.email}`);
+  } catch (emailError) {
+    const error = new Error(emailError.message || 'Failed to resend verification email');
+    error.statusCode = 500;
+    error.code = 'EMAIL_SEND_FAILED';
+    throw error;
+  }
   
   return {
     success: true,

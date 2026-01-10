@@ -43,6 +43,8 @@ interface GigProps {
       level?: 'Basic' | 'Pro' | 'Elite';
     };
     sellerBadge?: SellerBadgeInfo | null;
+    promotionPriority?: number;
+    isPromoted?: boolean;
     deliveryTime?: number;
     reviews?: number;
     upgradeOption: string;
@@ -83,8 +85,12 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     checkFavoriteStatus();
   }, [gig._id, isLoggedIn, initialIsFavorite]);
 
-  const displayRating = gig.rating || gig.totalStars || 0;
-  const totalReviews = gig.reviews || 0;
+  // Fix rating calculation: ensure proper fallback and validation
+  const displayRating = gig.rating || 
+    (gig.starNumber && gig.totalStars && gig.starNumber > 0 
+      ? Number((gig.totalStars / gig.starNumber).toFixed(1))
+      : (gig.totalStars || 0));
+  const totalReviews = gig.reviews || gig.starNumber || 0;
   const displaySales = gig.sales || gig.enrollments || 0;
   const displayPrice = gig.premiumPlan?.price || gig.pricingPlan?.basic?.price || parseFloat(gig.price) || 0;
   const deliveryDays = gig.premiumPlan?.deliveryTime || gig.pricingPlan?.basic?.deliveryTime || gig.deliveryTime || 3;
@@ -183,7 +189,18 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
           {/* Top Badges */}
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
             <div className="flex flex-col gap-2">
-              {/* Promotion badge hidden - promotions feel organic */}
+              {/* Promotion Badge */}
+              {gig.promotionPriority && gig.promotionPriority >= 70 && (
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  FEATURED
+                </span>
+              )}
+              {gig.promotionPriority && gig.promotionPriority >= 40 && gig.promotionPriority < 70 && (
+                <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+                  PROMOTED
+                </span>
+              )}
               {gig.discount > 0 && (
                 <span className="bg-orange-400 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
                   {gig.discount}% OFF

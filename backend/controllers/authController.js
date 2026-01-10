@@ -65,9 +65,9 @@ const handleSignup = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       code: signUpResponse.code || 'SIGNUP_SUCCESS',
-      message: signUpResponse.emailSent 
+      message: signUpResponse.message || (signUpResponse.emailSent 
         ? 'Account created successfully. Please check your email to verify your account.'
-        : 'Account created successfully, but verification email failed. Please request a new verification email.',
+        : 'Account created successfully, but verification email failed. Please request a new verification email.'),
       emailSent: signUpResponse.emailSent !== false,
       user: signUpResponse.user,
     });

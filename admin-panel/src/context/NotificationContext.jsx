@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import { getMyNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../utils/adminApi";
 import { toast } from "react-hot-toast";
 import { useAuth } from "./AuthContext";
+import { io as createSocket } from "socket.io-client";
+import { API_CONFIG } from "../config/api";
 
 const NotificationContext = createContext();
 
@@ -10,6 +12,18 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, user } = useAuth();
+
+  const getAdminId = useCallback(() => {
+    return (
+      user?._id ||
+      user?.id ||
+      user?.user?._id ||
+      user?.user?.id ||
+      user?.data?._id ||
+      user?.data?.id ||
+      null
+    );
+  }, [user]);
 
   const fetchNotifications = useCallback(async () => {
     // Only fetch if authenticated and we have a user
@@ -82,6 +96,53 @@ export const NotificationProvider = ({ children }) => {
       return () => clearInterval(interval);
     }
   }, [fetchNotifications, isAuthenticated, user]);
+
+  // Realtime notifications via Socket.IO
+  useEffect(() => {
+    if (!isAuthenticated() || !user) return;
+
+    const adminId = getAdminId();
+    if (!adminId) {
+      console.warn('[Admin Notifications] Missing admin id; socket will not register userOnline');
+    }
+
+    const socket = createSocket(API_CONFIG.BASE_URL, {
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('🔌 [Admin Socket] Connected:', socket.id);
+      if (adminId) {
+        socket.emit('userOnline', String(adminId));
+        console.log('🟢 [Admin Socket] userOnline emitted:', String(adminId));
+      }
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('🔌 [Admin Socket] Disconnected:', reason);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('❌ [Admin Socket] connect_error:', err?.message || err);
+    });
+
+    const handleRealtimeNotification = (payload) => {
+      console.log('📩 [Admin Socket] notification received:', payload);
+      // Keep UI consistent with DB: refetch full list
+      fetchNotifications();
+    };
+
+    // Backend emits `notification` in most places; promotion uses `newNotification`
+    socket.on('notification', handleRealtimeNotification);
+    socket.on('newNotification', handleRealtimeNotification);
+
+    return () => {
+      socket.off('notification', handleRealtimeNotification);
+      socket.off('newNotification', handleRealtimeNotification);
+      socket.disconnect();
+    };
+  }, [fetchNotifications, getAdminId, isAuthenticated, user]);
 
   return (
     <NotificationContext.Provider value={{

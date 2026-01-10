@@ -1,7 +1,15 @@
 
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const paypal = require('@paypal/checkout-server-sdk');
+const paypalCheckout = require('@paypal/checkout-server-sdk');
+const paypalRestSdk = require('paypal-rest-sdk');
+
+// Configure PayPal REST SDK for payouts
+paypalRestSdk.configure({
+    'mode': process.env.PAYPAL_MODE || 'sandbox', // 'sandbox' or 'live'
+    'client_id': process.env.PAYPAL_CLIENT_ID,
+    'client_secret': process.env.PAYPAL_SECRET // Note: uses PAYPAL_SECRET from .env
+});
 
 const Freelancer = require('../models/Freelancer');
 const Order = require('../models/Order'); 
@@ -244,7 +252,7 @@ exports.paypalWithdrawFunds = async (req, res) => {
             {
                 auth: {
                     username: process.env.PAYPAL_CLIENT_ID,
-                    password: process.env.PAYPAL_CLIENT_SECRET,
+                    password: process.env.PAYPAL_SECRET,
                 },
             }
         );
@@ -398,51 +406,83 @@ exports.withdrawFunds = async (req, res) => {
 };
 
 exports.processPayPalWithdrawal = async (email, amount) => {
+    // Check if PayPal is configured
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_SECRET) {
+        console.error('[PayPal Payout] PayPal credentials not configured');
+        return {
+            success: false,
+            message: 'PayPal payouts are not configured on the server.',
+            error: 'Missing PAYPAL_CLIENT_ID or PAYPAL_SECRET'
+        };
+    }
 
-  try {
-      if (!email || amount <= 0) {
-          throw new Error('Invalid email or amount.');
-      }
+    try {
+        if (!email || amount <= 0) {
+            throw new Error('Invalid email or amount.');
+        }
 
-      // Prepare the payout request
-      const requestBody = {
-          sender_batch_header: {
-              email_subject: "You have a payment from Noretmy!",
-              email_message: "You have received your earnings. Thank you for working with Noretmy!",
-          },
-          items: [
-              {
-                  recipient_type: "EMAIL",
-                  receiver: email,
-                  amount: {
-                      value: Number(amount).toFixed(2), // Amount in USD
-                      currency: "USD",
-                  },
-                  note: "Withdrawal from Noretmy platform",
-              },
-          ],
-      };
+        // Generate a unique sender batch ID
+        const senderBatchId = `Payout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      const request = new paypal.payouts.PayoutsPostRequest();
-      request.requestBody(requestBody);
+        // Prepare the payout request using paypal-rest-sdk format
+        const payoutRequest = {
+            sender_batch_header: {
+                sender_batch_id: senderBatchId,
+                email_subject: "You have a payment from Noretmy!",
+                email_message: "You have received your earnings. Thank you for working with Noretmy!"
+            },
+            items: [
+                {
+                    recipient_type: "EMAIL",
+                    receiver: email,
+                    amount: {
+                        value: Number(amount).toFixed(2),
+                        currency: "USD"
+                    },
+                    note: "Withdrawal from Noretmy platform",
+                    sender_item_id: `Item_${Date.now()}`
+                }
+            ]
+        };
 
-      // Execute the payout
-      const response = await client.execute(request);
+        console.log('[PayPal Payout] Initiating payout to:', email, 'Amount:', amount);
 
-      // Return success response
-      return {
-          success: true,
-          message: 'Withdrawal successful.',
-          payoutBatchId: response.result.batch_header.payout_batch_id,
-      };
-  } catch (error) {
-      console.error('PayPal Payout Error:', error.message || error);
-      return {
-          success: false,
-          message: 'Withdrawal failed. Please try again later.',
-          error: error.message || 'Unknown error occurred',
-      };
-  }
+        // Execute the payout using paypal-rest-sdk (promisified)
+        const response = await new Promise((resolve, reject) => {
+            paypalRestSdk.payout.create(payoutRequest, function (error, payout) {
+                if (error) {
+                    console.error('[PayPal Payout] Error:', error.response || error);
+                    reject(error);
+                } else {
+                    console.log('[PayPal Payout] Success:', payout);
+                    resolve(payout);
+                }
+            });
+        });
+
+        // Return success response
+        return {
+            success: true,
+            message: 'Withdrawal successful.',
+            payoutBatchId: response.batch_header.payout_batch_id,
+        };
+    } catch (error) {
+        console.error('[PayPal Payout] Error:', error.message || error);
+        
+        // Extract meaningful error message from PayPal response
+        let errorMessage = 'Withdrawal failed. Please try again later.';
+        if (error.response && error.response.message) {
+            errorMessage = error.response.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        return {
+            success: false,
+            message: errorMessage,
+            error: error.message || 'Unknown error occurred',
+        };
+    }
 };
 
 exports.processRefund = async (req, res) => {

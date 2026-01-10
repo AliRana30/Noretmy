@@ -8,6 +8,7 @@ import navbarTranslations from '../../localization/navbar.json';
 import LanguageSwitcher from '../languageSwitcher/LanguageSwitcher';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
+import { io } from 'socket.io-client';
 
 export default function AppHeader() {
   const { darkMode, dispatch } = useContext(DarkModeContext);
@@ -171,10 +172,52 @@ export default function AppHeader() {
   useEffect(() => {
     fetchNotifications();
     
+    // Connect to socket for real-time notifications
+    const socket = io(API_CONFIG.BASE_URL, {
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
+
+    // Register user as online (admin)
+    if (user?._id) {
+      socket.emit('userOnline', user._id);
+    }
+
+    // Listen for new notifications
+    socket.on('newNotification', (notification) => {
+      console.log('📩 Admin received notification:', notification);
+      // Add new notification to the top
+      setNotifications(prev => [{
+        id: 'new-' + Date.now(),
+        type: notification.type || 'system',
+        title: notification.title || 'New Notification',
+        message: notification.message || '',
+        time: 'Just now',
+        read: false
+      }, ...prev]);
+      
+      // Show browser notification
+      if (Notification.permission === 'granted') {
+        new Notification(notification.title || 'New Notification', {
+          body: notification.message,
+          icon: '/favicon.ico'
+        });
+      }
+    });
+
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
     // Refresh notifications every 5 minutes
     const interval = setInterval(fetchNotifications, 300000);
-    return () => clearInterval(interval);
-  }, []);
+    
+    return () => {
+      clearInterval(interval);
+      socket.disconnect();
+    };
+  }, [user]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {

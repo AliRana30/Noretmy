@@ -39,9 +39,9 @@ export const API_CONFIG = {
     
     // Admin Financial Management
     ADMIN_FINANCIAL_OVERVIEW: '/api/admin/financial/overview',
-    ADMIN_WITHDRAWALS: '/api/admin/financial/withdrawals',
-    ADMIN_WITHDRAWAL_APPROVE: '/api/admin/financial/withdrawals/:withdrawalId/approve',
-    ADMIN_WITHDRAWAL_REJECT: '/api/admin/financial/withdrawals/:withdrawalId/reject',
+    ADMIN_WITHDRAWALS: '/api/withdraw',
+    ADMIN_WITHDRAWAL_APPROVE: '/api/withdraw/:withdrawalId/approve',
+    ADMIN_WITHDRAWAL_REJECT: '/api/withdraw/reject',
     
     // Admin Content Management
     ADMIN_REVIEWS: '/api/admin/content/reviews',

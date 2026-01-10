@@ -24,6 +24,8 @@ interface GigType {
     trustScore: number;
     isVerified?: boolean;
   } | null;
+  promotionPriority?: number;
+  isPromoted?: boolean;
   deliveryTime?: number;
   reviews?: number;
   upgradeOption: string;

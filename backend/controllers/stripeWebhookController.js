@@ -44,8 +44,18 @@ const handleStripeWebhook = async (req, res) => {
 
   } catch (err) {
     console.error('[Stripe Webhook] Error:', err.message);
+    console.error('[Stripe Webhook] Error Details:', {
+      type: err.type,
+      message: err.message,
+      stack: err.stack,
+      hasSignature: !!sig,
+      hasEndpointSecret: !!endpointSecret,
+      bodyType: typeof req.body,
+      bodyLength: req.body?.length || 0
+    });
     
     if (err.type === 'StripeSignatureVerificationError') {
+      console.error('[Stripe Webhook] SIGNATURE VERIFICATION FAILED - Check STRIPE_WEBHOOK_SECRET in production');
       return res.status(400).send(`Webhook signature verification failed: ${err.message}`);
     }
     
@@ -336,11 +346,36 @@ const processOrderPayment = async (paymentIntent) => {
       notificationService.createNotification({
         userId: seller._id,
         title: '💰 New Order Received',
-        message: `New order for "${gig.title}" - $${order.price}`,
+        message: `${buyer.username || buyer.fullName || 'A customer'} placed an order for "${gig.title}" - $${order.price}`,
         type: 'order',
         link: `/orders/${order._id}`
       })
     ]);
+
+    // Notify admin about new order
+    const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
+    if (Admin) {
+      await notificationService.createNotification({
+        userId: Admin._id,
+        title: '💵 New Order Placed',
+        message: `${buyer.username || buyer.fullName || 'A customer'} placed an order with ${seller.username || seller.fullName || 'a seller'} - $${order.price}`,
+        type: 'system',
+        link: `/admin/orders/${order._id}`
+      });
+
+      // Emit real-time notification to admin
+      const io = req.app?.get('io');
+      if (io) {
+        const adminSocketId = io.getUserSocket?.(Admin._id.toString());
+        if (adminSocketId) {
+          io.to(adminSocketId).emit('newNotification', {
+            title: '💵 New Order',
+            message: `${buyer.username || 'Customer'} ordered from ${seller.username || 'seller'}`,
+            type: 'system'
+          });
+        }
+      }
+    }
   }
 
   return { success: true };
@@ -365,7 +400,11 @@ const processPromotionPayment = async (paymentIntent) => {
   // Idempotency check
   const existingPurchase = await PromotionPurchase.findOne({ stripePaymentIntentId: id });
   if (existingPurchase) {
-    console.log('⚠️  Promotion already processed - skipping');
+    console.log('⚠️  Promotion already processed - skipping', {
+      promotionId: existingPurchase._id,
+      status: existingPurchase.status,
+      createdAt: existingPurchase.purchasedAt
+    });
     return { success: true, message: 'Already processed' };
   }
   console.log('✅ No duplicate found - proceeding with creation');
@@ -408,11 +447,15 @@ const processPromotionPayment = async (paymentIntent) => {
 
   await promotionPurchase.save();
   console.log('✅ PROMOTION SAVED TO DATABASE');
-  console.log('Promotion ID:', promotionPurchase._id);
-  console.log('User ID:', promotionPurchase.userId);
-  console.log('Plan:', promotionPurchase.planName);
-  console.log('Expires:', promotionPurchase.expiresAt);
-  console.log('Status:', promotionPurchase.status);
+  console.log('Promotion Details:', {
+    id: promotionPurchase._id,
+    userId: promotionPurchase.userId,
+    plan: promotionPurchase.planName,
+    expires: promotionPurchase.expiresAt,
+    status: promotionPurchase.status,
+    paymentIntentId: id,
+    totalAmount: promotionPurchase.totalAmount
+  });
 
   // Send promotion confirmation email
   const { sendPromotionPlanEmail, sendAllGigsPromotionEmail } = require('../services/emailService');

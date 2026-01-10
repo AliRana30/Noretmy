@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Suspense } from "react";
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const CheckoutContent = () => {
   const searchParams = useSearchParams();
@@ -35,6 +36,36 @@ const CheckoutContent = () => {
     }
     setIsChecking(false);
   }, [isLoggedIn, router]);
+
+  // Check for active promotion if this is a promotional purchase
+  useEffect(() => {
+    const checkActivePromotion = async () => {
+      const type = searchParams.get('payment_type');
+      if (type === 'monthly_promotional' && isLoggedIn) {
+        try {
+          const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+          const response = await axios.get(`${BACKEND_URL}/subscription/user/active`, {
+            withCredentials: true
+          });
+
+          if (response.data?.activePromotions?.length > 0) {
+            toast.error('You already have an active promotion. Please wait for it to expire before purchasing a new one.', {
+              position: 'top-center',
+              autoClose: 5000,
+            });
+            router.push('/promote-gigs');
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking active promotion:', error);
+        }
+      }
+    };
+
+    if (!isChecking && isLoggedIn) {
+      checkActivePromotion();
+    }
+  }, [isChecking, isLoggedIn, searchParams, router]);
 
   useEffect(() => {
     setTitle(searchParams.get('title'));

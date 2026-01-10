@@ -3,14 +3,13 @@
   import axios from 'axios';
 import PayoutAccountsComponent from '@/components/shared/PayoutAccountDetails';
 import { toast } from 'react-toastify';
-import { resolve } from 'path';
 
 interface PayoutAccount {
   id: string;
   withdrawalMethod: 'stripe' | 'paypal';
   email: string;
   onboardingStatus : string;
-  dateAdded: string;
+  dateAdded?: string;
 }
 
 interface PayoutAccountData {
@@ -24,13 +23,12 @@ interface OnboardingData {
 }
 
   const WithdrawalPage = () => {
-    const [balance, setBalance] = useState(30);
+    const [balance, setBalance] = useState(0);
     const [withdrawalMethod, setWithdrawalMethod] = useState('stripe');
     const [withdrawalAmount, setWithdrawalAmount] = useState('');
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [processing, setProcessing] = useState(false);
     const [recentWithdrawals, setRecentWithdrawals] = useState([]);
     const [account, setAccount] = useState<PayoutAccount | null>(null);
@@ -38,13 +36,41 @@ interface OnboardingData {
     const [onboardingData,setOnboardingData] = useState<OnboardingData | null>(null);
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    const apiBase = (BACKEND_URL || '').replace(/\/$/, '');
+    const apiRoot = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+
+    // Handle Stripe onboarding return
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const stripeSuccess = urlParams.get('stripe_success');
+        const stripeRefresh = urlParams.get('stripe_refresh');
+        
+        if (stripeSuccess === 'true') {
+          toast.success('Stripe onboarding completed! Your account is being verified.');
+          // Clean up URL
+          window.history.replaceState({}, '', '/withdraw');
+        } else if (stripeRefresh === 'true') {
+          toast.warn('Please complete your Stripe onboarding to enable withdrawals.');
+          window.history.replaceState({}, '', '/withdraw');
+        }
+      }
+    }, []);
+
     useEffect(() => {
       // Fetch user balance
       const fetchBalance = async () => {
         try {
+          if (!apiBase) {
+            const msg = 'API URL is not configured. Please set NEXT_PUBLIC_API_URL.';
+            setError(msg);
+            toast.error(msg);
+            setLoading(false);
+            return;
+          }
           setLoading(true);
           const response = await axios.get(
-            `${BACKEND_URL}/withdraw/request/user`,
+            `${apiRoot}/withdraw/request/user`,
             {
               withCredentials: true,
             },
@@ -53,17 +79,19 @@ interface OnboardingData {
           setRecentWithdrawals(response.data.withdrawRequests); // Directly setting the API response
           setBalance(response.data.accountDetails.availableBalance)
           setAccount(response.data.accountDetails)
+          setWithdrawalMethod(response.data.accountDetails.withdrawalMethod)
+          setEmail(response.data.accountDetails.email)
           
           setLoading(false);
         } catch (err) {
-          setError('Failed to fetch your balance. Please try again later.');
+          toast.error('Failed to fetch your balance. Please try again later.');
           setLoading(false);
         }
       };
 
       fetchBalance();
       // In a real implementation, you would also fetch recent withdrawals here
-    }, []);
+    }, [apiBase, apiRoot]);
 
     const handleWithdrawalMethodChange = (e: any) => {
       setWithdrawalMethod(e.target.value);
@@ -84,29 +112,59 @@ interface OnboardingData {
     const handleAddAccount = async (accountData: PayoutAccountData): Promise<void> => {
 
       try {
-        const response = await axios.post(`${BACKEND_URL}/withdraw/account`, accountData, {
+        const response = await axios.post(`${apiRoot}/withdraw/account`, accountData, {
           withCredentials : true
         });
 
-        setAccount(response.data.account);
-        // setAccountAddSuccess(response.data.success);
-        setOnboardingData(response.data)
-
-        toast.success("dadas");
+        // Stripe onboarding can return { success:false, link, message }
+        // Successful updates return { success:true, freelancer }
+        if (response.data?.freelancer) {
+          setAccount({
+            id: response.data.freelancer._id,
+            withdrawalMethod: response.data.freelancer.withdrawalMethod,
+            email: response.data.freelancer.email,
+            onboardingStatus: response.data.freelancer.onboardingStatus,
+          });
+          setOnboardingData(null);
+          toast.success(response.data?.message || 'Your account updated successfully!');
+        } else {
+          setOnboardingData(response.data);
+          toast.warn(response.data?.message || 'Please complete onboarding.');
+        }
       } catch (error: any) {
         console.error('Error adding account:', error);
+        toast.error(error?.response?.data?.message || 'Failed to update payout account.');
         throw error;
       }
     };
     
     const handleEditAccount = async (accountData: PayoutAccount): Promise<void> => {
       try {
-        const response = await axios.put(`https://noretmy-backend.vercel.app/api/withdraw/account/${accountData.id}`, accountData, {
-          withCredentials:  true
-        });
-        setAccount(response.data.account);
+        // Backend does not expose a PUT route; reuse the POST handler to update.
+        const response = await axios.post(
+          `${apiRoot}/withdraw/account`,
+          {
+            withdrawalMethod: accountData.withdrawalMethod,
+            email: accountData.email,
+          },
+          { withCredentials: true },
+        );
+        if (response.data?.freelancer) {
+          setAccount({
+            id: response.data.freelancer._id,
+            withdrawalMethod: response.data.freelancer.withdrawalMethod,
+            email: response.data.freelancer.email,
+            onboardingStatus: response.data.freelancer.onboardingStatus,
+          });
+          setOnboardingData(null);
+          toast.success(response.data?.message || 'Your account updated successfully!');
+        } else {
+          setOnboardingData(response.data);
+          toast.warn(response.data?.message || 'Please complete onboarding.');
+        }
       } catch (error: any) {
         console.error('Error updating account:', error);
+        toast.error(error?.response?.data?.message || 'Failed to update payout account.');
         throw error;
       }
     };
@@ -124,30 +182,29 @@ interface OnboardingData {
     const handleSubmit = async (e: any) => {
       e.preventDefault();
       setError('');
-      setSuccess('');
 
       const amount = parseFloat(withdrawalAmount);
 
       // Validate amount
       if (isNaN(amount) || amount <= 0) {
-        setError('Please enter a valid amount.');
+        toast.error('Please enter a valid amount.');
         return;
       }
 
       if (amount > balance) {
-        setError('Withdrawal amount cannot exceed your available balance.');
+        toast.error('Withdrawal amount cannot exceed your available balance.');
         return;
       }
 
       if (amount < 20) {
-        setError('Minimum withdrawal amount is $20.');
+        toast.error('Minimum withdrawal amount is $20.');
         return;
       }
 
       try {
         setProcessing(true);
         const response = await axios.post(
-          `${BACKEND_URL}/withdraw`,
+          `${apiRoot}/withdraw`,
           {
             amount
 
@@ -155,26 +212,21 @@ interface OnboardingData {
           { withCredentials: true },
         );
 
-        setSuccess(
+        toast.success(
           'Withdrawal request submitted successfully! It will be processed within 1-3 business days.',
         );
         setWithdrawalAmount('');
-        // Update balance after withdrawal
-        setBalance((prev) => prev - amount);
 
-        // Add to recent withdrawals (in a real app this would come from the API)
-        const newWithdrawal = {
-          id: `w${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
-          amount: amount,
-          method: withdrawalMethod,
-          status: 'pending',
-        };
-        setRecentWithdrawals([newWithdrawal, ...recentWithdrawals]);
+        // Do not deduct funds client-side; balance updates on admin approval.
+
+        // Add the new withdrawal from API response to recent withdrawals
+        if (response.data?.withdrawRequest) {
+          setRecentWithdrawals([response.data.withdrawRequest, ...recentWithdrawals]);
+        }
 
         setProcessing(false);
       } catch (err: any) {
-        setError(
+        toast.error(
           err.response?.data?.message ||
           'Failed to process withdrawal. Please try again later.',
         );
@@ -212,9 +264,8 @@ interface OnboardingData {
               </h1>
 
               {/* Balance Card */}
-              <div className="bg-white rounded-2xl p-6 mb-8 shadow-lg border border-gray-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 -mt-12 -mr-12 bg-gradient-to-br from-orange-400/10 to-orange-500/30 rounded-full blur-xl"></div>
-                <div className="relative z-10">
+              <div className="bg-white rounded-2xl p-6 mb-8 shadow-lg border border-gray-100">
+                <div>
                   <h2 className="text-lg font-medium mb-2 text-gray-600">
                     Available Balance
                   </h2>
@@ -229,7 +280,6 @@ interface OnboardingData {
                     <p className="text-sm text-gray-500">
                       Minimum withdrawal: $20.00
                     </p>
-                    <div className="h-1.5 w-20 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"></div>
                   </div>
                 </div>
               </div>
@@ -249,23 +299,6 @@ interface OnboardingData {
                     />
                   </svg>
                   <p>{error}</p>
-                </div>
-              )}
-
-              {success && (
-                <div className="bg-white border-l-4 border-orange-500 text-orange-700 p-4 mb-6 rounded-lg shadow-sm flex items-start">
-                  <svg
-                    className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <p>{success}</p>
                 </div>
               )}
 

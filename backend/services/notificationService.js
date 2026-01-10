@@ -265,7 +265,7 @@ const notifyWithdrawalRequestSubmitted = async (adminIds, freelancerId, amount, 
     message: `A freelancer has requested to withdraw $${amount}. Please review.`,
     type: 'withdrawal',
     data: { freelancerId, amount, requestId },
-    link: `/admin/withdrawals/${requestId}`
+    link: `/admin/withdrawals`
   }));
   
   const createdNotifications = await createBulkNotifications(notifications);
@@ -278,7 +278,7 @@ const notifyWithdrawalRequestSubmitted = async (adminIds, freelancerId, amount, 
         title: '💸 New Withdrawal Request',
         message: `A freelancer has requested to withdraw $${amount}. Please review.`,
         type: 'withdrawal',
-        link: `/admin/withdrawals/${requestId}`
+        link: `/admin/withdrawals`
       });
     });
   }
@@ -365,6 +365,138 @@ const getAdminIds = async () => {
   }
 };
 
+/**
+ * Notify admins about order acceptance
+ */
+const notifyAdminOrderAccepted = async (orderId, orderTitle, sellerId, sellerName, amount) => {
+  const adminIds = await getAdminIds();
+  if (adminIds.length === 0) return [];
+
+  const notifications = adminIds.map(adminId => ({
+    userId: adminId,
+    title: '✅ Order Accepted',
+    message: `${sellerName} accepted order "${orderTitle}" ($${amount})`,
+    type: 'order',
+    data: { orderId, sellerId, amount },
+    link: `/admin/orders/${orderId}`
+  }));
+
+  const created = await createBulkNotifications(notifications);
+
+  const io = global.io;
+  if (io) {
+    adminIds.forEach((adminId) => {
+      io.to(`user_${adminId}`).emit('notification', {
+        title: '✅ Order Accepted',
+        message: `${sellerName} accepted order "${orderTitle}" ($${amount})`,
+        type: 'order',
+        link: `/admin/orders/${orderId}`
+      });
+    });
+  }
+
+  return created;
+};
+
+/**
+ * Notify admins about order rejection
+ */
+const notifyAdminOrderRejected = async (orderId, orderTitle, sellerId, sellerName, reason) => {
+  const adminIds = await getAdminIds();
+  if (adminIds.length === 0) return [];
+
+  const notifications = adminIds.map(adminId => ({
+    userId: adminId,
+    title: '❌ Order Rejected',
+    message: `${sellerName} rejected order "${orderTitle}". Reason: ${reason}`,
+    type: 'order',
+    data: { orderId, sellerId, reason },
+    link: `/admin/orders/${orderId}`
+  }));
+
+  const created = await createBulkNotifications(notifications);
+
+  const io = global.io;
+  if (io) {
+    adminIds.forEach((adminId) => {
+      io.to(`user_${adminId}`).emit('notification', {
+        title: '❌ Order Rejected',
+        message: `${sellerName} rejected order "${orderTitle}"`,
+        type: 'order',
+        link: `/admin/orders/${orderId}`
+      });
+    });
+  }
+
+  return created;
+};
+
+/**
+ * Notify admins about new payment
+ */
+const notifyAdminPaymentReceived = async (orderId, orderTitle, buyerName, amount) => {
+  const adminIds = await getAdminIds();
+  if (adminIds.length === 0) return [];
+
+  const notifications = adminIds.map(adminId => ({
+    userId: adminId,
+    title: '💰 Payment Received',
+    message: `${buyerName} paid $${amount} for "${orderTitle}"`,
+    type: 'payment',
+    data: { orderId, amount },
+    link: `/admin/orders/${orderId}`
+  }));
+
+  const created = await createBulkNotifications(notifications);
+
+  const io = global.io;
+  if (io) {
+    adminIds.forEach((adminId) => {
+      io.to(`user_${adminId}`).emit('notification', {
+        title: '💰 Payment Received',
+        message: `${buyerName} paid $${amount} for "${orderTitle}"`,
+        type: 'payment',
+        link: `/admin/orders/${orderId}`
+      });
+    });
+  }
+
+  return created;
+};
+
+/**
+ * Notify admins about promotion purchase
+ */
+const notifyAdminPromotionPurchased = async (userId, userName, promotionName, amount) => {
+  const adminIds = await getAdminIds();
+  if (adminIds.length === 0) return [];
+
+  const notifications = adminIds.map(adminId => ({
+    userId: adminId,
+    title: '🎯 Promotion Purchased',
+    message: `${userName} purchased "${promotionName}" promotion ($${amount})`,
+    type: 'promotion',
+    data: { userId, promotionName, amount },
+    link: '/admin/promotions'
+  }));
+
+  const created = await createBulkNotifications(notifications);
+
+  const io = global.io;
+  if (io) {
+    adminIds.forEach((adminId) => {
+      io.to(`user_${adminId}`).emit('notification', {
+        title: '🎯 Promotion Purchased',
+        message: `${userName} purchased "${promotionName}" promotion ($${amount})`,
+        type: 'promotion',
+        link: '/admin/promotions'
+      });
+    });
+  }
+
+  return created;
+};
+
 module.exports = {
   createNotification,
   createBulkNotifications,
@@ -386,5 +518,9 @@ module.exports = {
   notifyWithdrawalRejected,
   notifyOrderCompleted,
   notifyNewMessage,
-  getAdminIds
+  getAdminIds,
+  notifyAdminOrderAccepted,
+  notifyAdminOrderRejected,
+  notifyAdminPaymentReceived,
+  notifyAdminPromotionPurchased
 };

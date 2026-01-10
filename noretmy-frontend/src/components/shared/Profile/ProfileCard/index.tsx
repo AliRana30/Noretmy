@@ -256,22 +256,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {isSeller && (
-                <motion.a
+                <motion.button
                   onClick={(e) => {
                     e.preventDefault();
                     const section = document.getElementById("portfolio");
-                    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    if (section) {
+                      section.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
                   }}
-                  href="#"
-                  className="flex items-center gap-2 p-2 bg-white border border-gray-100 hover:border-blue-200 hover:bg-blue-50 rounded transition-all text-xs text-gray-700 shadow-sm"
+                  className="flex items-center gap-2 p-2 bg-white border border-gray-100 hover:border-blue-200 hover:bg-blue-50 rounded transition-all text-xs text-gray-700 shadow-sm cursor-pointer"
                 >
-                  <div className="p-1 bg-gray-1-0 rounded text-blac-500">
+                  <div className="p-1 bg-gray-100 rounded text-black-500">
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838l-2.851 1.22v6.986a1 1 0 002 0V9.867l5.395-2.312a1 1 0 000-1.84l-7-3zM10 15.821a1 1 0 00.788-.375l5.5-6.5a1 1 0 00-.788-1.625h-11a1 1 0 00-.788 1.625l5.5 6.5a1 1 0 00.788.375z" />
                     </svg>
                   </div>
                   {t('profile:profileCard.navigation.portfolio')}
-                </motion.a>
+                </motion.button>
               )}
 
               <motion.a
@@ -301,14 +302,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </motion.a>
 
               {isSeller && (
-                <motion.a
+                <motion.button
                   onClick={(e) => {
                     e.preventDefault();
                     const section = document.getElementById("gigs");
-                    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    if (section) {
+                      section.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
                   }}
-                  href="#"
-                  className="flex items-center gap-2 p-2 bg-white border border-gray-100 hover:border-black-200 hover:bg-black-50 rounded transition-all text-xs text-gray-700 shadow-sm"
+                  className="flex items-center gap-2 p-2 bg-white border border-gray-100 hover:border-black-200 hover:bg-black-50 rounded transition-all text-xs text-gray-700 shadow-sm cursor-pointer"
                 >
                   <div className="p-1 bg-black-100 rounded text-black-500">
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -316,7 +318,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </svg>
                   </div>
                   {t('profile:profileCard.navigation.gigs')}
-                </motion.a>
+                </motion.button>
               )}
             </div>
           </div>

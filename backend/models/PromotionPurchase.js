@@ -49,7 +49,7 @@ const promotionPurchaseSchema = new mongoose.Schema({
   // Lifecycle status
   status: { 
     type: String, 
-    enum: ['pending', 'active', 'expired', 'cancelled', 'failed'], 
+    enum: ['pending', 'active', 'expired', 'cancelled', 'failed', 'deleted'], 
     default: 'pending',
     index: true 
   },
@@ -58,6 +58,7 @@ const promotionPurchaseSchema = new mongoose.Schema({
   purchasedAt: { type: Date, default: Date.now },
   activatedAt: { type: Date, default: null },
   expiresAt: { type: Date, required: true, index: true },
+  deletedAt: { type: Date, default: null },
   
   // Duration
   durationDays: { type: Number, default: 30 },

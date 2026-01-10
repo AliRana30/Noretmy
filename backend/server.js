@@ -198,6 +198,12 @@ const io = require('socket.io')(server, {
 // Initialize socket handler with the io instance
 socketHandler(io);
 
+// Attach io instance to app so controllers can access it via req.app.get('io')
+app.set('io', io);
+// Also attach to global for legacy services that use global.io
+global.io = io;
+console.log('🔌 Socket.IO initialized and attached to Express app');
+
 // Start server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, '0.0.0.0', () => {

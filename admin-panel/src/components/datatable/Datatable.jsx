@@ -38,7 +38,7 @@ const Datatable = ({ data, columns, title = "allUsers", showAddButton = true, ad
           <DataGrid
             rows={data}
             columns={columns}
-            getRowId={(row) => row._id}
+            getRowId={(row) => (row?._id?.toString ? row._id.toString() : String(row?._id))}
             pageSizeOptions={[10, 25, 50]}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } },

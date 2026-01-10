@@ -1,19 +1,25 @@
 import Datatable from "../../components/datatable/Datatable";
 import { useState, useEffect } from "react";
-import { getAllWithdrawalRequests, getWithdrawalRequestsColumns } from "../../datatablesource";
-import { approveWithdrawal, rejectWithdrawal } from "../../utils/adminApi";
+import { getWithdrawalRequestsColumns } from "../../datatablesource";
+import { approveWithdrawal, rejectWithdrawal, getAdminWithdrawals } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import listTranslations from "../../localization/list.json";
 import commonTranslations from "../../localization/common.json";
 import { Link } from "react-router-dom";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import toast from "react-hot-toast";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
 
 const ListWithdrawlRequests = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionType, setActionType] = useState(null); // 'approve' | 'reject'
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [adminNote, setAdminNote] = useState('Approved by admin');
+  const [rejectReason, setRejectReason] = useState('');
   const { getTranslation } = useLocalization();
 
   useEffect(() => {
@@ -24,8 +30,8 @@ const ListWithdrawlRequests = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getAllWithdrawalRequests();
-      setData(data);
+      const res = await getAdminWithdrawals({ status: 'all', limit: 100 });
+      setData(Array.isArray(res) ? res : (res?.data || []));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -33,62 +39,71 @@ const ListWithdrawlRequests = () => {
     }
   };
 
-  const handleApprove = async (request) => {
-    const withdrawalId = request._id || request.requestId;
+  const openActionModal = (type, request) => {
+    const withdrawalId = request?._id || request?.requestId;
     if (!withdrawalId) {
       toast.error('Invalid withdrawal request ID');
       return;
     }
-    
-    if (!window.confirm(`Are you sure you want to approve this withdrawal request for $${request.amount}?`)) {
-      return;
+
+    setSelectedRequest(request);
+    setActionType(type);
+    if (type === 'approve') {
+      setAdminNote('Approved by admin');
+    } else {
+      setRejectReason('');
     }
-    
-    setProcessingId(withdrawalId);
-    try {
-      await approveWithdrawal(withdrawalId, 'Approved by admin');
-      // Update local state
-      setData(prevData => 
-        prevData.map(item => 
-          (item._id === withdrawalId || item.requestId === withdrawalId)
-            ? { ...item, status: 'approved' }
-            : item
-        )
-      );
-      toast.success('Withdrawal request approved successfully');
-    } catch (error) {
-      console.error('Error approving withdrawal:', error);
-      toast.error(error.message || 'Failed to approve withdrawal');
-    } finally {
-      setProcessingId(null);
-    }
+    setActionModalOpen(true);
   };
 
-  const handleReject = async (request) => {
-    const withdrawalId = request._id || request.requestId;
-    if (!withdrawalId) {
-      toast.error('Invalid withdrawal request ID');
+  const closeActionModal = () => {
+    if (processingId) return;
+    setActionModalOpen(false);
+    setActionType(null);
+    setSelectedRequest(null);
+  };
+
+  const confirmAction = async () => {
+    const withdrawalId = selectedRequest?._id || selectedRequest?.requestId;
+    if (!withdrawalId || !actionType) {
+      toast.error('Invalid withdrawal request');
       return;
     }
-    
-    const reason = prompt('Enter reason for rejection:');
-    if (!reason) return;
-    
+
+    if (actionType === 'reject' && !rejectReason.trim()) {
+      toast.error('Please enter a rejection reason');
+      return;
+    }
+
     setProcessingId(withdrawalId);
     try {
-      await rejectWithdrawal(withdrawalId, reason);
-      // Update local state
-      setData(prevData => 
-        prevData.map(item => 
-          (item._id === withdrawalId || item.requestId === withdrawalId)
-            ? { ...item, status: 'rejected' }
-            : item
-        )
-      );
-      toast.success('Withdrawal request rejected');
+      if (actionType === 'approve') {
+        await approveWithdrawal(withdrawalId, adminNote?.trim() || 'Approved by admin');
+        setData(prevData =>
+          prevData.map(item =>
+            (item._id === withdrawalId || item.requestId === withdrawalId)
+              ? { ...item, status: 'approved' }
+              : item
+          )
+        );
+        toast.success('Withdrawal request approved successfully');
+      } else {
+        await rejectWithdrawal(withdrawalId, rejectReason.trim());
+        setData(prevData =>
+          prevData.map(item =>
+            (item._id === withdrawalId || item.requestId === withdrawalId)
+              ? { ...item, status: 'rejected' }
+              : item
+          )
+        );
+        toast.success('Withdrawal request rejected');
+      }
+      setActionModalOpen(false);
+      setActionType(null);
+      setSelectedRequest(null);
     } catch (error) {
-      console.error('Error rejecting withdrawal:', error);
-      toast.error(error.message || 'Failed to reject withdrawal');
+      console.error('Error processing withdrawal:', error);
+      toast.error(error?.message || `Failed to ${actionType} withdrawal`);
     } finally {
       setProcessingId(null);
     }
@@ -106,9 +121,9 @@ const ListWithdrawlRequests = () => {
         return (
           <div className="flex items-center gap-2">
             <Link
-              to={`/withdrawl-requests/${params.row._id || params.row.requestId}`}
+              to={`/admin/withdrawals/${params.row._id || params.row.requestId}`}
               state={{ requestData: params.row }}
-              className="px-3 py-1 bg-gradient-to-r from-amber-400 to-pink-500 hover:from-amber-500 hover:to-pink-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
+              className="px-3 py-1 bg-linear-to-r from-amber-400 to-pink-500 hover:from-amber-500 hover:to-pink-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
             >
               View Request
             </Link>
@@ -116,14 +131,14 @@ const ListWithdrawlRequests = () => {
               <>
                 <button 
                   className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
-                  onClick={() => handleApprove(params.row)}
+                  onClick={() => openActionModal('approve', params.row)}
                   disabled={isProcessing}
                 >
                   {isProcessing ? 'Processing...' : 'Approve'}
                 </button>
                 <button 
                   className="px-3 py-1 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
-                  onClick={() => handleReject(params.row)}
+                  onClick={() => openActionModal('reject', params.row)}
                   disabled={isProcessing}
                 >
                   {isProcessing ? 'Processing...' : 'Reject'}
@@ -171,6 +186,53 @@ const ListWithdrawlRequests = () => {
             showAddButton={false}
           />
         )}
+
+        <Dialog open={actionModalOpen} onClose={closeActionModal} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {actionType === 'approve' ? 'Approve Withdrawal' : 'Reject Withdrawal'}
+          </DialogTitle>
+          <DialogContent>
+            <div className="mt-2 space-y-3">
+              <div className="text-sm text-gray-600">
+                Request: <span className="font-medium">{selectedRequest?._id || selectedRequest?.requestId || 'N/A'}</span>
+                {' '}• Amount: <span className="font-medium">${Number(selectedRequest?.amount || 0).toFixed(2)}</span>
+              </div>
+              {actionType === 'approve' ? (
+                <TextField
+                  label="Admin note (optional)"
+                  value={adminNote}
+                  onChange={(e) => setAdminNote(e.target.value)}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                />
+              ) : (
+                <TextField
+                  label="Rejection reason"
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  required
+                />
+              )}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeActionModal} disabled={Boolean(processingId)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmAction}
+              variant="contained"
+              color={actionType === 'approve' ? 'primary' : 'error'}
+              disabled={Boolean(processingId)}
+            >
+              {processingId ? 'Processing...' : (actionType === 'approve' ? 'Approve' : 'Reject')}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

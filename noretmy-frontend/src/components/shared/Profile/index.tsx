@@ -354,7 +354,7 @@ const ProfileSection = () => {
       case 'gigs':
         if (!isSeller) return <EmptyState section="gigs" isSeller={isSeller} t={t} />;
         return (
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+          <div id="gigs" className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-orange-500" />
@@ -371,7 +371,7 @@ const ProfileSection = () => {
       case 'portfolio':
         if (!isSeller) return <EmptyState section="portfolio" isSeller={isSeller} t={t} />;
         return (
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+          <div id="portfolio" className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <FolderOpen className="w-5 h-5 text-orange-500" />

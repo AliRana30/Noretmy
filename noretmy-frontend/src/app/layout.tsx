@@ -46,7 +46,7 @@ export default function RootLayout({
           <NotificationProvider>
             <Navbar />
             {children}
-            <ToastContainer />
+            <ToastContainer position="top-right" autoClose={4000} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover style={{ zIndex: 99999 }} />
             <Toaster
               position="top-right"
               containerStyle={{ zIndex: 99999 }}

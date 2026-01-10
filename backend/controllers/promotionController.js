@@ -61,6 +61,12 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
       return res.status(400).json({ message: "Promotion plan is required!" });
     }
 
+    // Validate promotion plan using PROMOTION_PLANS
+    const plan = getPlan(promotionPlan);
+    if (!plan) {
+      return res.status(400).json({ message: "Invalid promotion plan!" });
+    }
+
     // Check if user already has an active "all gigs" promotion
     const existingActivePromotion = await Promotion.findOne({
       userId: userId,
@@ -80,24 +86,7 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
       });
     }
 
-    let amount = 0;
-
-    switch (promotionPlan) {
-      case "homepage":
-        amount = 70;
-        break;
-      case "premium":
-        amount = 60;
-        break;
-      case "standard":
-        amount = 50;
-        break;
-      case "basic":
-        amount = 40;
-        break;
-      default:
-        return res.status(400).json({ message: "Invalid promotion plan!" });
-    }
+    const amount = plan.price;
     const rateAmount = await getVatRate(userId);
     const breakdown = getPriceBreakdown(amount, rateAmount);
 
@@ -192,21 +181,13 @@ const singleJobPromotionMonthlySubscriptionController = async (req, res) => {
       });
     }
 
-    // Determine the promotion amount
-    let amount;
-    switch (promotionPlan) {
-      case "homepage":
-        amount = 30;
-        break;
-      case "sponsored":
-        amount = 20;
-        break;
-      case "featured":
-        amount = 10;
-        break;
-      default:
-        return res.status(400).json({ message: "Invalid promotion plan!" });
+    // Validate promotion plan using PROMOTION_PLANS
+    const plan = getPlan(promotionPlan);
+    if (!plan) {
+      return res.status(400).json({ message: "Invalid promotion plan!" });
     }
+
+    const amount = plan.price;
 
     const rateAmount = await getVatRate(userId);
     const breakdown = getPriceBreakdown(amount, rateAmount);
@@ -367,34 +348,44 @@ const getUserActivePromotions = async (req, res) => {
 
     const now = new Date();
 
-    // Fetch only active promotions
-    const activePromotions = await Promotion.find({
-      userId: userId,
+    // Fetch active promotions from PromotionPurchase model
+    const activePromotions = await PromotionPurchase.find({
+      userId: new mongoose.Types.ObjectId(userId),
       status: 'active',
-      promotionStartDate: { $lte: now },
-      promotionEndDate: { $gt: now }
+      expiresAt: { $gt: now }
     })
     .populate('gigId', 'title photos')
-    .sort({ promotionEndDate: 1 }) // Sort by ending soonest
+    .sort({ planPriority: -1, expiresAt: -1 }) // Highest priority first, then most recent
     .lean();
 
-    const processedPromotions = activePromotions.map(promotion => ({
-      _id: promotion._id,
-      promotionPlan: promotion.promotionPlan,
-      isForAll: promotion.isForAll,
-      promotionStartDate: promotion.promotionStartDate,
-      promotionEndDate: promotion.promotionEndDate,
-      remainingDays: Math.ceil((new Date(promotion.promotionEndDate) - now) / (1000 * 60 * 60 * 24)),
-      gig: promotion.gigId ? {
-        _id: promotion.gigId._id,
-        title: promotion.gigId.title,
-        photos: promotion.gigId.photos
+    console.log(`✅ Found ${activePromotions.length} active promotions for user ${userId}`);
+
+    // Return only the most important active promotion (highest priority)
+    if (activePromotions.length === 0) {
+      return res.status(200).json({
+        activePromotion: null,
+        hasActivePromotion: false
+      });
+    }
+
+    const topPromotion = activePromotions[0];
+    const processedPromotion = {
+      _id: topPromotion._id,
+      promotionPlan: topPromotion.planKey,
+      promotionType: topPromotion.promotionType,
+      promotionStartDate: topPromotion.activatedAt,
+      promotionEndDate: topPromotion.expiresAt,
+      remainingDays: Math.ceil((new Date(topPromotion.expiresAt) - now) / (1000 * 60 * 60 * 24)),
+      gig: topPromotion.gigId ? {
+        _id: topPromotion.gigId._id,
+        title: topPromotion.gigId.title,
+        photos: topPromotion.gigId.photos
       } : null
-    }));
+    };
 
     res.status(200).json({
-      activePromotions: processedPromotions,
-      count: processedPromotions.length
+      activePromotion: processedPromotion,
+      hasActivePromotion: true
     });
   } catch (error) {
     console.error("Error fetching active promotions:", error);
@@ -434,7 +425,10 @@ const deletePromotion = async (req, res) => {
         });
       }
 
-      await PromotionPurchase.findByIdAndDelete(promotionId);
+      // Soft-delete to preserve financial history (admin revenue is derived from PromotionPurchase totals)
+      purchase.status = 'deleted';
+      purchase.deletedAt = now;
+      await purchase.save();
 
       return res.status(200).json({
         success: true,
@@ -765,17 +759,23 @@ const completePromotionAfterPayment = async (req, res) => {
       console.log('✅ All user gigs promoted');
     }
 
-    // Update admin revenue from platform fee
-    if (metadata.platformFee && parseFloat(metadata.platformFee) > 0) {
-      const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
-      if (Admin) {
-        const platformFeeAmount = parseFloat(metadata.platformFee);
-        Admin.revenue = Admin.revenue || { total: 0, available: 0, pending: 0, withdrawn: 0 };
-        Admin.revenue.total = (Admin.revenue.total || 0) + platformFeeAmount;
-        Admin.revenue.available = (Admin.revenue.available || 0) + platformFeeAmount;
-        await Admin.save();
-        console.log('✅ Admin revenue updated:', platformFeeAmount);
-      }
+    // Update admin revenue with full promotion amount
+    const promotionAmount = paymentIntent.amount / 100; // Convert from cents to dollars
+    const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
+    if (Admin) {
+      console.log('🔍 Admin found:', Admin._id);
+      console.log('🔍 Admin revenue BEFORE:', JSON.stringify(Admin.revenue));
+      Admin.revenue = Admin.revenue || { total: 0, available: 0, pending: 0, withdrawn: 0 };
+      const oldTotal = Admin.revenue.total || 0;
+      const oldAvailable = Admin.revenue.available || 0;
+      Admin.revenue.total = oldTotal + promotionAmount;
+      Admin.revenue.available = oldAvailable + promotionAmount;
+      Admin.markModified('revenue'); // Force Mongoose to detect nested object change
+      await Admin.save();
+      console.log('✅ Admin revenue updated with full promotion amount:', promotionAmount);
+      console.log('🔍 Revenue AFTER - Total:', Admin.revenue.total, 'Available:', Admin.revenue.available);
+    } else {
+      console.log('⚠️ No admin user found!');
     }
 
     // Send notification to user
@@ -788,27 +788,17 @@ const completePromotionAfterPayment = async (req, res) => {
       link: '/promote-gigs'
     });
 
-    // Send notification to admin
-    const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
-    if (Admin) {
-      await notificationService.createNotification({
-        userId: Admin._id,
-        title: '💰 New Promotion Purchase',
-        message: `${user.username || user.fullName} purchased ${plan.name} promotion ($${(paymentIntent.amount / 100).toFixed(2)})`,
-        type: 'system',
-        link: `/admin/promotions`
-      });
-      
-      // Emit socket event for real-time notification
-      const io = req.app.get('io');
-      if (io) {
-        io.to(`user_${Admin._id}`).emit('notification', {
-          title: '💰 New Promotion Purchase',
-          message: `${user.username || user.fullName} purchased ${plan.name}`,
-          type: 'system',
-          link: `/admin/promotions`
-        });
-      }
+    // Notify all admins about the promotion purchase
+    try {
+      await notificationService.notifyAdminPromotionPurchased(
+        user._id.toString(),
+        user.username || user.fullName || 'A user',
+        plan.name,
+        promotionAmount
+      );
+      console.log('✅ Admin notifications sent for promotion purchase');
+    } catch (notifyErr) {
+      console.error('Failed to notify admins about promotion purchase:', notifyErr);
     }
 
     res.status(200).json({
@@ -823,6 +813,76 @@ const completePromotionAfterPayment = async (req, res) => {
   }
 };
 
+// Check if user has active promotion (for plan selection UI)
+const checkActivePromotion = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { gigId } = req.query;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const now = new Date();
+
+    // Check for active all_gigs promotion
+    const allGigsPromotion = await PromotionPurchase.findOne({
+      userId: userId,
+      promotionType: 'all_gigs',
+      status: 'active',
+      expiresAt: { $gt: now }
+    }).sort({ expiresAt: -1 });
+
+    if (allGigsPromotion) {
+      return res.status(200).json({
+        hasActivePromotion: true,
+        promotionType: 'all_gigs',
+        promotion: {
+          _id: allGigsPromotion._id,
+          planKey: allGigsPromotion.planKey,
+          planName: allGigsPromotion.planName,
+          expiresAt: allGigsPromotion.expiresAt,
+          remainingDays: Math.ceil((allGigsPromotion.expiresAt - now) / (1000 * 60 * 60 * 24))
+        }
+      });
+    }
+
+    // If checking for specific gig, check gig-specific promotion
+    if (gigId) {
+      const gigPromotion = await PromotionPurchase.findOne({
+        userId: userId,
+        gigId: gigId,
+        promotionType: 'single_gig',
+        status: 'active',
+        expiresAt: { $gt: now }
+      }).sort({ expiresAt: -1 });
+
+      if (gigPromotion) {
+        return res.status(200).json({
+          hasActivePromotion: true,
+          promotionType: 'single_gig',
+          gigId: gigId,
+          promotion: {
+            _id: gigPromotion._id,
+            planKey: gigPromotion.planKey,
+            planName: gigPromotion.planName,
+            expiresAt: gigPromotion.expiresAt,
+            remainingDays: Math.ceil((gigPromotion.expiresAt - now) / (1000 * 60 * 60 * 24))
+          }
+        });
+      }
+    }
+
+    return res.status(200).json({
+      hasActivePromotion: false
+    });
+
+  } catch (error) {
+    console.error("Error checking active promotion:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
 module.exports = { 
   allJobsPromotionMonthlySubscription,
   singleJobPromotionMonthlySubscriptionController,
@@ -833,5 +893,6 @@ module.exports = {
   deletePromotion,
   cancelPromotion,
   getPromotionHistory,
-  getPromotionPlans
+  getPromotionPlans,
+  checkActivePromotion
 };

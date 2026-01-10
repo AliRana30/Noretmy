@@ -826,9 +826,12 @@ const acceptOrder = async (req, res) => {
       const seller = await User.findById(order.sellerId);
       
       if (seller) {
-        seller.revenue.available += amountToRelease;
-        seller.revenue.pending = Math.max(0, seller.revenue.pending - totalCapturedAmount);
+        seller.revenue = seller.revenue || { total: 0, available: 0, pending: 0, withdrawn: 0 };
+        seller.revenue.available = (seller.revenue.available || 0) + amountToRelease;
+        seller.revenue.pending = Math.max(0, (seller.revenue.pending || 0) - totalCapturedAmount);
+        seller.markModified('revenue');
         await seller.save();
+        console.log('💵 Funds released to seller - Available:', seller.revenue.available, 'Pending:', seller.revenue.pending);
         }
       
       // Also update Freelancer model
@@ -1829,6 +1832,19 @@ const acceptInvitation = async (req, res) => {
     } catch (err) {
       }
 
+    // Notify admins about order acceptance
+    try {
+      await notificationService.notifyAdminOrderAccepted(
+        invitation._id.toString(),
+        gig?.title || 'Order',
+        userId,
+        seller?.fullName || seller?.username || 'Seller',
+        invitation.price || 0
+      );
+    } catch (adminNotifyErr) {
+      console.error('Failed to notify admins about order acceptance:', adminNotifyErr);
+    }
+
     res.status(200).json({
       message: "Invitation accepted! The buyer can now proceed with payment.",
       invitation: invitation
@@ -1914,6 +1930,20 @@ const rejectInvitation = async (req, res) => {
       );
     } catch (err) {
       }
+
+    // Notify admins about order rejection
+    try {
+      const seller = await User.findById(userId);
+      await notificationService.notifyAdminOrderRejected(
+        invitation._id.toString(),
+        gig?.title || 'Order',
+        userId,
+        seller?.fullName || seller?.username || 'Seller',
+        reason || 'No reason provided'
+      );
+    } catch (adminNotifyErr) {
+      console.error('Failed to notify admins about order rejection:', adminNotifyErr);
+    }
 
     res.status(200).json({
       message: "Invitation rejected.",
@@ -2882,35 +2912,44 @@ const completeOrderAfterPayment = async (req, res) => {
     const seller = await User.findById(order.sellerId);
     if (seller) {
       const netEarnings = getSellerPayout(order.price);
-      seller.revenue.total += netEarnings;
-      seller.revenue.pending += netEarnings;
+      seller.revenue = seller.revenue || { total: 0, available: 0, pending: 0, withdrawn: 0 };
+      seller.revenue.total = (seller.revenue.total || 0) + netEarnings;
+      // For this non-milestone flow, treat payment as immediately available to withdraw
+      seller.revenue.available = (seller.revenue.available || 0) + netEarnings;
+      seller.markModified('revenue');
       await seller.save();
+      console.log('💰 Seller revenue updated - Total:', seller.revenue.total, 'Available:', seller.revenue.available);
+
+      // Keep Freelancer model in sync (seller dashboard stats read from Freelancer)
+      try {
+        const Freelancer = require('../models/Freelancer');
+        const freelancer = await Freelancer.findOne({ userId: order.sellerId });
+        if (freelancer) {
+          freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
+          freelancer.revenue.total = (freelancer.revenue.total || 0) + netEarnings;
+          freelancer.revenue.available = (freelancer.revenue.available || 0) + netEarnings;
+          freelancer.availableBalance = freelancer.revenue.available;
+          await freelancer.save();
+        }
+      } catch (syncError) {
+        console.error('Error syncing freelancer revenue on payment:', syncError);
+      }
     }
 
-    // Send notification to admin about order payment
+    // Send notification to all admins about order payment
     const notificationService = require('../services/notificationService');
-    const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
-    if (Admin) {
-      const buyer = await User.findById(order.buyerId);
-      const platformFee = order.platformFee || (order.price * 0.05);
-      await notificationService.createNotification({
-        userId: Admin._id,
-        title: '💳 New Order Payment',
-        message: `${buyer?.username || 'A client'} paid $${order.price.toFixed(2)}. Platform fee: $${platformFee.toFixed(2)} for order #${order._id.toString().slice(-6)}`,
-        type: 'system',
-        link: `/admin/orders/${order._id}`
-      });
-      
-      // Emit socket event for real-time notification
-      const io = req.app.get('io');
-      if (io) {
-        io.to(`user_${Admin._id}`).emit('notification', {
-          title: '💳 New Order Payment',
-          message: `${buyer?.username || 'A client'} paid $${order.price.toFixed(2)}`,
-          type: 'system',
-          link: `/admin/orders/${order._id}`
-        });
-      }
+    const gig = await Job.findById(order.gigId);
+    const buyer = await User.findById(order.buyerId);
+    
+    try {
+      await notificationService.notifyAdminPaymentReceived(
+        order._id.toString(),
+        gig?.title || 'Order',
+        buyer?.fullName || buyer?.username || 'A client',
+        order.price
+      );
+    } catch (notifyErr) {
+      console.error('Failed to notify admins about payment:', notifyErr);
     }
 
     res.status(200).json({
