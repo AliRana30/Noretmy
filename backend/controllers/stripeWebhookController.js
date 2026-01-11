@@ -55,12 +55,16 @@ const handleStripeWebhook = async (req, res) => {
     });
     
     if (err.type === 'StripeSignatureVerificationError') {
-      console.error('[Stripe Webhook] SIGNATURE VERIFICATION FAILED - Check STRIPE_WEBHOOK_SECRET in production');
+      console.error('[Stripe Webhook] ❌ SIGNATURE VERIFICATION FAILED');
+      console.error('[Stripe Webhook] ⚠️  ACTION REQUIRED: Check STRIPE_WEBHOOK_SECRET in production .env');
+      console.error('[Stripe Webhook] ⚠️  Verify webhook is registered in Stripe Dashboard');
       return res.status(400).send(`Webhook signature verification failed: ${err.message}`);
     }
     
-    // Return 200 for other errors to prevent Stripe retries for non-recoverable errors
-    res.status(200).json({ received: true, error: err.message });
+    // For other errors, return 200 to prevent Stripe retries
+    // This prevents webhook storms for non-recoverable errors
+    console.warn('[Stripe Webhook] Returning 200 to prevent retries for non-critical error');
+    res.status(200).json({ received: true, processed: false, error: err.message });
   }
 };
 
@@ -198,6 +202,13 @@ const processOrderPayment = async (paymentIntent) => {
   console.log('Payment Intent ID:', id);
   console.log('Order ID from metadata:', orderId);
   console.log('Amount:', (amount_received || amount) / 100);
+
+  // IDEMPOTENCY CHECK: If order was already processed by completion endpoint, skip
+  const existingOrder = await Order.findOne({ payment_intent: id });
+  if (existingOrder && existingOrder.isPaid === true && existingOrder.paymentStatus === 'completed') {
+    console.log('⚠️  Order already processed by completion endpoint - skipping webhook processing');
+    return { success: true, message: 'Already processed by completion endpoint' };
+  }
 
   // Calculate milestone amounts based on total order amount
   // With manual capture, amount_received can be 0 at authorization time, so fall back to amount.

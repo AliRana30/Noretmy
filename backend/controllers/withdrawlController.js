@@ -5,8 +5,8 @@ const { handleStripeOnboarding, createStripeTransfer } = require('./stripeContor
 const Freelancer = require('../models/Freelancer');
 const UserProfile = require('../models/UserProfile');
 const { withdrawFundsthroughPayPal, processPayPalWithdrawal } = require('./PaymentController');
-const { sendWithdrawalStripeNotificationEmail, sendWithdrawalRejectionEmail, sendOnboardingEmail } = require('../services/emailService');
-const { notifyWithdrawalRequestSubmitted } = require('../services/notificationService');
+const { sendWithdrawalStripeNotificationEmail, sendWithdrawalSuccessEmail, sendWithdrawalRejectionEmail, sendOnboardingEmail } = require('../services/emailService');
+const { notifyWithdrawalRequestSubmitted, notifyWithdrawalApproved, notifyWithdrawalRejected } = require('../services/notificationService');
 
 const computeAvailableForWithdrawal = ({ user, freelancer }) => {
     const freelancerAvailable = Math.max(
@@ -155,17 +155,18 @@ const handleWithdrawalRequest = async (req, res) => {
             });
         }
 
-    const withdrawRequest = new WithdrawRequest({
-      userId,
-      amount,
-      withdrawalMethod: freelancer.withdrawalMethod,
-    });
+        const withdrawRequest = new WithdrawRequest({
+            userId,
+            amount,
+            withdrawalMethod: freelancer.withdrawalMethod,
+            payoutEmail: freelancer.email || user.email,
+        });
 
     await withdrawRequest.save();
 
     // Notify all admins about the new withdrawal request
     try {
-      const adminUsers = await User.find({ role: 'admin' }).select('_id');
+    const adminUsers = await User.find({ role: { $regex: /^admin$/i } }).select('_id');
       const adminIds = adminUsers.map(a => a._id.toString());
       if (adminIds.length > 0) {
         await notifyWithdrawalRequestSubmitted(adminIds, userId, amount, withdrawRequest._id.toString());
@@ -192,6 +193,8 @@ const setWithdrawalMethod = async (req, res) => {
     const { email, withdrawalMethod } = req.body;
     const { userId } = req;
 
+    console.log('[setWithdrawalMethod] Request:', { userId, email, withdrawalMethod });
+
     if (!userId) {
         return res.status(400).json({ message: "You are not allowed to do so!" });
     }
@@ -201,6 +204,7 @@ const setWithdrawalMethod = async (req, res) => {
         const userProfile = await UserProfile.findOne({ userId });
 
         if (!userProfile) {
+            console.log('[setWithdrawalMethod] User profile not found for:', userId);
             return res.status(400).json({
                 success: false,
                 message: "User profile not found."
@@ -208,6 +212,7 @@ const setWithdrawalMethod = async (req, res) => {
         }
 
         if (!userProfile.countryCode) {
+            console.log('[setWithdrawalMethod] Country code missing for:', userId);
             return res.status(400).json({
                 success: false,
                 message: "Country information is required."
@@ -219,7 +224,10 @@ const setWithdrawalMethod = async (req, res) => {
 
         if (withdrawalMethod === "stripe") {
             // Handle Stripe onboarding and validation
+            console.log('[setWithdrawalMethod] Processing Stripe for:', { userId, email, countryCode });
             const stripeResult = await handleStripeOnboarding(userId, email, countryCode);
+
+            console.log('[setWithdrawalMethod] Stripe result:', { success: stripeResult.success, hasLink: !!stripeResult.link, message: stripeResult.message });
 
             if (!stripeResult.success) {
                 // Only send onboarding email if Stripe provided an onboarding link
@@ -231,6 +239,7 @@ const setWithdrawalMethod = async (req, res) => {
 
             freelancer = stripeResult.freelancerAccount;
         } else if (withdrawalMethod === "paypal") {
+            console.log('[setWithdrawalMethod] Processing PayPal for:', { userId, email });
             freelancer = await Freelancer.findOne({ userId });
             if (!freelancer) {
                 freelancer = new Freelancer({
@@ -239,10 +248,12 @@ const setWithdrawalMethod = async (req, res) => {
                     withdrawalMethod: 'paypal',
                     onboardingStatus: 'completed', // PayPal doesn't require Stripe Connect onboarding
                 });
+                console.log('[setWithdrawalMethod] Created new Freelancer for PayPal');
             } else {
                 freelancer.email = email;
                 freelancer.withdrawalMethod = 'paypal';
                 freelancer.onboardingStatus = 'completed';
+                console.log('[setWithdrawalMethod] Updated existing Freelancer for PayPal');
             }
 
             // Sync available from User.revenue if needed
@@ -253,7 +264,10 @@ const setWithdrawalMethod = async (req, res) => {
             freelancer.availableBalance = freelancer.revenue.available;
 
             await freelancer.save();
+            console.log('[setWithdrawalMethod] PayPal freelancer saved:', freelancer._id);
         }
+
+        console.log('[setWithdrawalMethod] Returning freelancer:', { id: freelancer?._id, email: freelancer?.email, method: freelancer?.withdrawalMethod });
 
         res.status(200).json({
             success: true,
@@ -261,7 +275,7 @@ const setWithdrawalMethod = async (req, res) => {
             freelancer
         });
     } catch (error) {
-        console.error("Error in withdrawal request:", error);
+        console.error("[setWithdrawalMethod] Error:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
@@ -345,23 +359,48 @@ const getWithdrawRequestDetail = async (req, res) => {
         const flattenedUserId = userDoc && typeof userDoc === 'object' ? userDoc._id : withdrawRequest.userId;
 
         const freelancer = await Freelancer.findOne({ userId: flattenedUserId })
-            .select('withdrawalMethod email')
+            .select('withdrawalMethod email stripeAccountId onboardingStatus')
             .lean();
 
-        const withdrawalMethod = freelancer?.withdrawalMethod;
-        const payoutEmail = freelancer?.email;
+        // Prefer values saved on the request (new schema fields), then fall back to Freelancer.
+        const withdrawalMethod = withdrawRequest.withdrawalMethod || freelancer?.withdrawalMethod || null;
+        const payoutEmail = withdrawRequest.payoutEmail || freelancer?.email || (userDoc && typeof userDoc === 'object' ? userDoc.email : null) || null;
+        const stripeAccountId = freelancer?.stripeAccountId || null;
+        const onboardingStatus = freelancer?.onboardingStatus || null;
+
+        // Ensure we always return a user email even if populate is missing for some edge cases.
+        let userEmail = userDoc && typeof userDoc === 'object' ? userDoc.email : null;
+        if (!userEmail && flattenedUserId) {
+            const user = await User.findById(flattenedUserId).select('email username fullName').lean();
+            if (user?.email) userEmail = user.email;
+        }
+
+        // Log response for debugging
+        console.log('[Withdrawal Detail] Response:', {
+            requestId,
+            userId: flattenedUserId,
+            email: userEmail,
+            withdrawalMethod,
+            payoutEmail,
+            stripeAccountId,
+            onboardingStatus,
+            user: userDoc ? { username: userDoc.username, email: userDoc.email } : null
+        });
 
         return res.status(200).json({
+            success: true,
             ...withdrawRequest,
             userId: flattenedUserId,
-            user: userDoc && typeof userDoc === 'object' ? userDoc : undefined,
+            user: userDoc && typeof userDoc === 'object' ? userDoc : null,
             username:
                 userDoc && typeof userDoc === 'object'
                     ? (userDoc.username || userDoc.fullName || userDoc.email)
-                    : undefined,
-            email: userDoc && typeof userDoc === 'object' ? userDoc.email : undefined,
-            withdrawalMethod,
-            payoutEmail,
+                    : null,
+            email: userEmail || null,
+            withdrawalMethod: withdrawalMethod || null,
+            payoutEmail: payoutEmail || null,
+            stripeAccountId: stripeAccountId || null,
+            onboardingStatus: onboardingStatus || null,
         });
     } catch (error) {
         console.error('Error fetching withdrawal request detail:', error);
@@ -392,9 +431,20 @@ const rejectWithdrawRequest = async (req, res) => {
         withdrawRequest.status = 'rejected';
         await withdrawRequest.save();
 
-        const email = withdrawRequest.userId.email;
+        const email = withdrawRequest.userId?.email;
 
-        await sendWithdrawalRejectionEmail(email, reason);
+        if (email) {
+            await sendWithdrawalRejectionEmail(email, reason);
+        }
+
+        try {
+            const targetUserId = (withdrawRequest.userId && typeof withdrawRequest.userId === 'object')
+                ? String(withdrawRequest.userId._id)
+                : String(withdrawRequest.userId);
+            await notifyWithdrawalRejected(targetUserId, withdrawRequest.amount, String(withdrawRequest._id), reason);
+        } catch (notifErr) {
+            console.error('Failed to create/emit withdrawal rejected notification:', notifErr?.message || notifErr);
+        }
 
         res.status(200).json({
             success: true,
@@ -410,10 +460,15 @@ const rejectWithdrawRequest = async (req, res) => {
 };
 
 const approveWithdrawRequest = async (req, res) => {
-    const { requestId } = req.body;
+    const requestId = req?.params?.requestId || req?.body?.requestId;
+    const adminNote = req?.body?.adminNote;
 
     try {
         // Find the withdrawal request by its _id
+        if (!requestId) {
+            return res.status(400).json({ success: false, message: 'Request ID is required.' });
+        }
+
         const withdrawalRequest = await WithdrawRequest.findOne({ _id: requestId, status: 'pending' });
 
         if (!withdrawalRequest) {
@@ -489,15 +544,37 @@ const approveWithdrawRequest = async (req, res) => {
         }
 
         if (method === 'stripe') {
+            if (!process.env.STRIPE_SECRET_KEY) {
+                return res.status(503).json({
+                    success: false,
+                    message: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).'
+                });
+            }
+            // stripeAccountId is guaranteed to exist here due to fallback check above
             // Use the utility function for Stripe transfer
-            const transfer = await createStripeTransfer(
-                withdrawalRequest.amount * 100, // Convert to cents
-                freelancer.stripeAccountId,
-                `Payment for withdrawal request ID: ${withdrawalRequest._id}`
-            );
+            let transfer;
+            try {
+                transfer = await createStripeTransfer(
+                    withdrawalRequest.amount * 100, // Convert to cents
+                    freelancer.stripeAccountId,
+                    `Payment for withdrawal request ID: ${withdrawalRequest._id}`
+                );
+                
+                console.log('✅ [Withdrawal Approval] Stripe transfer successful:', {
+                    transferId: transfer.id,
+                    amount: withdrawalRequest.amount,
+                    requestId: withdrawalRequest._id
+                });
+            } catch (stripeErr) {
+                console.error('❌ [Withdrawal Approval] Stripe transfer failed:', stripeErr?.message);
+                return res.status(502).json({
+                    success: false,
+                    message: stripeErr?.message || 'Failed to process the Stripe transfer.'
+                });
+            }
 
-            // Update the withdrawal request status to 'completed'
-            withdrawalRequest.status = 'completed';
+            // Update the withdrawal request status to 'approved'
+            withdrawalRequest.status = 'approved';
             await withdrawalRequest.save();
 
             // Deduct funds on approval (so seller balance changes when request is accepted)
@@ -507,13 +584,43 @@ const approveWithdrawRequest = async (req, res) => {
             freelancer.availableBalance = freelancer.revenue.available;
             await freelancer.save();
 
+            // Keep User.revenue in sync if present
+            try {
+                const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
+                if (user) {
+                    user.revenue = user.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
+                    user.revenue.available = Math.max(0, (user.revenue.available || 0) - withdrawalRequest.amount);
+                    user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawalRequest.amount;
+                    await user.save();
+
+                    if (user.email) {
+                        await sendWithdrawalSuccessEmail(user.email, withdrawalRequest.amount);
+                    }
+
+                    await notifyWithdrawalApproved(String(user._id), withdrawalRequest.amount, String(withdrawalRequest._id));
+                }
+            } catch (sideErr) {
+                // Don't fail the whole operation if email/notification fails
+                console.warn('⚠️ [Withdrawal Approval] Side-effects failed (email/notification), but withdrawal approved:', sideErr?.message || sideErr);
+            }
+
+            console.log('✅ [Withdrawal Approval] Complete - returning success response');
             return res.status(200).json({
                 success: true,
-                message: 'Funds transferred successfully via Stripe.',
+                message: 'Withdrawal approved successfully! Funds transferred via Stripe.',
                 transfer,
             });
         } else if (method === 'paypal') {
             const payoutEmail = freelancer.email || withdrawalRequest.payoutEmail;
+            if (!payoutEmail) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'PayPal email is not configured for this freelancer.'
+                });
+            }
+
+            withdrawalRequest.payoutEmail = payoutEmail;
+
             const result = await processPayPalWithdrawal(payoutEmail, withdrawalRequest.amount);
             if (!result.success) {
                 // Return proper error status based on PayPal error type
@@ -536,6 +643,25 @@ const approveWithdrawRequest = async (req, res) => {
             freelancer.availableBalance = freelancer.revenue.available;
             await freelancer.save();
 
+            // Keep User.revenue in sync if present
+            try {
+                const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
+                if (user) {
+                    user.revenue = user.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
+                    user.revenue.available = Math.max(0, (user.revenue.available || 0) - withdrawalRequest.amount);
+                    user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawalRequest.amount;
+                    await user.save();
+
+                    if (user.email) {
+                        await sendWithdrawalSuccessEmail(user.email, withdrawalRequest.amount);
+                    }
+
+                    await notifyWithdrawalApproved(String(user._id), withdrawalRequest.amount, String(withdrawalRequest._id));
+                }
+            } catch (sideErr) {
+                console.error('Post-approval side-effects (user sync/email/notification) failed:', sideErr?.message || sideErr);
+            }
+
             return res.status(200).json({
                 success: true,
                 message: 'Funds transferred successfully via PayPal.',
@@ -546,11 +672,16 @@ const approveWithdrawRequest = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid withdrawal method.',
+                method: withdrawalRequest.withdrawalMethod || freelancer.withdrawalMethod || null,
             });
         }
     } catch (error) {
         console.error('Error approving withdrawal request:', error);
-        res.status(500).json({ success: false, message: 'Failed to approve withdrawal request.' });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to approve withdrawal request.',
+            error: error?.message || String(error)
+        });
     }
 };
 
@@ -570,6 +701,9 @@ const getUserWithdrawalRequest = async (req, res) => {
         ]);
 
         const availableBalance = computeAvailableForWithdrawal({ user, freelancer });
+
+        // If a seller has earnings but no Freelancer document yet, return a safe response.
+        // (This prevents 500s and lets the UI show the correct balance.)
 
         // if (!withdrawRequests.length) {
         //     return res.status(404).json({ message: "No withdrawal requests found." });

@@ -40,6 +40,8 @@ export const API_CONFIG = {
     // Admin Financial Management
     ADMIN_FINANCIAL_OVERVIEW: '/api/admin/financial/overview',
     ADMIN_WITHDRAWALS: '/api/withdraw',
+    ADMIN_WITHDRAWAL_DETAIL: '/api/withdraw/:withdrawalId',
+    ADMIN_WITHDRAWAL_CREATE: '/api/withdraw',
     ADMIN_WITHDRAWAL_APPROVE: '/api/withdraw/:withdrawalId/approve',
     ADMIN_WITHDRAWAL_REJECT: '/api/withdraw/reject',
     
@@ -101,7 +103,7 @@ export const API_CONFIG = {
     PRIVACY_POLICY: '/api/content/privacy',
     TERMS_OF_SERVICE: '/api/content/terms'
   },
-  TIMEOUT: 10000, // 10 seconds
+  TIMEOUT: 30000, // 30 seconds (increased from 10s for slow operations like withdrawal approval)
   HEADERS: {
     'Content-Type': 'application/json',
   },

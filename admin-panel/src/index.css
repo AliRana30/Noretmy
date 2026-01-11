@@ -638,9 +638,71 @@
 }
 
 /* ========== Responsive ========== */
-@media (max-width: 768px) {
+/* Small devices (phones, 640px and down) */
+@media (max-width: 640px) {
+  .table-container {
+    font-size: 0.8125rem;
+    max-width: 100%;
+    overflow-x: scroll;
+  }
+
+  .admin-table {
+    min-width: 600px; /* Force horizontal scroll for tables */
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.625rem;
+    white-space: nowrap;
+  }
+
+  .stat-card {
+    padding: 0.875rem;
+  }
+
+  .card,
+  .card-elevated {
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+  }
+
+  .modal-content {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .notification-dropdown {
+    width: 100vw;
+    max-width: 360px;
+    right: -1rem;
+  }
+
+  /* Stack grid layouts on mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce padding */
+  .container-admin {
+    padding: 0 1rem;
+  }
+
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Medium devices (tablets, 641px to 1024px) */
+@media (min-width: 641px) and (max-width:  1024px) {
   .table-container {
     font-size: 0.875rem;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .admin-table th,
@@ -650,5 +712,64 @@
 
   .stat-card {
     padding: 1rem;
+  }
+
+  .card,
+  .card-elevated {
+    max-width: 100%;
+  }
+
+  /* 2-column grid on tablets */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .modal-content {
+    max-width: 90%;
+  }
+}
+
+/* General responsive helpers */
+@media (max-width: 1024px) {
+  /* Ensure text doesn't overflow */
+  h1, h2, h3, h4, h5, h6 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Make all cards responsive */
+  .stat-card,
+  .card,
+  .card-elevated {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  /* Scrollable tables */
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Flexible images */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Responsive buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Modal adjustments */
+  .modal-overlay {
+    padding: 0.5rem;
   }
 }

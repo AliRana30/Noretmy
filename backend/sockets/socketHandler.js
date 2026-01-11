@@ -5,7 +5,7 @@ const socketHandler = (io) => {
     io.on('connection', (socket) => {
       console.log('🔌 [Socket] Connected:', socket.id);
       // Handle user going online
-      socket.on('userOnline', (userId) => {
+      socket.on('userOnline', async (userId) => {
         if (userId) {
           onlineUsers.set(userId, {
             socketId: socket.id,
@@ -16,6 +16,19 @@ const socketHandler = (io) => {
           // Join per-user room to support io.to(`user_${id}`) emits
           const userRoom = `user_${userId}`;
           socket.join(userRoom);
+          
+          // Check if user is admin and join admin room for admin-specific notifications
+          try {
+            const User = require('../models/User');
+            const user = await User.findById(userId).select('role');
+            if (user && (user.role === 'admin' || user.role?.toLowerCase() === 'admin')) {
+              socket.join('admin_room');
+              console.log('👑 [Socket] Admin joined admin_room:', { userId, socketId: socket.id });
+            }
+          } catch (err) {
+            console.error('[Socket] Error checking user role:', err.message);
+          }
+          
           console.log('🟢 [Socket] userOnline:', { userId, socketId: socket.id, room: userRoom });
           
           // Broadcast user's online status to all connected clients

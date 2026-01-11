@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { getMyNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../utils/adminApi";
+import { getAdminNotifications, markNotificationAsRead, markAllAdminNotificationsAsRead } from "../utils/adminApi";
 import { toast } from "react-hot-toast";
 import { useAuth } from "./AuthContext";
 import { io as createSocket } from "socket.io-client";
@@ -31,11 +31,16 @@ export const NotificationProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      const response = await getMyNotifications();
-      if (response && response.notifications) {
-        setNotifications(response.notifications);
-        const unread = response.notifications.filter(n => !n.isRead).length;
+      const response = await getAdminNotifications({ limit: 20, page: 1 });
+      const list = response?.data || response?.notifications || response || [];
+
+      if (Array.isArray(list)) {
+        setNotifications(list);
+        const unread = list.filter(n => !n.isRead).length;
         setUnreadCount(unread);
+      } else {
+        setNotifications([]);
+        setUnreadCount(0);
       }
     } catch (error) {
       console.error('Error fetching admin notifications:', error);
@@ -79,7 +84,7 @@ export const NotificationProvider = ({ children }) => {
     setUnreadCount(0);
 
     try {
-      await markAllNotificationsAsRead();
+      await markAllAdminNotificationsAsRead();
       toast.success('All notifications marked as read');
     } catch (error) {
       setNotifications(prevNotifications);
@@ -134,12 +139,15 @@ export const NotificationProvider = ({ children }) => {
     };
 
     // Backend emits `notification` in most places; promotion uses `newNotification`
+    // Admin-specific events go to 'adminNotification' from admin_room
     socket.on('notification', handleRealtimeNotification);
     socket.on('newNotification', handleRealtimeNotification);
+    socket.on('adminNotification', handleRealtimeNotification); // Admin-specific events
 
     return () => {
       socket.off('notification', handleRealtimeNotification);
       socket.off('newNotification', handleRealtimeNotification);
+      socket.off('adminNotification', handleRealtimeNotification);
       socket.disconnect();
     };
   }, [fetchNotifications, getAdminId, isAuthenticated, user]);
