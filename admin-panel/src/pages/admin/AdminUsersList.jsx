@@ -1,4 +1,4 @@
-// Admin User Management - Delete button enabled for all environments
+// Admin User Management - Delete button enabled (v1.0.1)
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocalization } from "../../context/LocalizationContext.jsx";
