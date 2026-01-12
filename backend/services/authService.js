@@ -259,7 +259,15 @@ const signIn = async (email, password) => {
     throw error;
   }
 
-  // Email verification check removed - users can login without verification
+  // Check email verification for non-admin users
+  if (!user.isVerified && user.role !== 'admin') {
+    const error = new Error('Email not verified. Please check your email for the verification link.');
+    error.statusCode = 403;
+    error.code = 'EMAIL_NOT_VERIFIED';
+    error.userId = user._id;
+    error.userEmail = user.email;
+    throw error;
+  }
 
   if (user.isBlocked) {
     const error = new Error(`Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}. Please contact support.`);
