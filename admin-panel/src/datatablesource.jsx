@@ -653,7 +653,7 @@ export const getAdminContactColumns = (getTranslation) => {
 
 export const deleteUser = async (id) => {
   try {
-    const response = await axios.delete(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN)}/users/${id}`, {
+    const response = await axios.delete(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_USERS)}/${id}`, {
       withCredentials: true,
       headers: getAuthHeaders()
     });
