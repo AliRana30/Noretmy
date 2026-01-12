@@ -117,8 +117,8 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       role: userRole,
       verificationToken: token,
       verificationTokenExpiry: Date.now() + TOKEN_EXPIRY_DURATION,
-      // Auto-verify in development mode
-      isVerified: process.env.NODE_ENV === 'development' ? true : false,
+      // All users start unverified - they appear in admin documents for manual verification
+      isVerified: false,
     });
 
     await user.save();
@@ -137,38 +137,9 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     await userProfile.save();
 
-    console.log('📧 === EMAIL SENDING DEBUG ===');
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('User email:', user.email);
-    console.log('User verified:', user.isVerified);
-    console.log('SMTP_MAIL:', process.env.SMTP_MAIL ? 'SET' : 'MISSING');
-    console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? 'SET' : 'MISSING'); 
-    console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? 'SET' : 'MISSING');
-    console.log('FRONTEND_URL:', process.env.FRONTEND_URL ? 'SET' : 'MISSING');
-
-    let emailSent = false;
-
-    // Send verification email immediately (not in background) for better error tracking
-    if (!(process.env.NODE_ENV === 'development' && user.isVerified)) {
-      try {
-        console.log(`📧 Attempting to send verification email to ${user.email}...`);
-        await sendVerificationEmail(user.email, token);
-        emailSent = true;
-        console.log(`✅ Verification email sent successfully to ${user.email}`);
-      } catch (emailError) {
-        console.error(`❌ VERIFICATION EMAIL FAILED for ${user.email}:`, emailError.message);
-        console.error('Email error stack:', emailError.stack);
-        // Continue signup even if email fails
-      }
-    } else {
-      console.log('ℹ️ Skipping verification email (development mode with auto-verify)');
-      try {
-        await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
-        console.log(`✅ Welcome email sent to ${user.email}`);
-      } catch (welcomeError) {
-        console.error(`❌ Welcome email failed for ${user.email}:`, welcomeError.message);
-      }
-    }
+    console.log('✅ User created successfully:', user.email);
+    console.log('ℹ️  User will appear in admin documents for manual verification');
+    console.log('ℹ️  User can login immediately without email verification');
 
     // Send admin notification in background
     const sendAdminNotification = async () => {
@@ -178,19 +149,19 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
         if (Admin) {
           await notificationService.createNotification({
             userId: Admin._id,
-            title: '🆕 New User Registered',
-            message: `${fullName} (${email}) signed up as ${isSeller ? 'freelancer' : 'client'}`,
+            title: '🆕 New User Registration',
+            message: `${fullName} (${email}) signed up as ${isSeller ? 'freelancer' : 'client'} - Pending verification`,
             type: 'system',
-            link: `/admin/users`
+            link: `/admin/documents`
           });
 
           const io = global.io;
           if (io) {
             io.to(`user_${Admin._id}`).emit('notification', {
-              title: '🆕 New User Registered',
-              message: `${fullName} signed up as ${isSeller ? 'freelancer' : 'client'}`,
+              title: '🆕 New User Registration',
+              message: `${fullName} signed up - Pending verification`,
               type: 'admin',
-              link: `/admin/users`
+              link: `/admin/documents`
             });
           }
         }
@@ -205,10 +176,8 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     return {
       success: true,
       code: 'SIGNUP_SUCCESS',
-      message: emailSent 
-        ? 'Registration successful! Verification email has been sent to ' + user.email
-        : 'Registration successful! Please verify your email to login.',
-      emailSent,
+      message: 'Registration successful! You can now login to your account.',
+      emailSent: false, // No email sent
       user: {
         id: user._id,
         email: user.email,
@@ -278,15 +247,8 @@ const signIn = async (email, password) => {
     throw error;
   }
 
-  // Check email verification for non-admin users
-  if (!user.isVerified && user.role !== 'admin') {
-    const error = new Error('Email not verified. Please check your email for the verification link.');
-    error.statusCode = 403;
-    error.code = 'EMAIL_NOT_VERIFIED';
-    error.userId = user._id;
-    error.userEmail = user.email;
-    throw error;
-  }
+  // Email verification removed - users can login immediately
+  // Verification is done manually by admins through admin panel
 
   if (user.isBlocked) {
     const error = new Error(`Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}. Please contact support.`);
