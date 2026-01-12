@@ -10,6 +10,7 @@ import PageTransitionWrapper from '@/util/transitionWrapper';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useEffect, useState } from 'react';
 import i18n from '@/i18n';
+import AnimateOnScroll from '@/components/shared/AnimateOnScroll';
 
 // New Sales-Focused Components
 import Hero from '@/components/home/Hero';
@@ -117,19 +118,6 @@ const Home = () => {
     );
   }
 
-  const handleSubmit = async (email: string) => {
-    try {
-      const response = await axios.post(`${BACKEND_URL}/newsletter`, { email }, { withCredentials: true });
-      showSuccess(response.data.message || t('newsletter.success'));
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message || t('newsletter.error.default');
-        showError(message);
-      } else {
-        showError(t('newsletter.error.unexpected'));
-      }
-    }
-  };
 
   return (
     <>
@@ -148,49 +136,66 @@ const Home = () => {
 
               {/* === ATTENTION PHASE === */}
               {/* Hero: Strong value proposition with live activity, trust indicators, dual CTAs */}
-              <Hero />
+              <AnimateOnScroll duration={0.8}>
+                <Hero />
+              </AnimateOnScroll>
 
               {/* Social Proof: Logo bar and key stats to build immediate trust */}
-              <SocialProof />
+              <AnimateOnScroll delay={0.2} duration={0.7}>
+                <SocialProof />
+              </AnimateOnScroll>
 
               {/* === INTEREST PHASE === */}
               {/* Problem/Solution: Address pain points and show how we solve them */}
-              <ProblemSolution />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <ProblemSolution />
+              </AnimateOnScroll>
 
               {/* How It Works: Simple 4-step process to reduce friction */}
-              <HowItWorks />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <HowItWorks />
+              </AnimateOnScroll>
 
               {/* === DESIRE PHASE === */}
               {/* Categories: Let users browse what interests them */}
-              <CategoriesCarousel />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <CategoriesCarousel />
+              </AnimateOnScroll>
 
               {/* Search Section */}
-              <section className="py-16 bg-white">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
-                      {t('What are you looking for?')}
-                    </h2>
-                    <p className="text-slate-600">
-                      {t('Find the perfect freelancer for your project')}
-                    </p>
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <section className="py-16 bg-white">
+                  <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                        {t('What are you looking for?')}
+                      </h2>
+                      <p className="text-slate-600">
+                        {t('Find the perfect freelancer for your project')}
+                      </p>
+                    </div>
+                    <SearchGigsRedirection navigateWithTransition={navigateWithTransition} />
                   </div>
-                  <SearchGigsRedirection navigateWithTransition={navigateWithTransition} />
-                </div>
-              </section>
+                </section>
+              </AnimateOnScroll>
 
               {/* Featured Gigs: Show actual offerings */}
-              <HomeGigs />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <HomeGigs />
+              </AnimateOnScroll>
 
               {/* Testimonials: Real customer reviews */}
-              <Testimonials id="testimonials" />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <Testimonials id="testimonials" />
+              </AnimateOnScroll>
 
               {/* Why Choose Us: Key differentiators */}
-              <WhyChooseUs />
+              <AnimateOnScroll delay={0.1} duration={0.7}>
+                <WhyChooseUs />
+              </AnimateOnScroll>
 
-
-
-
+              {/* === ACTION PHASE === */}
+              {/* Final CTA: Strong closing with email capture and benefits */}
             </>
           )}
         </PageTransitionWrapper>

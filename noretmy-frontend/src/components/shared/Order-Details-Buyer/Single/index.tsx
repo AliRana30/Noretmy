@@ -13,12 +13,10 @@ import {
   FaChevronDown,
   FaPercent,
   FaChartLine,
-  FaShieldAlt,
   FaPaperPlane,
   FaHistory,
   FaCalendarAlt,
 } from 'react-icons/fa';
-import PaymentMilestones from '../../PaymentMilestones';
 import SubmitRequirements from '../Actions/SubmitRequirements';
 import ViewRequirements from '../Actions/ViewRequirements';
 import RequestRevision from '../Actions/RequestRevision';
@@ -47,11 +45,7 @@ interface SingleOrderSectionProps {
 
 type HistoryItem = {
   _id: string;
-  status: string;
-  date?: string;
-  reason?: string;
-  deliveryDescription?: string;
-  deliveryAttachments?: string[];
+  status: string; // Adjust this type based on the possible statusesOO
 };
 
 const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
@@ -74,6 +68,8 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   const [extendDays, setExtendDays] = useState<number>(1);
   const [extendReason, setExtendReason] = useState('');
   const [isExtending, setIsExtending] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   const timeLeft = useCountdown(orderDetails.deliveryDate);
 
@@ -322,6 +318,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   };
 
   const handleSubmitReview = async (rating: number, desc: string) => {
+    setIsSubmittingReview(true);
     try {
       const response = await axios.post(
         `${BACKEND_URL}/reviews`,
@@ -335,13 +332,16 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         }
       );
 
-      if (response.status == 200) {
-        showSuccess("Review submitted successfully!")
+      if (response.status === 200 || response.status === 201) {
+        showSuccess("Review submitted successfully!");
+        setShowReviewModal(false);
+        onOperationComplete(); // Refresh order details to show the review
       }
     } catch (error) {
       console.error("Something went wrong while submitting the review:", error);
-      // Optionally show an error toast
-      showError(error)
+      showError(error);
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -429,6 +429,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             )}
           </div>
         );
+
       case 'requirementsSubmitted':
         return (
           <div className="bg-white p-6 rounded-lg border-l-4 border border-gray-300 shadow-sm hover:shadow-md transition-all">
@@ -446,6 +447,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             />
           </div>
         );
+
       case 'started':
         return (
           <div className="space-y-5">
@@ -533,7 +535,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                 </p>
               </div>
               <div className="space-y-2 mt-4">
-                {currentStatusData?.deliveryAttachments?.map((fileUrl, index) => (
+                {currentStatusData?.deliveryAttachments?.map((fileUrl: string, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors group"
@@ -588,6 +590,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             )}
           </div>
         );
+
       case 'requestedRevision':
         return (
           <div className="space-y-5">
@@ -609,7 +612,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                   Attachments
                 </h4>
                 <div className="space-y-2">
-                  {currentStatusData?.deliveryAttachments?.map((fileUrl, index) => (
+                  {currentStatusData?.deliveryAttachments?.map((fileUrl: string, index: number) => (
                     <div
                       key={index}
                       className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors group"
@@ -627,12 +630,10 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                     </div>
                   ))}
                 </div>
-
               </div>
 
               <div className="space-y-5">
                 <div className="flex flex-col sm:flex-row gap-3 items-center">
-
                   {isOrderSeller && (
                     <button
                       onClick={() => setShowSubmitDelivery(!showSubmitDelivery)}
@@ -655,23 +656,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                 )}
               </div>
             </div>
-
-            {/* {isSeller && (
-              <div className="mt-5 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-                  <div className="bg-gray-100 p-2 rounded-full mr-3 text-black">
-                    <FaPaperPlane className="w-5 h-5" />
-                  </div>
-                  Submit Delivery
-                </h3>
-                <SubmitDelivery
-                  onSubmit={(data, files) => handleOrderSubmit(data, files)}
-                  onClose={() => setShowSubmitDelivery(false)}
-                />
-              </div>
-            )} */}
           </div>
         );
+
       case 'completed':
         return (
           <div className="flex flex-col items-center justify-center p-10 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
@@ -685,14 +672,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
               All requirements have been met and the order has been marked as
               complete. Thank you for using our platform.
             </p>
-            <div className="flex items-center justify-center bg-white p-3 rounded-full shadow-sm">
-              <div className="bg-gray-100 p-2 rounded-full mr-2">
-                <FaShieldAlt className="text-black h-5 w-5" />
-              </div>
-              <span className="text-gray-700 font-medium">Order Protected</span>
-            </div>
           </div>
         );
+
       case 'waitingReview':
         return (
           <>
@@ -718,12 +700,18 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                     </div>
                     Share Your Experience
                   </h3>
-                  <Review onSubmit={handleSubmitReview} />
+                  <button
+                    onClick={() => setShowReviewModal(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                  >
+                    Review Now
+                  </button>
                 </div>
               )
             )}
           </>
         );
+
       default:
         return (
           <p className="text-gray-500 italic text-center p-5">
@@ -776,9 +764,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Order Progress (left) */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-6 mb-8">
+          {/* Order Progress (full width) */}
+          <div className="w-full">
             <OrderTimeline
               status={orderStatus}
               timeline={orderDetails.timeline || []}
@@ -807,15 +795,49 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             )}
           </div>
 
-          {/* Payment Protection (right) */}
-          <div className="lg:col-span-1">
-            <PaymentMilestones
-              orderId={orderDetails.orderId}
-              isSeller={isOrderSeller}
-              onMilestoneUpdate={onOperationComplete}
-            />
-          </div>
+
         </div>
+
+        {/* Review Modal */}
+        {showReviewModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full relative animate-fadeInUp">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isSubmittingReview}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
+                  <FaSync className="w-4 h-4 rotate-45" />
+                </div>
+              </button>
+
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-4">
+                  <FaStar className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Review Your Experience</h3>
+                <p className="text-gray-600">
+                  Your feedback helps {sellerName} improve and assists other buyers in making better decisions.
+                </p>
+              </div>
+
+              <Review
+                onSubmit={handleSubmitReview}
+                isSubmitting={isSubmittingReview}
+              />
+
+              {!isSubmittingReview && (
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="w-full mt-4 text-gray-500 font-medium hover:text-gray-700 transition-colors py-2"
+                >
+                  Maybe Later
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Extend Timeline Modal */}
         {showExtendTimeline && (

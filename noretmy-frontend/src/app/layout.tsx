@@ -2,8 +2,8 @@
 
 import { Poppins } from 'next/font/google';
 import './globals.css';
+import './overflow-fix.css';
 import Footer from '@/components/ui/Footer';
-
 import Navbar from '@/components/shared/Navbar';
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/store/store';
@@ -35,17 +35,23 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang={i18next.language} suppressHydrationWarning>
+    <html lang={i18next.language} suppressHydrationWarning style={{ overflowX: 'hidden', maxWidth: '100%' }}>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <link rel="icon" href="/logo/noretmy_logo.png" />
         <title>Noretmy</title>
         <meta name="description" content="Providing solutions for your business" />
       </head>
-      <body className={poppins.className}>
+      <body className={poppins.className} style={{ overflowX: 'hidden', maxWidth: '100%', width: '100%', position: 'relative', margin: 0, padding: 0 }}>
         <ReduxProvider store={store}>
           <NotificationProvider>
-            <Navbar />
-            {children}
+            <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative">
+              <Navbar />
+              <main className="flex-grow w-full max-w-full overflow-x-hidden relative">
+                {children}
+              </main>
+              <Footer />
+            </div>
             <ToastContainer position="top-right" autoClose={4000} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover style={{ zIndex: 99999 }} />
             <Toaster
               position="top-right"
@@ -77,8 +83,6 @@ export default function RootLayout({
                 },
               }}
             />
-
-            <Footer />
           </NotificationProvider>
         </ReduxProvider>
       </body>

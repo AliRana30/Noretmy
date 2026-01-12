@@ -190,18 +190,20 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
           {/* Top Badges */}
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
             <div className="flex flex-col gap-2">
-              {/* Promotion Badge - Featured (High Priority) */}
-              {(gig.isPromoted || gig.promotionPriority) && gig.promotionPriority >= 70 && (
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
-                  <Award className="w-3 h-3" />
-                  FEATURED
-                </span>
-              )}
-              {/* Promotion Badge - Promoted (Medium Priority) */}
-              {(gig.isPromoted || gig.promotionPriority) && ((gig.promotionPriority >= 40 && gig.promotionPriority < 70) || (!gig.promotionPriority && gig.isPromoted)) && (
-                <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
-                  PROMOTED
-                </span>
+              {/* Promotion Badge */}
+              {!!gig.isPromoted && (
+                <div className="z-20 relative">
+                  {gig.promotionPriority && gig.promotionPriority >= 70 ? (
+                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 border border-white/20">
+                      <Award className="w-3 h-3" />
+                      FEATURED
+                    </span>
+                  ) : (
+                    <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg border border-white/20">
+                      PROMOTED
+                    </span>
+                  )}
+                </div>
               )}
               {gig.discount > 0 && (
                 <span className="bg-orange-400 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">

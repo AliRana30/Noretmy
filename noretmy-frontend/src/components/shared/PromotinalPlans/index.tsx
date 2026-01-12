@@ -196,32 +196,9 @@ const PromotionalPlansScreen = () => {
 
       {/* Active Promotion Banner */}
       {activePromotion && (
-        <div className="mb-8 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Zap className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  Active Promotion
-                  <Badge className="bg-green-500 text-white">Active</Badge>
-                </h3>
-                <p className="text-gray-600 mt-1">
-                  Your <strong>{getPlanDisplayName(activePromotion.plan)}</strong> plan is currently active.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <Clock className="h-4 w-4" />
-                  <span>Time Remaining</span>
-                </div>
-                <p className="font-bold text-lg text-orange-600">
-                  {activePromotion.remainingDays} day{activePromotion.remainingDays !== 1 ? 's' : ''} left
-                </p>
-              </div>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-center gap-4 mb-10 ">
+          <div className="flex items-center gap-4">
+            <div className="text-right">
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-100 rounded-lg px-4 py-2">
@@ -368,8 +345,8 @@ const PromotionalPlansScreen = () => {
       </Tabs>
 
       <div className={`p-6 rounded-lg border mt-8 ${isDisabled
-          ? 'bg-gray-100 border-gray-200'
-          : 'bg-gray-50 border-gray-200'
+        ? 'bg-gray-100 border-gray-200'
+        : 'bg-gray-50 border-gray-200'
         }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -380,9 +357,11 @@ const PromotionalPlansScreen = () => {
               }
             </h3>
             <p className="text-gray-500">
-              {isDisabled
-                ? `Your ${getPlanDisplayName(activePromotion?.plan || '')} plan is active for ${activePromotion?.remainingDays || 0} more days.`
-                : `You've selected the ${promotionalPlans.find((plan) => plan.id === selectedPlan)?.title} plan.`
+              {activePromotion
+                ? `Your ${getPlanDisplayName(activePromotion.plan)} plan is active.`
+                : selectedPlan && !loading
+                  ? `You've selected the ${promotionalPlans.find((plan) => plan.id === selectedPlan)?.title} plan.`
+                  : ""
               }
             </p>
           </div>

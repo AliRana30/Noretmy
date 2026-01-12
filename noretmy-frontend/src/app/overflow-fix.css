@@ -1,0 +1,52 @@
+/* Comprehensive overflow fix */
+
+/* Root level - prevent any horizontal scroll */
+html {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Next.js root */
+#__next {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Main content area */
+main {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* All sections and containers */
+section {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Specifically target animation containers */
+[class*="AnimateOnScroll"] {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Hero and large sections */
+.hero,
+[class*="Hero"],
+[class*="hero"] {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Container classes */
+.container,
+[class*="container"] {
+    max-width: 100% !important;
+}

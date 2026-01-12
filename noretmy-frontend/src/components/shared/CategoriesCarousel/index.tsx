@@ -157,11 +157,13 @@ const CategoriesCarousel: React.FC<CategoriesCarouselProps> = ({ id }) => {
         </div>
 
         {/* Categories Grid */}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden w-full max-w-full relative px-1">
           <div
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-500 ease-out w-full"
             style={{
               transform: `translateX(-${currentSlide * 100}%)`,
+              width: '100%',
+              maxWidth: '100%'
             }}
           >
             {Array.from({ length: totalSlides }).map((_, slideIndex) => (
@@ -212,8 +214,8 @@ const CategoriesCarousel: React.FC<CategoriesCarouselProps> = ({ id }) => {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide
-                    ? 'bg-orange-500 w-8'
-                    : 'bg-slate-300 w-2 hover:bg-slate-400'
+                  ? 'bg-orange-500 w-8'
+                  : 'bg-slate-300 w-2 hover:bg-slate-400'
                   }`}
                 aria-label={`Go to slide ${index + 1}`}
               />

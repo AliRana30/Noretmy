@@ -8,24 +8,32 @@ import {
     FaPlusCircle,
     FaSync,
     FaComments,
+    FaExclamationCircle,
     FaClock,
     FaChevronDown,
     FaPercent,
-    FaShieldAlt,
+    FaChartLine,
     FaPaperPlane,
     FaHistory,
     FaCalendarAlt,
+    FaEye,
 } from 'react-icons/fa';
 
 import { useSelector } from 'react-redux';
+// import OrderDetails from '../Actions/OrderCreated';
 import axios from 'axios';
+import OrderDetails from '../../Order-Details-Buyer/Actions/OrderCreated';
+import SubmitRequirements from '../../Order-Details-Buyer/Actions/SubmitRequirements';
 import ViewRequirements from '../../Order-Details-Buyer/Actions/ViewRequirements';
 import SubmitDelivery from '../../Order-Details-Buyer/Actions/SubmitDelivery';
 import RequestRevision from '../../Order-Details-Buyer/Actions/RequestRevision';
 import ViewReview from '../../Order-Details-Buyer/Actions/ViewReview';
-import { Download, Paperclip, Truck } from 'lucide-react';
+import OrderCard from '../../Order-Details-Buyer/OrderCard';
+import { Download, Milestone, Paperclip, Truck } from 'lucide-react';
+import { useCountdown } from '@/util/time';
 import { showError, showSuccess } from '@/util/toast';
 import ReviewForm from '../../Order-Details-Buyer/Actions/reviewSeller';
+// import SubmitDelivery from '../Actions/SubmitDelivery';
 
 interface SingleOrderSectionProps {
     sellerName: string;
@@ -62,22 +70,25 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [showRequestRevision, setShowRequestRevision] = useState(false);
     const [activeTab, setActiveTab] = useState<'order' | 'chat'>('order');
-    const { orderStatus, requirements, attachments } = orderDetails || {};
+    const { orderStatus, requirements, attachments } =
+        orderDetails;
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-    let { statusHistory = [] } = selectedMilestone || {};
+    let { statusHistory = [] } = selectedMilestone;
 
     if (canReview) {
-        const reviewStatus = { status: "waitingReview", timestamp: new Date().toISOString(), _id: 'review-temp' };
+        const reviewStatus = { status: "waitingReview", timestamp: new Date().toISOString() };
         statusHistory = [...statusHistory, reviewStatus];
     }
 
     const [showSubmitDelivery, setShowSubmitDelivery] = useState(false);
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     const user = useSelector((state: any) => state.auth?.user);
     const isSeller = user?.isSeller;
 
-    const statusConfig: any = {
+    const statusConfig = {
         approved: {
             label: 'Milestone Completed',
             icon: <FaCheckCircle className="w-5 h-5" />,
@@ -153,6 +164,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         'approved'
     ];
 
+    // Calculate progress percentage for progress bar
     const progressPercentage = useMemo(() => {
         const currentIndex = statusOrder.findIndex(
             (status) => status === orderStatus,
@@ -167,8 +179,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
 
     const filteredDropdownItems = useMemo(() => {
         return statusHistory
-            .map((history: any) => {
-                const config = statusConfig[history.status];
+            .map((history: HistoryItem) => {
+                const config =
+                    statusConfig[history.status as keyof typeof statusConfig];
                 return config
                     ? { ...config, status: history.status, key: history._id }
                     : null;
@@ -184,7 +197,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                 data,
                 {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'Content-Type': 'multipart/form-data', // Set correct content type for file uploads
                     },
                     withCredentials: true,
                 },
@@ -196,11 +209,11 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             }
         } catch (error) {
             console.error('Error:', error);
-            showError("Something went wrong");
         }
     };
 
     const handleSubmitReview = async (rating: number, desc: string) => {
+        setIsSubmittingReview(true);
         try {
             const response = await axios.post(
                 `${BACKEND_URL}/reviews`,
@@ -214,18 +227,21 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                 }
             );
 
-            if (response.status == 200) {
-                showSuccess("Review submitted successfully!")
+            if (response.status === 200 || response.status === 201) {
+                showSuccess("Review submitted successfully!");
+                setShowReviewModal(false);
                 onOperationComplete();
             }
         } catch (error: any) {
             console.error("Something went wrong while submitting the review:", error);
             showError(error.response?.data?.message || "Failed to submit review");
+        } finally {
+            setIsSubmittingReview(false);
         }
     };
 
     const metrics = useMemo(() => {
-        const startDate = orderDetails?.createdAt ? new Date(orderDetails.createdAt) : new Date();
+        const startDate = new Date(orderDetails.createdAt);
         const currentDate = new Date();
         const daysPassed = Math.floor(
             (currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
@@ -233,7 +249,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
 
         return {
             daysSinceCreation: daysPassed,
-            timeLeft: orderDetails?.deadline
+            timeLeft: orderDetails.deadline
                 ? Math.max(
                     0,
                     Math.floor(
@@ -244,12 +260,12 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                 )
                 : 'N/A',
             totalRevisions: statusHistory.filter(
-                (h: any) => h.status === 'requestedRevision',
+                (h: HistoryItem) => h.status === 'requestedRevision',
             ).length,
             isLate:
-                orderDetails?.deadline && new Date(orderDetails.deadline) < currentDate,
+                orderDetails.deadline && new Date(orderDetails.deadline) < currentDate,
         };
-    }, [orderDetails?.createdAt, orderDetails?.deadline, statusHistory]);
+    }, [orderDetails.createdAt, orderDetails.deadline, statusHistory]);
 
     const handleStart = async (
         status?: string,
@@ -292,7 +308,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             }
         } catch (error: any) {
             console.error("Error in submitting the order!", error.response?.data || error.message);
-            showError(error.response?.data?.message || "Action failed");
+            showError(error.response?.data?.message || "Something went wrong");
         }
     };
 
@@ -537,12 +553,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                             All requirements have been met and the milestone has been marked as
                             complete. Thank you for using our platform.
                         </p>
-                        <div className="flex items-center justify-center bg-white p-3 rounded-full shadow-sm">
-                            <div className="bg-gray-100 p-2 rounded-full mr-2">
-                                <FaShieldAlt className="text-black h-5 w-5" />
-                            </div>
-                            <span className="text-gray-700 font-medium">Order Protected</span>
-                        </div>
+
                     </div>
                 );
             case 'waitingReview':
@@ -570,7 +581,12 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                                         </div>
                                         Share Your Experience
                                     </h3>
-                                    <ReviewForm onSubmit={handleSubmitReview} />
+                                    <button
+                                        onClick={() => setShowReviewModal(true)}
+                                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                    >
+                                        Review Now
+                                    </button>
                                 </>
                             )
                         )}
@@ -596,7 +612,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                     <div className="flex-1">
                         <div className="flex items-center">
                             <h1 className="text-2xl font-bold text-gray-800">
-                                Order #{orderDetails?.orderId}
+                                Order #{orderDetails.orderId}
                             </h1>
                             <div
                                 className={`ml-4 px-3 py-1 rounded-full text-xs font-medium 
@@ -694,7 +710,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                                 {filteredDropdownItems.map((item: any) => {
                                     const isOpen = openDropdown === item.key;
                                     const currentStatusData = statusHistory.find(
-                                        (history: any) => history._id === item.key,
+                                        (history: HistoryItem) => history._id === item.key,
                                     );
                                     const isCurrentStatus = item.status === orderStatus;
                                     const isCompleted =
@@ -795,6 +811,80 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Key Metrics Footer with improved design */}
+                    {/* <div className="mt-10 p-5 border-t border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-b-lg">
+            <h3 className="text-gray-800 font-medium mb-4 flex items-center">
+              <FaChartLine className="mr-2 text-indigo-600" />
+              Order Metrics
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-2">
+                  <div className="p-2 rounded-md bg-indigo-100 mr-3">
+                    <FaCalendarAlt className="text-indigo-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Time Elapsed</div>
+                    <div className="font-semibold text-gray-800">
+                      {metrics.daysSinceCreation} days
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-2">
+                  <div className="p-2 rounded-md bg-indigo-100 mr-3">
+                    <FaClock className="text-indigo-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Time Remaining</div>
+                    <div
+                      className={`font-semibold ${metrics.isLate ? 'text-red-600' : 'text-gray-800'}`}
+                    >
+                      {metrics.timeLeft === 'N/A'
+                        ? 'N/A'
+                        : `${metrics.timeLeft} days`}
+                      {metrics.isLate && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full shadow-sm">
+                          Overdue
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-2">
+                  <div className="p-2 rounded-md bg-indigo-100 mr-3">
+                    <FaSync className="text-indigo-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Total Revisions</div>
+                    <div className="font-semibold text-gray-800">
+                      {metrics.totalRevisions}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-2">
+                  <div className="p-2 rounded-md bg-indigo-100 mr-3">
+                    <FaPercent className="text-indigo-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Completion</div>
+                    <div className="font-semibold text-gray-800">
+                      {progressPercentage}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> */}
                 </div>
             )}
 
@@ -830,6 +920,46 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                                 Start Conversation
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Review Modal */}
+            {showReviewModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full relative animate-fadeInUp">
+                        <button
+                            onClick={() => setShowReviewModal(false)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                            disabled={isSubmittingReview}
+                        >
+                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
+                                <FaSync className="w-4 h-4 rotate-45" />
+                            </div>
+                        </button>
+
+                        <div className="mb-8">
+                            <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-4">
+                                <FaStar className="w-8 h-8 text-orange-600" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Review Your Experience</h3>
+                            <p className="text-gray-600">
+                                Your feedback helps {sellerName} improve and assists other buyers in making better decisions.
+                            </p>
+                        </div>
+
+                        <ReviewForm
+                            onSubmit={handleSubmitReview}
+                            isSubmitting={isSubmittingReview}
+                        />
+
+                        {!isSubmittingReview && (
+                            <button
+                                onClick={() => setShowReviewModal(false)}
+                                className="w-full mt-4 text-gray-500 font-medium hover:text-gray-700 transition-colors py-2"
+                            >
+                                Maybe Later
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

@@ -95,7 +95,13 @@ const getSellerStatistics = async (sellerId) => {
       sellerId: sellerIdStr,
     };
 
-    // Use simple 'completed' status matching Admin panel
+    // Use orders that are paid for earnings calculation
+    const paidFilter = {
+      ...baseFilter,
+      isPaid: true,
+      status: { $ne: 'cancelled' }
+    };
+
     const completedFilter = {
       ...baseFilter,
       status: 'completed'
@@ -103,7 +109,7 @@ const getSellerStatistics = async (sellerId) => {
 
     // Calculate seller rating - Match Admin Logic
     const reviews = await Reviews.aggregate([
-      { $match: { sellerId: sellerIdStr } },
+      { $match: { sellerId: sellerIdStr } }, // Remove isApproved check if admin doesn't use it, but keeping it is usually safer. Admin code didn't show it.
       { $group: { _id: null, averageRating: { $avg: "$star" }, totalReviews: { $sum: 1 } } },
     ]);
     const rating = reviews?.[0]?.averageRating?.toFixed(1) ?? "0";
@@ -138,9 +144,9 @@ const getSellerStatistics = async (sellerId) => {
       ? Math.round((onTimeDeliveries / completedOrders) * 100) 
       : 100;
 
-    // Aggregate earnings - Match Admin Logic: Use '$price'
+    // Aggregate earnings - Use paidFilter instead of just completed
     const earnings = await Order.aggregate([
-      { $match: completedFilter },
+      { $match: paidFilter },
       { $group: { _id: null, totalEarnings: { $sum: '$price' } } }
     ]);
     const totalEarnings = earnings?.[0]?.totalEarnings ?? 0;
@@ -149,24 +155,25 @@ const getSellerStatistics = async (sellerId) => {
     const freelancer = await Freelancer.findOne({ userId: sellerId }) || null;
     const user = await User.findById(sellerId).select('revenue') || null;
 
+    // Prioritize User revenue, then Freelancer revenue fields
+    const userRevenueAvailable = user?.revenue?.available ?? 0;
     const freelancerRevenueAvailable = freelancer?.revenue?.available ?? 0;
     const freelancerAvailableBalance = freelancer?.availableBalance ?? 0;
-    const userRevenueAvailable = user?.revenue?.available ?? 0;
 
-    // Use the max to avoid showing 0 when one store is out-of-sync
-    const availableForWithdrawalAmount = Math.max(
-      freelancerRevenueAvailable,
-      freelancerAvailableBalance,
-      userRevenueAvailable
-    );
-    console.log('[Seller Stats] Withdrawal Calculation:', {
-      userId: sellerId,
-      freelancerRevenueAvailable,
-      freelancerAvailableBalance,
-      userRevenueAvailable,
-      finalAmount: availableForWithdrawalAmount
-    });
-    const pendingClearance = freelancer?.revenue?.pending ?? 0;
+    let availableForWithdrawalAmount = userRevenueAvailable;
+    
+    // Fallback if user revenue is 0 but freelancer has balance (legacy sync issue)
+    if (availableForWithdrawalAmount === 0 && (freelancerRevenueAvailable > 0 || freelancerAvailableBalance > 0)) {
+       availableForWithdrawalAmount = Math.max(freelancerRevenueAvailable, freelancerAvailableBalance);
+    }
+
+    // Ensure available never exceeds total (safety check for the reported bug)
+    if (availableForWithdrawalAmount > totalEarnings) {
+      console.warn(`[Seller Stats] Balance mismatch for ${sellerId}: Available (${availableForWithdrawalAmount}) > Total (${totalEarnings}). Capping available balance.`);
+      availableForWithdrawalAmount = totalEarnings;
+    }
+
+    const pendingClearance = freelancer?.revenue?.pending ?? user?.revenue?.pending ?? 0;
 
     // Earnings in the current month
     const currentMonthEarnings = await Order.aggregate([
@@ -180,9 +187,9 @@ const getSellerStatistics = async (sellerId) => {
     ]);
     const currentMonthTotalEarnings = currentMonthEarnings?.[0]?.totalCurrentMonthEarnings ?? 0;
 
-    // Calculate average selling price
+    // Calculate average selling price based on all paid orders
     const averageSellingPrice = await Order.aggregate([
-      { $match: completedFilter },
+      { $match: paidFilter },
       { $group: { _id: null, avgPrice: { $avg: '$price' } } }
     ]);
     const avgSellingPrice = averageSellingPrice?.[0]?.avgPrice ?? 0;

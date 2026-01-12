@@ -497,9 +497,15 @@ const approveWithdrawRequest = async (req, res) => {
                     });
                 }
 
-        // Track if the method was explicitly set on the request (vs inferred from freelancer profile)
-        const storedMethodOnRequest = withdrawalRequest.withdrawalMethod;
-        let method = String(storedMethodOnRequest || freelancer.withdrawalMethod || '').toLowerCase();
+        // ALWAYS use the CURRENT freelancer's withdrawal method, not the stored one
+        // This ensures if user switches from PayPal to Stripe, approval uses Stripe
+        let method = String(freelancer.withdrawalMethod || '').toLowerCase();
+        
+        // Fallback to stored method only if freelancer has no current method set
+        if (!method) {
+            const storedMethodOnRequest = withdrawalRequest.withdrawalMethod;
+            method = String(storedMethodOnRequest || '').toLowerCase();
+        }
 
         // Log for debugging
         console.log('[Withdrawal Approval] Request ID:', requestId);
@@ -510,37 +516,17 @@ const approveWithdrawRequest = async (req, res) => {
             stripeAccountId: freelancer.stripeAccountId,
             email: freelancer.email 
         });
-        console.log('[Withdrawal Approval] Stored method on request:', storedMethodOnRequest);
-        console.log('[Withdrawal Approval] Inferred method:', method);
+        console.log('[Withdrawal Approval] Using method:', method);
 
-        // Persist inferred method for older records
-        if (!storedMethodOnRequest && method) {
-            withdrawalRequest.withdrawalMethod = method;
-        }
+        // Update withdrawal request to match current method
+        withdrawalRequest.withdrawalMethod = method;
 
         // Handle Stripe method when stripeAccountId is missing
         if (method === 'stripe' && !freelancer.stripeAccountId) {
-            // If method was EXPLICITLY stored on the request as 'stripe', user chose it deliberately
-            // In this case, reject with clear message - don't silently fallback
-            if (storedMethodOnRequest === 'stripe') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Cannot process Stripe withdrawal: The freelancer has not completed Stripe onboarding. Please ask them to complete Stripe setup in their payout settings, or reject this request and have them submit a new one with PayPal.'
-                });
-            }
-            
-            // If method was inferred (not explicitly stored), allow fallback to PayPal
-            const fallbackEmail = freelancer.email || withdrawalRequest.payoutEmail;
-            if (fallbackEmail) {
-                console.log('[Withdrawal Approval] Stripe not configured (inferred method), falling back to PayPal for:', fallbackEmail);
-                method = 'paypal';
-                withdrawalRequest.withdrawalMethod = 'paypal';
-            } else {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Stripe account is not configured and no PayPal email available for fallback.'
-                });
-            }
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot process Stripe withdrawal: The freelancer has not completed Stripe onboarding. Please ask them to complete Stripe setup in their payout settings.'
+            });
         }
 
         if (method === 'stripe') {
