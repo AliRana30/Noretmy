@@ -137,8 +137,41 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     await userProfile.save();
 
-    // Send notification and email in background - don't await
-    const sendBackgroundTasks = async () => {
+    console.log('📧 === EMAIL SENDING DEBUG ===');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('User email:', user.email);
+    console.log('User verified:', user.isVerified);
+    console.log('SMTP_MAIL:', process.env.SMTP_MAIL ? 'SET' : 'MISSING');
+    console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? 'SET' : 'MISSING'); 
+    console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? 'SET' : 'MISSING');
+    console.log('FRONTEND_URL:', process.env.FRONTEND_URL ? 'SET' : 'MISSING');
+
+    let emailSent = false;
+
+    // Send verification email immediately (not in background) for better error tracking
+    if (!(process.env.NODE_ENV === 'development' && user.isVerified)) {
+      try {
+        console.log(`📧 Attempting to send verification email to ${user.email}...`);
+        await sendVerificationEmail(user.email, token);
+        emailSent = true;
+        console.log(`✅ Verification email sent successfully to ${user.email}`);
+      } catch (emailError) {
+        console.error(`❌ VERIFICATION EMAIL FAILED for ${user.email}:`, emailError.message);
+        console.error('Email error stack:', emailError.stack);
+        // Continue signup even if email fails
+      }
+    } else {
+      console.log('ℹ️ Skipping verification email (development mode with auto-verify)');
+      try {
+        await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
+        console.log(`✅ Welcome email sent to ${user.email}`);
+      } catch (welcomeError) {
+        console.error(`❌ Welcome email failed for ${user.email}:`, welcomeError.message);
+      }
+    }
+
+    // Send admin notification in background
+    const sendAdminNotification = async () => {
       try {
         const notificationService = require('./notificationService');
         const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
@@ -162,34 +195,20 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
           }
         }
       } catch (notifError) {
-        console.error('Background notification failed:', notifError.message);
-      }
-
-      if (!(process.env.NODE_ENV === 'development' && user.isVerified)) {
-        try {
-          console.log(`📧 Sending verification email to ${user.email} in background`);
-          await sendVerificationEmail(user.email, token);
-          console.log(`✅ Verification email sent to ${user.email}`);
-        } catch (emailError) {
-          console.error(`❌ Background verification email failed for ${user.email}:`, emailError.message);
-        }
-      } else {
-        try {
-          await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
-        } catch (welcomeError) {
-          console.error(`❌ Background welcome email failed for ${user.email}:`, welcomeError.message);
-        }
+        console.error('Admin notification failed:', notifError.message);
       }
     };
 
-    // Execute background tasks without awaiting
-    sendBackgroundTasks();
+    // Execute admin notification without awaiting
+    sendAdminNotification();
 
     return {
       success: true,
       code: 'SIGNUP_SUCCESS',
-      message: 'User registered successfully. Processing verification email.',
-      emailSent: true, // Optimistically true
+      message: emailSent 
+        ? 'Registration successful! Verification email has been sent to ' + user.email
+        : 'Registration successful! Please verify your email to login.',
+      emailSent,
       user: {
         id: user._id,
         email: user.email,
