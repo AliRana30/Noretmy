@@ -319,6 +319,10 @@ export const getAdminNotifications = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
+export const markAllAdminNotificationsAsRead = async () => {
+  return makeRequest('PUT', '/api/admin/notifications/mark-all-read');
+};
+
 export const getMyNotifications = async () => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.NOTIFICATIONS);
 };
