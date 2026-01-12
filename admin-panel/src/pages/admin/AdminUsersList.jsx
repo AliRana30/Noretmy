@@ -536,15 +536,13 @@ const AdminUsersList = () => {
                               </button>
                             )}
 
-                            {process.env.NODE_ENV !== 'production' && (
-                              <button
-                                onClick={() => { setShowDeleteModal(user._id); setActionReason(''); }}
-                                className="p-2 rounded-lg bg-gray-500/20 text-gray-500 hover:bg-slate-500/30 hover:text-slate-500 transition-colors"
-                                title="Delete User"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => { setShowDeleteModal(user._id); setActionReason(''); }}
+                              className="p-2 rounded-lg bg-gray-500/20 text-gray-500 hover:bg-slate-500/30 hover:text-slate-500 transition-colors"
+                              title="Delete User"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </>
                         )}
                       </div>

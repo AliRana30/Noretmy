@@ -1,6 +1,7 @@
 import Datatable from "../../components/datatable/Datatable";
 import { useState, useEffect } from "react";
-import { fetchData, getUserColumns } from "../../datatablesource";
+import { fetchData, getUserColumns, deleteUser } from "../../datatablesource";
+import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import listTranslations from "../../localization/list.json";
@@ -26,8 +27,16 @@ const List = () => {
     loadData();
   }, []);
 
-  const handleDelete = (id) => {
-    setData((prevData) => prevData.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      try {
+        await deleteUser(id);
+        setData((prevData) => prevData.filter((item) => item.id !== id && item._id !== id));
+        toast.success("User deleted successfully");
+      } catch (err) {
+        toast.error(err.message || "Failed to delete user");
+      }
+    }
   };
 
   const actionColumn = [
@@ -46,14 +55,12 @@ const List = () => {
           >
             {getTranslation(commonTranslations, "view")}
           </Link>
-          {process.env.NODE_ENV !== 'production' && (
-            <div 
-              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-              onClick={() => handleDelete(params.row.id)}
-            >
-              {getTranslation(commonTranslations, "delete")}
-            </div>
-          )}
+          <div 
+            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+            onClick={() => handleDelete(params.row.id)}
+          >
+            {getTranslation(commonTranslations, "delete")}
+          </div>
         </div>
       ),
     },

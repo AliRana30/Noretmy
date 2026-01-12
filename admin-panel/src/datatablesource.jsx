@@ -420,6 +420,16 @@ export const getAdminUserColumns = (getTranslation) => {
       ),
     },
     {
+      field: "warningCount",
+      headerName: getTranslation(datatableColumnsTranslations, "warningCount") || "Warnings",
+      width: 100,
+      renderCell: (params) => (
+        <div className={`cellWithStatus ${params.row.warningCount > 0 ? 'warned' : 'active'}`}>
+          {params.row.warningCount || 0}
+        </div>
+      ),
+    },
+    {
       field: "createdAt",
       headerName: getTranslatedHeader(getTranslation, "date"),
       width: 200,
@@ -641,12 +651,25 @@ export const getAdminContactColumns = (getTranslation) => {
   ];
 };
 
+export const deleteUser = async (id) => {
+  try {
+    const response = await axios.delete(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN)}/users/${id}`, {
+      withCredentials: true,
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    handleApiError(error);
+  }
+};
+
 // Function to get data from the API and format it for the DataGrid
 export const fetchData = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.USERS), {
-      headers: getAuthHeaders(),
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
     return response.data.map((user, index) => ({
@@ -693,6 +716,7 @@ export const fetchDocumentsData = async () => {
       status: user.isBlocked ? "blocked" : user.isVerified ? "active" : "pending",
     }));
 
+    // Requirement: admin documents should only show users whose isVerified is false
     return mapped.filter((u) => !u.isVerified);
   } catch (error) {
     console.error("Error fetching documents data:", error);
@@ -722,8 +746,8 @@ export const getOrders = async () => {
 export const getJobs = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.JOBS), {
-      headers: getAuthHeaders(),
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
     // Sort jobs by date (descending)
@@ -745,12 +769,17 @@ export const getJobs = async () => {
         }
       }
 
+      let status = job.jobStatus || 'Active';
+      if (status.toLowerCase() === 'available') status = 'Active';
+      // Capitalize first letter
+      status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
       return {
         _id: job._id,
         title: job.title,
         sellerId: job.sellerId,
         buyerId: job.buyerId,
-        jobStatus: job.jobStatus || 'Active',
+        jobStatus: status,
         // Use category (cat) or subCat instead of location
         location: job.subCat || job.cat || 'No Category',
         category: job.cat,
@@ -772,10 +801,7 @@ export const getUserJobs = async (userId) => {
     const response = await axios.post(getApiUrl(API_CONFIG.ENDPOINTS.JOBS), {
       userId: userId,
     }, {
-      headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       withCredentials: true
     });
 
@@ -813,8 +839,8 @@ export const getUserJobs = async (userId) => {
 export const getSensitiveMessages = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.SENSITIVE_MESSAGES), {
-      headers: getAuthHeaders(),
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
     // Sort orders by date (descending)
@@ -838,8 +864,8 @@ export const getSensitiveMessages = async () => {
 export const getNotifications = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_NOTIFICATIONS) + '?limit=100', {
-      headers: getAuthHeaders(),
-      withCredentials: true
+      withCredentials: true,
+      headers: getAuthHeaders()
     });
 
     // Handle different response formats - backend returns { success, data, pagination }
@@ -856,7 +882,6 @@ export const getNotifications = async () => {
 export const getAllWithdrawalRequests = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.WITHDRAWALS), {
-      headers: getAuthHeaders(),
       withCredentials: true
     });
 

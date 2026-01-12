@@ -13,7 +13,6 @@ const handleSignup = async (req, res, next) => {
   const { email, password, fullName, username, isSeller, isCompany } = req.body;
 
   try {
-    // Validate required fields (username is optional, will be auto-generated)
     if (!email || !password || !fullName) {
       return res.status(400).json({
         success: false,
@@ -21,25 +20,11 @@ const handleSignup = async (req, res, next) => {
       });
     }
 
-    // Fetch country information
-    const countryInfo = await getCountryInfo(req);
-    if (!countryInfo.success) {
-      console.error('Country info fetch failed:', countryInfo);
-      return res.status(400).json({
-        success: false,
-        message: 'Unable to fetch country information',
-        error: countryInfo.error,
-      });
-    }
-
-    // const allowedOrigins =  [...americanCountryCodes,...europeanCountryCodes];
-
-    // if (!allowedOrigins.includes(countryInfo.countryCode)) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: 'Registration is only allowed for users from Europe or America.',
-    //   });
-    // }
+    // Start fetching country information in parallel
+    const countryInfoPromise = getCountryInfo(req).catch(err => {
+      console.error('Background country info fetch failed:', err.message);
+      return { success: true, country: 'United States', countryCode: 'US' };
+    });
 
     const signUpResponse = await signUp(
       email,
@@ -48,8 +33,7 @@ const handleSignup = async (req, res, next) => {
       username,
       isSeller,
       isCompany,
-      countryInfo.country,
-      countryInfo.countryCode
+      countryInfoPromise
     );
 
     if (!signUpResponse.success) {
@@ -92,11 +76,14 @@ const handleLogin = async (req, res) => {
       isSeller:user.isSeller,
     },process.env.JWT_KEY)
 
+    // req.session.user = user;
+    // const {password,...info}=user;
+
     res.cookie("accessToken",token,{
       httpOnly:true,
       secure: true, 
-      sameSite: 'None',
-      maxAge: 30 * 24 * 60 * 60 * 1000
+  sameSite: 'None',
+   maxAge: 30 * 24 * 60 * 60 * 1000
     }).status(200)  
     .json({
       success: true,

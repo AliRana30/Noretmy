@@ -6,7 +6,7 @@ const { validatePassword } = require('../utils/passwordValidation');
 
 const TOKEN_EXPIRY_DURATION = 15 * 60 * 1000; // 15 minutes
 
-const signUp = async (email, password, fullName, username, isSeller, isCompany, country, countryCode) => {
+const signUp = async (email, password, fullName, username, isSeller, isCompany, countryInfoPromise) => {
   try {
     // Validate password strength
     const passwordValidation = validatePassword(password);
@@ -43,19 +43,18 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
           existingUser.verificationTokenExpiry = now + TOKEN_EXPIRY_DURATION;
           await existingUser.save();
 
-          try {
-            console.log(`📧 Resending verification email to existing unverified user: ${existingUser.email}`);
-            await sendVerificationEmail(existingUser.email, newToken);
-            console.log(`✅ Verification email resent successfully to ${existingUser.email}`);
-          } catch (emailError) {
-            console.error(`❌ Failed to resend verification email to ${existingUser.email}:`, emailError.message);
-            return {
-              success: false,
-              code: 'VERIFICATION_EMAIL_SEND_FAILED',
-              message: 'Your account already exists but is not verified. We could not send a new verification email right now. Please try again later.',
-              emailSent: false,
-            };
-          }
+          // Send verification email in background
+          const backgroundResend = async () => {
+            try {
+              console.log(`📧 Resending verification email to existing unverified user: ${existingUser.email} in background`);
+              await sendVerificationEmail(existingUser.email, newToken);
+              console.log(`✅ Verification email resent successfully to ${existingUser.email}`);
+            } catch (emailError) {
+              console.error(`❌ Background email resend failed for ${existingUser.email}:`, emailError.message);
+            }
+          };
+          backgroundResend();
+
           return {
             success: false,
             message: 'Your previous signup was incomplete. A new verification email has been sent.',
@@ -124,6 +123,10 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     await user.save();
 
+    // Resolve country info (which was started in parallel)
+    const resolvedCountryInfo = await countryInfoPromise;
+    const { country = 'United States', countryCode = 'US' } = resolvedCountryInfo || {};
+
     // Create associated user profile
     const userProfile = new UserProfile({
       userId: user._id,
@@ -134,107 +137,69 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     await userProfile.save();
 
-    // Send notification to admin about new signup
-    try {
-      const notificationService = require('./notificationService');
-      const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
-      if (Admin) {
-        await notificationService.createNotification({
-          userId: Admin._id,
-          title: '🆕 New User Registered',
-          message: `${fullName} (${email}) signed up as ${isSeller ? 'freelancer' : 'client'}`,
-          type: 'system',
-          link: `/admin/users`
-        });
-        
-        // Emit socket event for real-time notification
-        const io = global.io;
-        if (io) {
-          io.to(`user_${Admin._id}`).emit('notification', {
+    // Send notification and email in background - don't await
+    const sendBackgroundTasks = async () => {
+      try {
+        const notificationService = require('./notificationService');
+        const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
+        if (Admin) {
+          await notificationService.createNotification({
+            userId: Admin._id,
             title: '🆕 New User Registered',
-            message: `${fullName} signed up as ${isSeller ? 'freelancer' : 'client'}`,
-            type: 'admin',
+            message: `${fullName} (${email}) signed up as ${isSeller ? 'freelancer' : 'client'}`,
+            type: 'system',
             link: `/admin/users`
           });
+
+          const io = global.io;
+          if (io) {
+            io.to(`user_${Admin._id}`).emit('notification', {
+              title: '🆕 New User Registered',
+              message: `${fullName} signed up as ${isSeller ? 'freelancer' : 'client'}`,
+              type: 'admin',
+              link: `/admin/users`
+            });
+          }
+        }
+      } catch (notifError) {
+        console.error('Background notification failed:', notifError.message);
+      }
+
+      if (!(process.env.NODE_ENV === 'development' && user.isVerified)) {
+        try {
+          console.log(`📧 Sending verification email to ${user.email} in background`);
+          await sendVerificationEmail(user.email, token);
+          console.log(`✅ Verification email sent to ${user.email}`);
+        } catch (emailError) {
+          console.error(`❌ Background verification email failed for ${user.email}:`, emailError.message);
+        }
+      } else {
+        try {
+          await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
+        } catch (welcomeError) {
+          console.error(`❌ Background welcome email failed for ${user.email}:`, welcomeError.message);
         }
       }
-    } catch (notifError) {
-      console.error('Failed to send admin notification:', notifError.message);
-    }
+    };
 
-    // Send verification email with retry logic.
-    // In development with auto-verified users, send welcome email instead.
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isAutoVerified = user.isVerified;
+    // Execute background tasks without awaiting
+    sendBackgroundTasks();
 
-    if (isDevelopment && isAutoVerified) {
-      // In development, users are auto-verified, so send a welcome email instead
-      try {
-        console.log(`📧 Sending welcome email to ${user.email} (development mode - auto-verified)`);
-        await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
-        console.log(`✅ Welcome email sent successfully to ${user.email}`);
-      } catch (emailError) {
-        console.error(`❌ Failed to send welcome email to ${user.email}:`, emailError.message);
-        // Don't fail signup if email fails
-      }
-      
-      return {
-        success: true,
-        code: 'SIGNUP_SUCCESS',
-        message: 'User registered successfully. Welcome email sent.',
-        emailSent: true,
-        user: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-          username: user.username,
-          role: user.role,
-          isSeller: user.isSeller,
-          isCompany: user.isCompany,
-        },
-      };
-    }
-
-    try {
-      console.log(`📧 Sending verification email to ${user.email}`);
-      const emailResult = await sendVerificationEmail(user.email, token);
-      const messageIdInfo = emailResult && emailResult.messageId ? ` (messageId=${emailResult.messageId})` : '';
-      console.log(`✅ Verification email sent successfully to ${user.email}${messageIdInfo}`);
-
-      return {
-        success: true,
-        code: 'SIGNUP_SUCCESS',
-        message: 'User registered successfully. Verification email sent.',
-        emailSent: true,
-        user: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-          username: user.username,
-          role: user.role,
-          isSeller: user.isSeller,
-          isCompany: user.isCompany,
-        },
-      };
-    } catch (emailError) {
-      console.error(`❌ Failed to send verification email to ${user.email}:`, emailError.message);
-      // Don't fail signup, user can request resend
-      return {
-        success: true,
-        code: 'SIGNUP_SUCCESS',
-        message: 'User registered successfully, but email sending failed. Please request a new verification email.',
-        emailSent: false,
-        user: {
-          id: user._id,
-          email: user.email,
-          fullName: user.fullName,
-          username: user.username,
-          role: user.role,
-          isSeller: user.isSeller,
-          isCompany: user.isCompany,
-        },
-      };
-    }
+    return {
+      success: true,
+      code: 'SIGNUP_SUCCESS',
+      message: 'User registered successfully. Processing verification email.',
+      emailSent: true, // Optimistically true
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        username: user.username,
+        role: user.role,
+        isSeller: user.isSeller,
+        isCompany: user.isCompany,
+      },
+    };
   } catch (error) {
     console.error('Signup error:', error);
     // Return more specific error message
