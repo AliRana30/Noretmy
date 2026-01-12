@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import { fetchDocumentsData } from "../../datatablesource";
+import { deleteUser } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import commonTranslations from "../../localization/common.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-import { FileCheck, Search, Eye, Ban, Unlock, RefreshCw, ChevronLeft, ChevronRight, X, Check, Download } from "lucide-react";
+import { FileCheck, Search, Eye, Ban, Unlock, RefreshCw, ChevronLeft, ChevronRight, X, Check, Download, Shield, Trash2 } from "lucide-react";
 import axios from "axios";
 import { API_CONFIG, getAuthHeaders } from "../../config/api";
 import toast from "react-hot-toast";
@@ -94,11 +95,36 @@ const ListDocuments = () => {
         { withCredentials: true, headers: getAuthHeaders() }
       );
       toast.success('User verified successfully!');
+      // Documents list only includes unverified users; remove verified user from list
       setData(prev => prev.filter(u => u._id !== userId));
       setSelectedUser(prev => (prev && prev._id === userId ? null : prev));
     } catch (error) {
       console.error('Error verifying the user:', error);
       toast.error('Failed to verify user: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    if (!userId) {
+      toast.error('No user ID found');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setActionLoading(userId + '-delete');
+      await deleteUser(userId, 'Deleted from document verification');
+      toast.success('User deleted successfully!');
+      setData(prev => prev.filter(u => u._id !== userId));
+      setSelectedUser(prev => (prev && prev._id === userId ? null : prev));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user: ' + (error.message || 'Unknown error'));
     } finally {
       setActionLoading(null);
     }
@@ -246,6 +272,9 @@ const ListDocuments = () => {
                 }`}>Status</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>Warnings</th>
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>Document</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
@@ -292,19 +321,30 @@ const ListDocuments = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    {user.documentUrl ? (
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      user.warningCount > 0
+                        ? 'bg-amber-500/20 text-amber-500'
+                        : 'bg-emerald-500/20 text-emerald-500'
+                    }`}>
+                      {user.warningCount || 0}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {user.documentUrl && user.documentUrl.startsWith('http') ? (
                       <a 
                         href={user.documentUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-orange-500 hover:text-orange-600"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-all border border-orange-500/20"
                       >
-                        <Download className="w-4 h-4" />
-                        <span className="text-sm">View</span>
+                        <Search className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium">View File</span>
                       </a>
                     ) : (
-                      <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        No document
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        darkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        No File
                       </span>
                     )}
                   </td>
@@ -341,6 +381,19 @@ const ListDocuments = () => {
                       >
                         <Ban className="w-4 h-4" />
                       </button>
+
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        disabled={actionLoading === user._id + '-delete'}
+                        className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                        title="Delete User"
+                      >
+                        {actionLoading === user._id + '-delete' ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -351,9 +404,12 @@ const ListDocuments = () => {
 
         {paginatedData.length === 0 && (
           <div className="p-12 text-center">
-            <FileCheck className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+            <Shield className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No documents found
+              No verification requests found
+            </p>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Currently, no sellers have submitted documents for verification.
             </p>
           </div>
         )}
