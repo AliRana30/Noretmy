@@ -651,19 +651,6 @@ export const getAdminContactColumns = (getTranslation) => {
   ];
 };
 
-export const deleteUser = async (id) => {
-  try {
-    const response = await axios.delete(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_USERS)}/${id}`, {
-      withCredentials: true,
-      headers: getAuthHeaders()
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    handleApiError(error);
-  }
-};
-
 // Function to get data from the API and format it for the DataGrid
 export const fetchData = async () => {
   try {

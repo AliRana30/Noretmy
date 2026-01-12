@@ -1,6 +1,7 @@
 import Datatable from "../../components/datatable/Datatable";
 import { useState, useEffect } from "react";
-import { fetchData, getUserColumns, deleteUser } from "../../datatablesource";
+import { fetchData, getUserColumns } from "../../datatablesource";
+import { deleteUser } from "../../utils/adminApi";
 import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
