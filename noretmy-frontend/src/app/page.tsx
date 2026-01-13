@@ -168,10 +168,10 @@ const Home = () => {
                   <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-8">
                       <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
-                        {t('What are you looking for?')}
+                        {t('home:searchSection.headline')}
                       </h2>
                       <p className="text-slate-600">
-                        {t('Find the perfect freelancer for your project')}
+                        {t('home:searchSection.description')}
                       </p>
                     </div>
                     <SearchGigsRedirection navigateWithTransition={navigateWithTransition} />

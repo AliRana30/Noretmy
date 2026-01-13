@@ -42,13 +42,13 @@ const Testimonials: React.FC<TestimonialProps> = ({ id }) => {
         {/* Header */}
         <div className="text-center mb-16">
           <p className="text-orange-500 font-semibold tracking-wide uppercase text-sm mb-4">
-            Testimonials
+            {t('home:testimonials.header.badge')}
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            What Our Clients Say
+            {t('home:testimonials.header.title')}
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Real stories from real businesses who found success with our expert freelancers
+            {t('home:testimonials.header.subtitle')}
           </p>
 
           {/* Overall Rating */}
@@ -58,8 +58,8 @@ const Testimonials: React.FC<TestimonialProps> = ({ id }) => {
                 <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span className="font-semibold text-slate-900">4.9 out of 5</span>
-            <span className="text-slate-500 text-sm">• 10,000+ reviews</span>
+            <span className="font-semibold text-slate-900">{t('home:testimonials.header.rating')}</span>
+            <span className="text-slate-500 text-sm">• {t('home:testimonials.header.reviews')}</span>
           </div>
         </div>
 

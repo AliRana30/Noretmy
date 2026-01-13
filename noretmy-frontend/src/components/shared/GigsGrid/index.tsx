@@ -16,7 +16,9 @@ interface GigType {
   price: string;
   category?: string;
   seller?: {
-    name: string;
+    name?: string;
+    username?: string;
+    profilePicture?: string;
     level?: 'Basic' | 'Pro' | 'Elite';
   };
   sellerBadge?: {
@@ -36,7 +38,7 @@ const HomeGigs = () => {
   const [gigs, setGigs] = useState<GigType[]>([]);
   const [loading, setLoading] = useState(true);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-  const { getCurrentLanguage } = useTranslations();
+  const { getCurrentLanguage, t } = useTranslations();
 
   const currentLanguage = getCurrentLanguage();
 
@@ -85,13 +87,13 @@ const HomeGigs = () => {
           <div>
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full px-4 py-1.5 mb-4 shadow-lg shadow-orange-500/25">
               <TrendingUp className="w-4 h-4" />
-              <span className="text-sm font-semibold">Top Rated</span>
+              <span className="text-sm font-semibold">{t('home:featuredGigs.topRated')}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-3">
-              Featured Services
+              {t('home:featuredGigs.title')}
             </h2>
             <p className="text-slate-600 text-lg max-w-2xl">
-              Hand-picked professionals delivering exceptional results for businesses worldwide
+              {t('home:featuredGigs.subtitle')}
             </p>
           </div>
 
@@ -99,7 +101,7 @@ const HomeGigs = () => {
             href="/search-gigs"
             className="group inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
           >
-            View All Services
+            {t('home:featuredGigs.viewAll')}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -107,10 +109,10 @@ const HomeGigs = () => {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 p-6 border border-black rounded-2xl shadow-xl">
           {[
-            { value: '500+', label: 'Expert Sellers' },
-            { value: '50K+', label: 'Projects Completed' },
-            { value: '4.9/5', label: 'Average Rating' },
-            { value: '24h', label: 'Avg Response Time' },
+            { value: '500+', label: t('home:featuredGigs.stats.experts') },
+            { value: '50K+', label: t('home:featuredGigs.stats.projects') },
+            { value: '4.9/5', label: t('home:featuredGigs.stats.rating') },
+            { value: '24h', label: t('home:featuredGigs.stats.response') },
           ].map((stat, index) => (
             <div key={index} className="text-center">
               <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">{stat.value}</div>
@@ -129,8 +131,8 @@ const HomeGigs = () => {
         ) : (
           <div className="text-center py-16 bg-slate-50 rounded-2xl">
             <Sparkles className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-700 mb-2">No services available yet</h3>
-            <p className="text-slate-500">Check back soon for amazing services!</p>
+            <h3 className="text-xl font-semibold text-slate-700 mb-2">{t('home:featuredGigs.noServices')}</h3>
+            <p className="text-slate-500">{t('home:featuredGigs.checkBack')}</p>
           </div>
         )}
 
@@ -142,14 +144,14 @@ const HomeGigs = () => {
             <div className="absolute bottom-0 right-0 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
 
             <div className="text-white text-center sm:text-left relative z-10">
-              <p className="font-bold text-xl mb-1">Wan't your desired Service?</p>
-              <p className="text-slate-300">Start with yout first order Now!!</p>
+              <p className="font-bold text-xl mb-1">{t('home:featuredGigs.cta.title')}</p>
+              <p className="text-slate-300">{t('home:featuredGigs.cta.subtitle')}</p>
             </div>
             <Link
               href="/search-gigs"
               className="relative z-10 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-8 rounded-xl transition-all whitespace-nowrap shadow-lg shadow-orange-500/25"
             >
-              Search for Services
+              {t('home:featuredGigs.cta.button')}
             </Link>
           </div>
         </div>

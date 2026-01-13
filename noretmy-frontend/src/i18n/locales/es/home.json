@@ -31,20 +31,19 @@
   },
   "slider": {
     "slides": [
-  {
-    "title": "Conecta con freelancers y empresas de confianza",
-    "description": "Facilitamos el encuentro entre profesionales verificados y empresas que buscan talento para proyectos exitosos."
-  },
-  {
-    "title": "Soluciones a medida para cada necesidad",
-    "description": "Ya sea que necesites un diseñador, programador o redactor, puedes contratar justo el perfil que se adapta a tu proyecto."
-  },
-  {
-    "title": "Crecimiento flexible y sin límites",
-    "description": "Tanto si eres freelance como empresa, puedes escalar tu trabajo o tus equipos sin barreras, a tu ritmo y con total libertad."
-  }
-]
-,
+      {
+        "title": "Conecta con freelancers y empresas de confianza",
+        "description": "Facilitamos el encuentro entre profesionales verificados y empresas que buscan talento para proyectos exitosos."
+      },
+      {
+        "title": "Soluciones a medida para cada necesidad",
+        "description": "Ya sea que necesites un diseñador, programador o redactor, puedes contratar justo el perfil que se adapta a tu proyecto."
+      },
+      {
+        "title": "Crecimiento flexible y sin límites",
+        "description": "Tanto si eres freelance como empresa, puedes escalar tu trabajo o tus equipos sin barreras, a tu ritmo y con total libertad."
+      }
+    ],
     "cta": "Saber más",
     "aria": {
       "prevSlide": "Diapositiva anterior",
@@ -54,8 +53,11 @@
   },
   "testimonials": {
     "header": {
-      "title": "Voces de Éxito",
-      "subtitle": "Comentarios reales de nuestros socios"
+      "badge": "Testimonios",
+      "title": "Lo que dicen nuestros clientes",
+      "subtitle": "Historias reales de empresas reales que encontraron el éxito con nuestros freelancers expertos",
+      "rating": "4.9 de 5",
+      "reviews": "más de 10,000 reseñas"
     },
     "items": [
       {
@@ -126,6 +128,25 @@
       "quote": "Después de promocionar mi gig de desarrollo web, vi resultados inmediatos. Mis vistas de perfil aumentaron un <highlight>200%</highlight> y recibí varias consultas en 48 horas. La promoción se pagó sola con mi primer pedido."
     }
   },
+  "featuredGigs": {
+    "topRated": "Mejor Valorados",
+    "title": "Servicios Destacados",
+    "subtitle": "Profesionales seleccionados que entregan resultados excepcionales para empresas en todo el mundo",
+    "viewAll": "Ver Todos los Servicios",
+    "stats": {
+      "experts": "Vendedores Expertos",
+      "projects": "Proyectos Completados",
+      "rating": "Calificación Promedio",
+      "response": "Tiempo de Respuesta Promedio"
+    },
+    "noServices": "Aún no hay servicios disponibles",
+    "checkBack": "¡Vuelve pronto para ver servicios increíbles!",
+    "cta": {
+      "title": "¿Quieres tus servicios deseados?",
+      "subtitle": "¡Comienza con tu primer pedido ahora!",
+      "button": "Buscar Servicios"
+    }
+  },
   "gigPromotionCard": {
     "hero": {
       "badge": "🚀 Impulsa tu éxito",
@@ -134,9 +155,18 @@
       "description": "Destácate entre la multitud y atrae más clientes con nuestras estrategias comprobadas de promoción de gigs. Únete a miles de freelancers exitosos que han transformado su negocio y aumentado sus ingresos."
     },
     "stats": [
-      { "value": "500%", "label": "Aumento promedio de visibilidad" },
-      { "value": "10x", "label": "Más consultas de clientes" },
-      { "value": "85%", "label": "Mayor tasa de conversión" }
+      {
+        "value": "500%",
+        "label": "Aumento promedio de visibilidad"
+      },
+      {
+        "value": "10x",
+        "label": "Más consultas de clientes"
+      },
+      {
+        "value": "85%",
+        "label": "Mayor tasa de conversión"
+      }
     ],
     "promotion": {
       "title": "¿Listo para impulsar el éxito de tu gig?",
@@ -419,7 +449,9 @@
   },
   "whyChooseUs": {
     "header": {
-  "title": "¿Por qué <1>elegir</1>nosotros?"
+      "badge": "Por Qué Elegirnos",
+      "title1": "La plataforma construida para",
+      "title2": "tu éxito"
     },
     "features": [
       {
@@ -559,4 +591,4 @@
       "mobileApp": "Aplicación Móvil"
     }
   }
-} 
+}

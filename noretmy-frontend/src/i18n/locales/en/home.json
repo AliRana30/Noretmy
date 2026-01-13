@@ -149,20 +149,20 @@
     "customerSatisfaction": "Customer Satisfaction"
   },
   "slider": {
-   "slides": [
-  {
-    "title": "Connect with Trusted Freelancers and Companies",
-    "description": "We facilitate connections between verified professionals and businesses seeking talent for successful projects."
-  },
-  {
-    "title": "Tailored Solutions for Every Need",
-    "description": "Whether you need a designer, developer, or writer, you can hire exactly the profile that fits your project."
-  },
-  {
-    "title": "Flexible, Limitless Growth",
-    "description": "Whether you're a freelancer or a company, scale your work or teams at your pace, with complete freedom."
-  }
-],
+    "slides": [
+      {
+        "title": "Connect with Trusted Freelancers and Companies",
+        "description": "We facilitate connections between verified professionals and businesses seeking talent for successful projects."
+      },
+      {
+        "title": "Tailored Solutions for Every Need",
+        "description": "Whether you need a designer, developer, or writer, you can hire exactly the profile that fits your project."
+      },
+      {
+        "title": "Flexible, Limitless Growth",
+        "description": "Whether you're a freelancer or a company, scale your work or teams at your pace, with complete freedom."
+      }
+    ],
     "cta": "Learn More",
     "aria": {
       "prevSlide": "Previous slide",
@@ -172,8 +172,11 @@
   },
   "testimonials": {
     "header": {
-      "title": "Voices of Success",
-      "subtitle": "Real Feedback from our Partners"
+      "badge": "Testimonials",
+      "title": "What Our Clients Say",
+      "subtitle": "Real stories from real businesses who found success with our expert freelancers",
+      "rating": "4.9 out of 5",
+      "reviews": "10,000+ reviews"
     },
     "items": [
       {
@@ -519,8 +522,10 @@
   },
   "whyChooseUs": {
     "header": {
-    "title": "Why  <1>{{brand}}</1> us?"
-  },
+      "badge": "Why Choose Us",
+      "title1": "The platform built for",
+      "title2": "your success"
+    },
     "features": [
       {
         "title": "Personalized Discounts",
@@ -540,6 +545,25 @@
       "button": "Get Started"
     }
   },
+  "featuredGigs": {
+    "topRated": "Top Rated",
+    "title": "Featured Services",
+    "subtitle": "Hand-picked professionals delivering exceptional results for businesses worldwide",
+    "viewAll": "View All Services",
+    "stats": {
+      "experts": "Expert Sellers",
+      "projects": "Projects Completed",
+      "rating": "Average Rating",
+      "response": "Avg Response Time"
+    },
+    "noServices": "No services available yet",
+    "checkBack": "Check back soon for amazing services!",
+    "cta": {
+      "title": "Want your desired Services?",
+      "subtitle": "Start with your first order Now!!",
+      "button": "Search for Services"
+    }
+  },
   "gigPromotionCard": {
     "hero": {
       "badge": " Boost Your Success",
@@ -548,9 +572,18 @@
       "description": "Stand out from the crowd and attract more clients with our proven gig promotion strategies. Join thousands of successful freelancers who've transformed their business and boosted their earnings."
     },
     "stats": [
-      { "value": "500%", "label": "Average Visibility Increase" },
-      { "value": "10x", "label": "More Client Inquiries" },
-      { "value": "85%", "label": "Higher Conversion Rate" }
+      {
+        "value": "500%",
+        "label": "Average Visibility Increase"
+      },
+      {
+        "value": "10x",
+        "label": "More Client Inquiries"
+      },
+      {
+        "value": "85%",
+        "label": "Higher Conversion Rate"
+      }
     ],
     "promotion": {
       "title": "Ready to Boost Your Gig Success?",
@@ -558,4 +591,4 @@
       "button": "Start Promoting Your Gigs"
     }
   }
-} 
+}

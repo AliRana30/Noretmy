@@ -43,12 +43,12 @@ const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ id }) => {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-orange-500 font-semibold tracking-wide uppercase text-sm mb-4">
-            Why Choose Us
+            {t('home:whyChooseUs.header.badge')}
           </p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-            The platform built for
+            {t('home:whyChooseUs.header.title1')}
             <span className="block mt-2 bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-              your success
+              {t('home:whyChooseUs.header.title2')}
             </span>
           </h2>
         </div>
@@ -59,8 +59,8 @@ const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ id }) => {
             <div
               key={feature.id}
               className={`group relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${feature.featured
-                  ? 'bg-gradient-to-br from-slate-800 to-slate-900'
-                  : 'bg-slate-50 hover:bg-white border border-slate-100'
+                ? 'bg-gradient-to-br from-slate-800 to-slate-900'
+                : 'bg-slate-50 hover:bg-white border border-slate-100'
                 }`}
             >
               {/* Feature Number */}
@@ -71,8 +71,8 @@ const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ id }) => {
 
               {/* Icon */}
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${feature.featured
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600'
-                  : 'bg-slate-900 group-hover:bg-orange-500'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600'
+                : 'bg-slate-900 group-hover:bg-orange-500'
                 } transition-colors duration-300`}>
                 <feature.icon className="w-7 h-7 text-white" />
               </div>
