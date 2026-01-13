@@ -12,11 +12,15 @@ const EmailLog = require('../models/EmailLog');
 // Create reusable transporter
 const createTransporter = () => {
   const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
-  const smtpPort = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587', 10);
+  // Use port 465 for Render/cloud hosting compatibility (SSL/TLS)
+  const smtpPort = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '465', 10);
   const smtpService = process.env.SMTP_SERVICE;
   const smtpUser = process.env.SMTP_MAIL || process.env.EMAIL_USER;
   const smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
+  // Port 465 requires secure=true
   const smtpSecure = (process.env.SMTP_SECURE || '').toLowerCase() === 'true' || smtpPort === 465;
+
+  console.log(`📧 Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}`);
 
   if (!smtpUser || !smtpPass) {
     throw new Error('Email configuration missing: set SMTP_MAIL/SMTP_PASSWORD (preferred) or EMAIL_USER/EMAIL_PASS.');
@@ -31,14 +35,22 @@ const createTransporter = () => {
       user: smtpUser,
       pass: smtpPass,
     },
+    // TLS options for cloud hosting (Render, Vercel, etc.)
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2'
+    },
     // Connection pool for better performance
     pool: true,
     maxConnections: 5,
     maxMessages: 100,
-    // Timeouts
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 30000,
+    // Increased timeouts for cloud hosting
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 60000,     // 60 seconds
+    // Debug mode
+    debug: process.env.NODE_ENV !== 'production',
+    logger: process.env.NODE_ENV !== 'production'
   });
 };
 
