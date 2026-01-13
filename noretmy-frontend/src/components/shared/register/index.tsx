@@ -57,14 +57,17 @@ const RegisterPage = () => {
     }
 
     try {
-      await dispatch(registerUser({
+      const result = await dispatch(registerUser({
         fullName: data.fullName,
         email: data.email,
         password: data.password,
         isSeller: selectedRole === 'seller',
         sellerType: selectedRole === 'seller' ? 'individual' : undefined,
       })).unwrap();
-      toast.success(t('auth:register.success') || 'Account created successfully! Please check your email to verify your account.');
+
+      // Use backend message if available, otherwise use fallback
+      const successMessage = result?.message || 'Registration successful! Please check your email to verify your account.';
+      toast.success(successMessage);
       router.push('/login');
     } catch (error: any) {
       const errorMessage = typeof error === 'string' ? error : (error?.response?.data?.message || error?.message || t('auth:register.error') || 'Registration failed. Please try again.');
