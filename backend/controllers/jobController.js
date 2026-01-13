@@ -18,96 +18,6 @@ const { uploadDocuments } = require("./uploadController");
 const { translateText, translateJSON } = require("../utils/translateText");
 const { getSellerStatistics } = require("../services/sellerService");
 
-// const createJob = async (req, res) => {
-//   const { userId } = req;
-
-//   if(!userId) {
-//     return res.status(401).json({ message: "You are not logged in!" });
-//   }
-
-//   try {
-//     const {
-//       title,
-//       cat,
-//       description,
-//       keywords,
-//       whyChooseMe,
-//       pricingPlan,
-//       addons,
-//       faqs,
-//       subCat,
-//       jobStatus,
-//       photos,
-//     } = req.body;
-
-//     const user = await User.findById(userId);
-//     const seller= user.isSeller;
-
-//     if (!seller) {
-//       return res.status(401).json({ message: "You are not allowed to do so!" });
-//     }
-
-//     const jobs =  await Job.find({sellerId:userId});
-
-//     if (jobs.length >= 5) {
-//       return res.status(400).json({ message: "You cannot create more than 5 gigs." });
-//     }
-
-//     if (!title ||  !cat || !description ) {
-//       return res.status(400).json({ message: "Missing required fields" });
-//     }
-
-//     if (!userId) {
-//       return res
-//         .status(403)
-//         .json({ message: "Unauthorized: Seller ID is required" });
-//     }
-
-//     const documentUrls = await uploadDocuments(req); 
-
-//     let parsedFaqs = [];
-//     parsedFaqs = JSON.parse(faqs); 
-
-//     const newJob = new Job({
-//       title,
-//       cat,
-//       subCat,
-//       description,
-//       keywords,
-//       whyChooseMe,
-//       pricingPlan,
-//       addons,
-//       parsedFaqs,
-//       jobStatus,
-//       photos : documentUrls,
-//       upgradeOption: "free",
-//       sellerId:userId,
-//     });
-
-//     await newJob.save();
-
-//     let client_secret = null;
-
-//     // if (upgradeOption) {
-//     //   const userId= sellerId;
-//     //   const paymentIntentResponse =
-//     //     await singleJobPromotionMonthlySubscriptionUtil(
-//     //       userId,
-//     //       newJob._id.toString(),
-//     //       upgradeOption
-//     //     );
-
-//     //   const { client_secret: secret } = paymentIntentResponse;
-
-//     //   client_secret = secret;
-//     // }
-
-//     res.status(200).json( newJob);
-//   } catch (error) {
-//     console.error("Error creating job:", error);
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
 
 const createJob = async (req, res) => {
   const { userId } = req;
@@ -635,8 +545,8 @@ const getAllJobs = async (req, res) => {
             profilePicture: profileMap.get(seller._id.toString()) || '/default-avatar.png'
           });
         });
-      } catch (err) {
-        console.error("Error fetching seller info for search:", err);
+      } catch (sellerErr) {
+        console.error("Error fetching seller info:", sellerErr);
       }
     }
 
@@ -863,11 +773,9 @@ const getFeaturedJobs = async (req, res) => {
     if (uniqueSellerIds.length > 0) {
       try {
         // Fetch badges
-        const [badges, sellers, profiles] = await Promise.all([
-          SellerBadge.find({ userId: { $in: uniqueSellerIds } }).select('userId currentLevel trustScore isVerified').lean(),
-          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
-          UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
-        ]);
+        const badges = await SellerBadge.find({ 
+          userId: { $in: uniqueSellerIds } 
+        }).select('userId currentLevel trustScore isVerified').lean();
         
         badges.forEach(badge => {
           badgeMap.set(badge.userId.toString(), {
@@ -877,6 +785,12 @@ const getFeaturedJobs = async (req, res) => {
           });
         });
 
+        // Fetch seller info
+        const [sellers, profiles] = await Promise.all([
+          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
+          UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
+        ]);
+        
         const profileMap = new Map();
         profiles.forEach(p => profileMap.set(p.userId.toString(), p.profilePicture));
 
@@ -919,6 +833,20 @@ const getFeaturedJobs = async (req, res) => {
 
     // Fetch reviews count for each gig
     const gigIds = sortedJobs.map(job => job._id.toString());
+    
+    // Aggregate sales count from completed orders
+    const Order = require('../models/Order');
+    const salesCounts = await Order.aggregate([
+      { 
+        $match: { 
+          gigId: { $in: gigIds },
+          status: { $in: ['completed', 'delivered'] }
+        } 
+      },
+      { $group: { _id: '$gigId', count: { $sum: 1 } } }
+    ]);
+    const salesMap = new Map(salesCounts.map(s => [s._id, s.count]));
+    
     const reviewsCounts = await Reviews.aggregate([
       { $match: { gigId: { $in: gigIds } } },
       { $group: { _id: '$gigId', count: { $sum: 1 } } }
@@ -930,10 +858,12 @@ const getFeaturedJobs = async (req, res) => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
       const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
       const reviewsCount = reviewsMap.get(job._id.toString()) || 0;
+      const salesCount = salesMap.get(job._id.toString()) || 0;
       
       return {
         ...job,
         reviews: reviewsCount,
+        sales: salesCount,
         seller: {
           username: sellerInfo.username,
           profilePicture: sellerInfo.profilePicture
@@ -1102,12 +1032,12 @@ const getGigDetails = async (gigId, lang = 'en') => {
         })) || [],
       };
 
-      const reviewTexts = reviews.map(r => r.reviewText || '');
+      const reviewTexts = reviews.map(r => r.desc || '');
       const translatedReviewTexts = await translateText(reviewTexts, lang); 
 
       translatedReviews = reviews.map((r, i) => ({
         ...r,
-        reviewText: translatedReviewTexts[i] || r.reviewText,
+        desc: translatedReviewTexts[i] || r.desc,
       }));
     }
 
@@ -1118,9 +1048,10 @@ const getGigDetails = async (gigId, lang = 'en') => {
 
         return {
           ...review,
+          desc: review.desc,
           user: {
-            username: user?.username || "Unknown User",
-            profilePicture: userProfile?.profilePicture || "/default-avatar.png",
+            username: user?.username || review.reviewerName || "Anonymous",
+            profilePicture: userProfile?.profilePicture || review.reviewerImage || "/default-avatar.png",
           },
         };
       })

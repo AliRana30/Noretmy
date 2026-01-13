@@ -279,11 +279,11 @@ const SingleOrder = () => {
               >
                 {(buyer.fullName || buyer.username || 'B').charAt(0).toUpperCase()}
               </div>
-              <div>
-                <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'} truncate`}>
                   {buyer.fullName || buyer.username || 'N/A'}
                 </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} break-all truncate`} title={buyer.email}>
                   {buyer.email || 'N/A'}
                 </p>
               </div>
@@ -319,11 +319,11 @@ const SingleOrder = () => {
               >
                 {(seller.fullName || seller.username || 'S').charAt(0).toUpperCase()}
               </div>
-              <div>
-                <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'} truncate`}>
                   {seller.fullName || seller.username || 'N/A'}
                 </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} break-all truncate`} title={seller.email}>
                   {seller.email || 'N/A'}
                 </p>
               </div>
