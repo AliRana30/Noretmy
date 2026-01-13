@@ -3,9 +3,13 @@ import { DarkModeContext } from '../../context/darkModeContext';
 import { FileText, Filter, Search, Download, RefreshCw, AlertCircle, Info, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
+import { useLocalization } from '../../context/LocalizationContext';
+import systemTranslations from '../../localization/system.json';
+import commonTranslations from '../../localization/common.json';
 
 const Logs = () => {
   const { darkMode } = useContext(DarkModeContext);
+  const { getTranslation } = useLocalization();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -138,7 +142,7 @@ const Logs = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading logs...</p>
+          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{getTranslation(systemTranslations, "loadingLogs")}</p>
         </div>
       </div>
     );
@@ -149,10 +153,10 @@ const Logs = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            System Logs
+            {getTranslation(systemTranslations, "logsTitle")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Monitor system activity and events • Auto-refreshes every minute
+            {getTranslation(systemTranslations, "logsSubtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -166,14 +170,14 @@ const Logs = () => {
             } disabled:opacity-50`}
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {getTranslation(systemTranslations, "refresh")}
           </button>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-orange-500 text-white hover:bg-orange-600 transition-all"
           >
             <Download className="w-4 h-4" />
-            Export
+            {getTranslation(systemTranslations, "export")}
           </button>
         </div>
       </div>
@@ -191,7 +195,7 @@ const Logs = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search logs..."
+            placeholder={getTranslation(systemTranslations, "searchLogs")}
             className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-all outline-none ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
@@ -212,11 +216,11 @@ const Logs = () => {
                 : 'bg-gray-50 border border-gray-200 text-gray-900'
             } focus:border-orange-500`}
           >
-            <option value="all">All Levels</option>
-            <option value="info">Info</option>
-            <option value="warning">Warning</option>
-            <option value="error">Error</option>
-            <option value="success">Success</option>
+            <option value="all">{getTranslation(systemTranslations, "allLevels")}</option>
+            <option value="info">{getTranslation(systemTranslations, "info")}</option>
+            <option value="warning">{getTranslation(systemTranslations, "warning")}</option>
+            <option value="error">{getTranslation(systemTranslations, "error")}</option>
+            <option value="success">{getTranslation(systemTranslations, "success")}</option>
           </select>
         </div>
       </div>
@@ -262,19 +266,19 @@ const Logs = () => {
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Timestamp</th>
+                }`}>{getTranslation(systemTranslations, "timestamp")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Level</th>
+                }`}>{getTranslation(systemTranslations, "level")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Message</th>
+                }`}>{getTranslation(systemTranslations, "message")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Source</th>
+                }`}>{getTranslation(systemTranslations, "source")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>User</th>
+                }`}>{getTranslation(commonTranslations, "user")}</th>
               </tr>
             </thead>
             <tbody>
@@ -318,10 +322,10 @@ const Logs = () => {
           <div className="p-12 text-center">
             <FileText className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No logs found
+              {getTranslation(systemTranslations, "noLogsFound")}
             </p>
             <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Try adjusting your search or filters
+              {getTranslation(systemTranslations, "tryAdjusting")}
             </p>
           </div>
         )}
@@ -331,7 +335,7 @@ const Logs = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
+            {getTranslation(systemTranslations, "showing")} {((currentPage - 1) * itemsPerPage) + 1} {getTranslation(systemTranslations, "to")} {Math.min(currentPage * itemsPerPage, filteredLogs.length)} {getTranslation(systemTranslations, "of")} {filteredLogs.length} {getTranslation(systemTranslations, "logs")}
           </p>
           <div className="flex items-center gap-2">
             <button

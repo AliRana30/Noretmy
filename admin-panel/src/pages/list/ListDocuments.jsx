@@ -4,6 +4,7 @@ import { deleteUser } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import commonTranslations from "../../localization/common.json";
+import listTranslations from "../../localization/list.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import { FileCheck, Search, Eye, Ban, Unlock, RefreshCw, ChevronLeft, ChevronRight, X, Check, Download, Shield, Trash2 } from "lucide-react";
 import axios from "axios";
@@ -169,10 +170,10 @@ const ListDocuments = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Document Verification
+            {getTranslation(listTranslations, "documentVerification")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Review and verify user documents
+            {getTranslation(listTranslations, "documentsSubtitle")}
           </p>
         </div>
         <button
@@ -191,9 +192,9 @@ const ListDocuments = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Documents', value: data.length, color: '#6366f1' },
-          { label: 'Pending Review', value: data.filter(u => !u.isVerified).length, color: '#f59e0b' },
-          { label: 'Verified', value: data.filter(u => u.isVerified).length, color: '#22c55e' },
+          { label: getTranslation(listTranslations, 'totalDocuments'), value: data.length, color: '#6366f1' },
+          { label: getTranslation(listTranslations, 'pending'), value: data.filter(u => !u.isVerified).length, color: '#f59e0b' },
+          { label: getTranslation(commonTranslations, 'approved'), value: data.filter(u => u.isVerified).length, color: '#22c55e' },
         ].map(({ label, value, color }) => (
           <div 
             key={label}
@@ -229,7 +230,7 @@ const ListDocuments = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search users..."
+            placeholder={getTranslation(commonTranslations, "searchPlaceholder") || "Search users..."}
             className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-all outline-none ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
@@ -247,9 +248,9 @@ const ListDocuments = () => {
               : 'bg-gray-50 border border-gray-200 text-gray-900'
           } focus:border-orange-500`}
         >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="verified">Verified</option>
+          <option value="all">{getTranslation(commonTranslations, "allStatus") || "All Status"}</option>
+          <option value="pending">{getTranslation(commonTranslations, "pending") || "Pending"}</option>
+          <option value="verified">{getTranslation(commonTranslations, "approved") || "Verified"}</option>
         </select>
       </div>
 
@@ -263,22 +264,22 @@ const ListDocuments = () => {
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>User</th>
+                }`}>{getTranslation(commonTranslations, "user")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Email</th>
+                }`}>{getTranslation(commonTranslations, "email")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Status</th>
+                }`}>{getTranslation(commonTranslations, "status")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Warnings</th>
+                }`}>{getTranslation(listTranslations, "warnings")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Document</th>
+                }`}>{getTranslation(listTranslations, "document")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Actions</th>
+                }`}>{getTranslation(commonTranslations, "actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -317,7 +318,7 @@ const ListDocuments = () => {
                         ? 'bg-orange-500/20 text-orange-500'
                         : 'bg-amber-500/20 text-amber-500'
                     }`}>
-                      {user.isVerified ? 'Verified' : 'Pending'}
+                      {user.isVerified ? getTranslation(commonTranslations, "approved") : getTranslation(commonTranslations, "pending")}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -338,13 +339,13 @@ const ListDocuments = () => {
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-all border border-orange-500/20"
                       >
                         <Search className="w-3.5 h-3.5" />
-                        <span className="text-xs font-medium">View File</span>
+                        <span className="text-xs font-medium">{getTranslation(listTranslations, "viewFile")}</span>
                       </a>
                     ) : (
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         darkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
                       }`}>
-                        No File
+                        {getTranslation(listTranslations, "noFile")}
                       </span>
                     )}
                   </td>
@@ -406,10 +407,10 @@ const ListDocuments = () => {
           <div className="p-12 text-center">
             <Shield className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No verification requests found
+              {getTranslation(listTranslations, "noVerificationRequests")}
             </p>
             <p className={`text-sm mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Currently, no sellers have submitted documents for verification.
+              {getTranslation(listTranslations, "noDocumentsDescription")}
             </p>
           </div>
         )}
@@ -472,7 +473,7 @@ const ListDocuments = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                User Details
+                {getTranslation(listTranslations, "userDetails")}
               </h3>
               <button
                 onClick={() => setSelectedUser(null)}
@@ -500,21 +501,21 @@ const ListDocuments = () => {
             
             <div className="space-y-3">
               <div className={`p-3 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
-                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Username</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>{getTranslation(commonTranslations, "name")}</p>
                 <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>@{selectedUser.username}</p>
               </div>
-              <div className={`p-3 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
-                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Role</p>
+               <div className={`p-3 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>{getTranslation(commonTranslations, "role")}</p>
                 <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{selectedUser.role || 'Client'}</p>
               </div>
               <div className={`p-3 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
-                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Verification Status</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>{getTranslation(commonTranslations, "status")}</p>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                   selectedUser.isVerified
                     ? 'bg-orange-500/20 text-orange-500'
                     : 'bg-amber-500/20 text-amber-500'
                 }`}>
-                  {selectedUser.isVerified ? 'Verified' : 'Pending'}
+                  {selectedUser.isVerified ? getTranslation(commonTranslations, "approved") : getTranslation(commonTranslations, "pending")}
                 </span>
               </div>
             </div>
@@ -529,22 +530,22 @@ const ListDocuments = () => {
                   {actionLoading === selectedUser._id + '-approve' ? (
                     <>
                       <RefreshCw className="w-5 h-5 animate-spin" />
-                      Approving...
+                      {getTranslation(listTranslations, "approving")}
                     </>
                   ) : (
                     <>
                       <Check className="w-5 h-5" />
-                      Approve
+                      {getTranslation(listTranslations, "approve")}
                     </>
                   )}
                 </button>
               )}
-              <button
+               <button
                 onClick={() => { handleBlock(selectedUser._id); setSelectedUser(null); }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-500 hover:bg-slate-600 text-white rounded-xl font-medium transition-colors"
               >
                 <Ban className="w-5 h-5" />
-                Block
+                {getTranslation(listTranslations, "block")}
               </button>
             </div>
           </div>
@@ -559,7 +560,7 @@ const ListDocuments = () => {
           }`}>
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Block User
+                {getTranslation(listTranslations, "blockUser")}
               </h3>
               <button 
                 onClick={() => { setBlockModalOpen(false); setBlockUserId(null); setBlockReason(''); }}
@@ -584,7 +585,7 @@ const ListDocuments = () => {
               <textarea
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                placeholder="Enter the reason for blocking this user..."
+                placeholder={getTranslation(listTranslations, "enterBlockingReason")}
                 rows={4}
                 className={`w-full px-4 py-3 rounded-xl text-sm transition-all outline-none resize-none ${
                   darkMode
@@ -603,7 +604,7 @@ const ListDocuments = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Cancel
+                {getTranslation(commonTranslations, "cancel")}
               </button>
               <button
                 onClick={confirmBlock}
@@ -615,7 +616,7 @@ const ListDocuments = () => {
                 ) : (
                   <>
                     <Ban className="w-5 h-5" />
-                    Block User
+                    {getTranslation(listTranslations, "blockUser")}
                   </>
                 )}
               </button>

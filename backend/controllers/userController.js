@@ -409,11 +409,13 @@ const getSellerData = async (req, res) => {
 
     // Fetch reviews for the seller - MATCH ADMIN LOGIC EXACTLY (no isApproved filter)
     const sellerIdStr = userId.toString();
+    const mongoose = require('mongoose');
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(sellerIdStr) ? new mongoose.Types.ObjectId(sellerIdStr) : null;
     
     // Get average rating and total reviews using same logic as admin getUserDetails
     try {
       const ratingResult = await Reviews.aggregate([
-        { $match: { sellerId: sellerIdStr } },
+        { $match: { $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])] } },
         { $group: { _id: null, avgRating: { $avg: '$star' }, count: { $sum: 1 } } }
       ]);
       responseData.averageRating = ratingResult[0]?.avgRating || 0;
@@ -425,7 +427,7 @@ const getSellerData = async (req, res) => {
     // Get completed orders count - MATCH ADMIN LOGIC
     try {
       responseData.completedOrders = await Order.countDocuments({
-        sellerId: sellerIdStr,
+        $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])],
         status: 'completed'
       });
     } catch (e) {
@@ -433,7 +435,9 @@ const getSellerData = async (req, res) => {
     }
 
     // Fetch actual review documents for display
-    const sellerReviews = await Reviews.find({ sellerId: sellerIdStr })
+    const sellerReviews = await Reviews.find({ 
+      $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])] 
+    })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -445,26 +449,45 @@ const getSellerData = async (req, res) => {
         gigTitleMap[g._id.toString()] = g.title;
       });
 
-      responseData.reviews = sellerReviews.map((review) => ({
-        _id: review._id,
-        gigId: gigTitleMap[review.gigId]
-          ? { title: gigTitleMap[review.gigId] }
-          : review.gigId,
-        userId: {
-          username: review.reviewerName || 'Anonymous',
-          profilePicture: review.reviewerImage || undefined,
-        },
-        star: review.star,
-        desc: review.desc,
-        createdAt: review.createdAt,
-      }));
+      // Populate reviewer details manually since we used .lean() earlier and want combined data
+      const reviewerIds = [...new Set(sellerReviews.map(r => r.userId).filter(Boolean))];
+      const reviewers = await User.find({ _id: { $in: reviewerIds } }).select('fullName username').lean();
+      const reviewerProfiles = await UserProfile.find({ userId: { $in: reviewerIds } }).select('userId profilePicture').lean();
+      
+      const reviewerMap = {};
+      reviewers.forEach(r => {
+        const profile = reviewerProfiles.find(p => p.userId.toString() === r._id.toString());
+        reviewerMap[r._id.toString()] = {
+          fullName: r.fullName,
+          username: r.username,
+          profilePicture: profile?.profilePicture
+        };
+      });
+
+      responseData.reviews = sellerReviews.map(review => {
+        const reviewerInfo = reviewerMap[review.userId?.toString()] || {};
+        return {
+          _id: review._id,
+          gigId: gigTitleMap[review.gigId]
+            ? { title: gigTitleMap[review.gigId] }
+            : review.gigId,
+          userId: {
+            username: reviewerInfo.username || review.reviewerName || 'Anonymous',
+            fullName: reviewerInfo.fullName || review.reviewerName || 'Anonymous',
+            profilePicture: reviewerInfo.profilePicture || review.reviewerImage || undefined,
+          },
+          star: review.star,
+          desc: review.desc,
+          createdAt: review.createdAt,
+        };
+      });
     }
 
     // Calculate earnings - MATCH ADMIN LOGIC EXACTLY
     try {
       // Matching Admin Logic: { sellerId: userId, status: 'completed' }, $sum: '$price'
       const earningsAgg = await Order.aggregate([
-        { $match: { sellerId: sellerIdStr, status: 'completed' } },
+        { $match: { $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])], status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$price' } } }
       ]);
 
@@ -481,19 +504,6 @@ const getSellerData = async (req, res) => {
       console.error("Error calculating earnings:", e);
     }
 
-
-    // Check if no data was found in any of the models
-    const noData =
-      !responseData.fullName &&
-      !responseData.username &&
-      !responseData.location &&
-      !responseData.description &&
-      responseData.skills.length === 0 &&
-      responseData.reviews.length === 0;
-
-    if (noData) {
-      return res.status(404).json({ message: 'No data found for the given seller.' });
-    }
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -618,13 +628,8 @@ const getFavorites = async (req, res) => {
   try {
     const { userId } = req;
     
-    const user = await User.findById(userId).populate({
-      path: 'favorites',
-      populate: {
-        path: 'sellerId',
-        select: 'username fullName'
-      }
-    });
+    // Get user's favorites without deep population that might fail due to schema inconsistency
+    const user = await User.findById(userId).populate('favorites');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
@@ -635,8 +640,11 @@ const getFavorites = async (req, res) => {
       (user.favorites || []).map(async (gig) => {
         if (!gig) return null;
         
+        // Manual lookup for seller since Job schema uses String for sellerId
+        const seller = await User.findById(gig.sellerId).select('username fullName').lean();
+        
         // Get seller profile picture
-        const sellerProfile = await UserProfile.findOne({ userId: gig.sellerId?._id });
+        const sellerProfile = await UserProfile.findOne({ userId: gig.sellerId }).lean();
         
         // Get reviews count and average
         const reviews = await Reviews.find({ gigId: gig._id });
@@ -653,9 +661,9 @@ const getFavorites = async (req, res) => {
           cat: gig.cat,
           sales: gig.sales,
           seller: {
-            _id: gig.sellerId?._id,
-            username: gig.sellerId?.username,
-            fullName: gig.sellerId?.fullName,
+            _id: gig.sellerId,
+            username: seller?.username || 'Unknown',
+            fullName: seller?.fullName || 'Unknown',
             profilePicture: sellerProfile?.profilePicture || null
           },
           rating: averageRating,
@@ -974,7 +982,7 @@ const getFreelancerProfile = async (req, res) => {
     // Get all reviews for this freelancer's gigs
     const gigIds = gigs.map(g => g._id);
     const reviews = await Reviews.find({ gigId: { $in: gigIds } })
-      .populate('userId', 'fullName username')
+      .populate('userId', 'fullName username profilePicture')
       .sort({ createdAt: -1 });
 
     // Calculate statistics
@@ -1048,6 +1056,16 @@ const getFreelancerProfile = async (req, res) => {
       ? (successReviews / totalReviews) * 100
       : 100;
 
+    // D) Accurate Sales Count for Gigs
+    const salesMapAgg = await Order.aggregate([
+      { $match: { gigId: { $in: gigIds.map(id => id.toString()) }, status: 'completed' } },
+      { $group: { _id: '$gigId', count: { $sum: 1 } } }
+    ]);
+    const salesCountObj = {};
+    salesMapAgg.forEach(item => {
+      salesCountObj[item._id] = item.count;
+    });
+
     // Format gigs with ratings
     const formattedGigs = gigs.map(gig => {
       const gigReviews = reviews.filter(r => r.gigId.toString() === gig._id.toString());
@@ -1064,7 +1082,7 @@ const getFreelancerProfile = async (req, res) => {
         image: gig.photos?.[0] || null,
         price: gig.pricingPlan?.basic?.price || 0,
         deliveryTime: gig.pricingPlan?.basic?.deliveryTime || 0,
-        sales: gig.sales || 0,
+        sales: salesCountObj[gig._id.toString()] || 0,
         rating: +gigRating.toFixed(1),
         reviewCount: gigReviews.length,
         createdAt: gig.createdAt,
@@ -1080,8 +1098,13 @@ const getFreelancerProfile = async (req, res) => {
       desc: r.desc,
       user: r.userId ? {
         fullName: r.userId.fullName,
-        username: r.userId.username
-      } : { fullName: 'Anonymous', username: 'anonymous' },
+        username: r.userId.username,
+        profilePicture: r.userId.profilePicture || r.reviewerImage || null
+      } : { 
+        fullName: r.reviewerName || 'Anonymous', 
+        username: 'anonymous',
+        profilePicture: r.reviewerImage || null
+      },
       createdAt: r.createdAt
     }));
 

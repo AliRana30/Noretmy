@@ -641,9 +641,20 @@ const getUserJobs = async (req, res) => {
     }
 
     const userIdString = userId.toString();
+    const mongoose = require('mongoose');
+    const userIdObjectId = mongoose.Types.ObjectId.isValid(userIdString) 
+      ? new mongoose.Types.ObjectId(userIdString) 
+      : null;
+
     console.log('[getUserJobs] Searching for sellerId:', userIdString);
     
-    let jobs = await Job.find({ sellerId: userIdString });
+    // Search by both string and ObjectId for robustness
+    let jobs = await Job.find({ 
+      $or: [
+        { sellerId: userIdString },
+        ...(userIdObjectId ? [{ sellerId: userIdObjectId }] : [])
+      ]
+    });
     
     console.log('[getUserJobs] Found', jobs?.length || 0, 'jobs for user:', userIdString);
 
@@ -1050,6 +1061,7 @@ const getGigDetails = async (gigId, lang = 'en') => {
           ...review,
           desc: review.desc,
           user: {
+            fullName: user?.fullName || review.reviewerName || "Anonymous",
             username: user?.username || review.reviewerName || "Anonymous",
             profilePicture: userProfile?.profilePicture || review.reviewerImage || "/default-avatar.png",
           },

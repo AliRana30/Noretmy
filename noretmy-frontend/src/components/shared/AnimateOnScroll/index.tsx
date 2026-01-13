@@ -49,12 +49,11 @@ export default function AnimateOnScroll({
     return (
         <div
             ref={ref}
-            className={`${className} w-full max-w-full`}
+            className={`${className} w-full max-w-full overflow-hidden`}
             style={{
                 opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
+                transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
                 transition: `opacity ${duration}s ease-out ${delay}s, transform ${duration}s ease-out ${delay}s`,
-                overflowX: 'hidden'
             }}
         >
             {children}

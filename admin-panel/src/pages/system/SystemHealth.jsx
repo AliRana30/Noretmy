@@ -3,9 +3,13 @@ import { DarkModeContext } from '../../context/darkModeContext';
 import { Activity, Server, Database, Cpu, HardDrive, Wifi, CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
+import { useLocalization } from '../../context/LocalizationContext';
+import systemTranslations from '../../localization/system.json';
+import commonTranslations from '../../localization/common.json';
 
 const SystemHealth = () => {
   const { darkMode } = useContext(DarkModeContext);
+  const { getTranslation } = useLocalization();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [loading, setLoading] = useState(true);
@@ -142,7 +146,7 @@ const SystemHealth = () => {
           }}
         >
           {getStatusIcon(status)}
-          <span className="capitalize">{status}</span>
+          <span className="capitalize">{getTranslation(systemTranslations, status)}</span>
         </div>
       </div>
       {children}
@@ -163,7 +167,7 @@ const SystemHealth = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Checking system health...</p>
+          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{getTranslation(systemTranslations, "checkingSystemHealth")}</p>
         </div>
       </div>
     );
@@ -174,10 +178,10 @@ const SystemHealth = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            System Health
+            {getTranslation(systemTranslations, "healthTitle")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Last updated: {lastUpdated.toLocaleTimeString()}
+            {getTranslation(systemTranslations, "healthSubtitle")}: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
         <button
@@ -190,7 +194,7 @@ const SystemHealth = () => {
           } disabled:opacity-50`}
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {getTranslation(systemTranslations, "refresh")}
         </button>
       </div>
 
@@ -218,16 +222,16 @@ const SystemHealth = () => {
               overallStatus === 'operational' ? 'text-orange-500' : overallStatus === 'degraded' ? 'text-amber-500' : 'text-slate-500'
             }`}>
               {overallStatus === 'operational' 
-                ? 'All Systems Operational' 
+                ? getTranslation(systemTranslations, "allSystemsOperational") 
                 : overallStatus === 'degraded'
-                  ? 'Degraded Performance'
-                  : 'System Issues Detected'
+                  ? getTranslation(systemTranslations, "degradedPerformance")
+                  : getTranslation(systemTranslations, "systemIssuesDetected")
               }
             </h2>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {overallStatus === 'operational' 
-                ? 'All services are running normally'
-                : 'Some services may be experiencing issues'
+                ? getTranslation(systemTranslations, "allServicesRunning")
+                : getTranslation(systemTranslations, "someServicesIssues")
               }
             </p>
           </div>
@@ -236,7 +240,7 @@ const SystemHealth = () => {
           <p className={`text-3xl font-bold ${
             overallStatus === 'operational' ? 'text-orange-500' : overallStatus === 'degraded' ? 'text-amber-500' : 'text-slate-500'
           }`}>{uptime}%</p>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Uptime</p>
+          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{getTranslation(systemTranslations, "uptime")}</p>
         </div>
       </div>
 

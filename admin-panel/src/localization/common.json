@@ -57,7 +57,8 @@
     "filterBy": "Filter by",
     "sortBy": "Sort by",
     "noData": "No data available",
-    "retry": "Retry"
+    "retry": "Retry",
+    "to": "to"
   },
   "es": {
     "search": "Buscar...",
@@ -117,6 +118,7 @@
     "filterBy": "Filtrar por",
     "sortBy": "Ordenar por",
     "noData": "No hay datos disponibles",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "to": "a"
   }
 }

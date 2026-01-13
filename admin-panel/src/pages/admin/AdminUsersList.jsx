@@ -1,4 +1,3 @@
-// Admin User Management - Delete button enabled (v1.0.1)
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocalization } from "../../context/LocalizationContext.jsx";
@@ -7,6 +6,9 @@ import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import { getAdminUsers, blockUser, unblockUser, updateUserRole, bulkUserAction, warnUser, deleteUser } from "../../utils/adminApi";
 import { fetchData } from "../../datatablesource";
 import datatableColumnsTranslations from "../../localization/datatableColumns.json";
+import userManagementTranslations from "../../localization/userManagement.json";
+import listTranslations from "../../localization/list.json";
+import commonTranslations from "../../localization/common.json";
 import { Users, Shield, Lock, Unlock, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, UserCog, AlertTriangle, Trash2, Plus, X } from 'lucide-react';
 import { ErrorMessage } from '../../components/ui';
 import toast from 'react-hot-toast';
@@ -275,7 +277,7 @@ const AdminUsersList = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading users...</p>
+          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{getTranslation(userManagementTranslations, "loadingUsers")}</p>
         </div>
       </div>
     );
@@ -297,10 +299,10 @@ const AdminUsersList = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            User Management
+            {getTranslation(userManagementTranslations, "title")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Manage all platform users, roles, and permissions
+            {getTranslation(userManagementTranslations, "subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -309,7 +311,7 @@ const AdminUsersList = () => {
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium transition-all"
           >
             <Plus className="w-4 h-4" />
-            Add User
+            {getTranslation(userManagementTranslations, "addUser")}
           </Link>
           <button
             onClick={loadUsers}
@@ -320,7 +322,7 @@ const AdminUsersList = () => {
             }`}
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {getTranslation(userManagementTranslations, "refresh")}
           </button>
         </div>
       </div>
@@ -328,11 +330,11 @@ const AdminUsersList = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         {[
-          { label: 'Total', value: data.length, icon: Users, color: '#6366f1' },
-          { label: 'Admins', value: data.filter(u => u.role === 'admin').length, icon: Shield, color: '#8b5cf6' },
-          { label: 'Freelancers', value: data.filter(u => u.role === 'freelancer').length, icon: UserCog, color: '#f97316' },
-          { label: 'Clients', value: data.filter(u => u.role === 'client').length, icon: Users, color: '#3b82f6' },
-          { label: 'Blocked', value: data.filter(u => u.isBlocked).length, icon: Lock, color: '#ef4444' },
+          { label: getTranslation(userManagementTranslations, 'total'), value: data.length, icon: Users, color: '#6366f1' },
+          { label: getTranslation(userManagementTranslations, 'admins'), value: data.filter(u => u.role === 'admin').length, icon: Shield, color: '#8b5cf6' },
+          { label: getTranslation(userManagementTranslations, 'freelancers'), value: data.filter(u => u.role === 'freelancer').length, icon: UserCog, color: '#f97316' },
+          { label: getTranslation(userManagementTranslations, 'clients'), value: data.filter(u => u.role === 'client').length, icon: Users, color: '#3b82f6' },
+          { label: getTranslation(userManagementTranslations, 'blocked'), value: data.filter(u => u.isBlocked).length, icon: Lock, color: '#ef4444' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div 
             key={label}
@@ -368,7 +370,7 @@ const AdminUsersList = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search users..."
+            placeholder={getTranslation(userManagementTranslations, "searchPlaceholder")}
             className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-all ${
               darkMode 
                 ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500' 
@@ -388,10 +390,10 @@ const AdminUsersList = () => {
                 : 'bg-gray-50 border border-gray-200 text-gray-900'
             } focus:border-orange-500 focus:outline-none`}
           >
-            <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="freelancer">Freelancer</option>
-            <option value="client">Client</option>
+            <option value="all">{getTranslation(userManagementTranslations, "allRoles")}</option>
+            <option value="admin">{getTranslation(userManagementTranslations, "admin")}</option>
+            <option value="freelancer">{getTranslation(userManagementTranslations, "freelancer")}</option>
+            <option value="client">{getTranslation(userManagementTranslations, "client")}</option>
           </select>
 
           <select
@@ -403,11 +405,11 @@ const AdminUsersList = () => {
                 : 'bg-gray-50 border border-gray-200 text-gray-900'
             } focus:border-orange-500 focus:outline-none`}
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="blocked">Blocked</option>
-            <option value="verified">Verified</option>
-            <option value="unverified">Unverified</option>
+            <option value="all">{getTranslation(userManagementTranslations, "allStatus")}</option>
+            <option value="active">{getTranslation(userManagementTranslations, "active")}</option>
+            <option value="blocked">{getTranslation(userManagementTranslations, "blocked")}</option>
+            <option value="verified">{getTranslation(userManagementTranslations, "verified")}</option>
+            <option value="unverified">{getTranslation(userManagementTranslations, "unverified")}</option>
           </select>
         </div>
       </div>
@@ -422,19 +424,19 @@ const AdminUsersList = () => {
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>User</th>
+                }`}>{getTranslation(userManagementTranslations, "user")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Email</th>
+                }`}>{getTranslation(userManagementTranslations, "email")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Role</th>
+                }`}>{getTranslation(userManagementTranslations, "role")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Status</th>
+                }`}>{getTranslation(userManagementTranslations, "status")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Actions</th>
+                }`}>{getTranslation(userManagementTranslations, "actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -478,15 +480,15 @@ const AdminUsersList = () => {
                       <div className="flex items-center gap-2">
                         {user.isBlocked ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-500">
-                            Blocked
+                            {getTranslation(userManagementTranslations, "blocked")}
                           </span>
                         ) : user.isVerified ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-500">
-                            Verified
+                            {getTranslation(userManagementTranslations, "verified")}
                           </span>
                         ) : (
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-500">
-                            Unverified
+                            {getTranslation(userManagementTranslations, "unverified")}
                           </span>
                         )}
                       </div>
@@ -558,7 +560,7 @@ const AdminUsersList = () => {
                             onClick={e => e.stopPropagation()}
                           >
                             <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                              Change Role for {user.username}
+                               {getTranslation(userManagementTranslations, "changeRole")} for {user.username}
                             </h3>
                             <div className="space-y-2">
                               {['client', 'freelancer', 'admin'].map(role => (
@@ -573,7 +575,7 @@ const AdminUsersList = () => {
                                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                                   }`}
                                 >
-                                  {role}
+                                  {getTranslation(userManagementTranslations, role)}
                                 </button>
                               ))}
                             </div>
@@ -583,7 +585,7 @@ const AdminUsersList = () => {
                                 darkMode ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-700'
                               }`}
                             >
-                              Cancel
+                              {getTranslation(userManagementTranslations, "cancel")}
                             </button>
                           </div>
                         </div>
@@ -603,11 +605,11 @@ const AdminUsersList = () => {
                                 <Lock className="w-6 h-6 text-red-500" />
                               </div>
                               <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                                Block {user.username}
+                                {getTranslation(userManagementTranslations, "block")} {user.username}
                               </h3>
                             </div>
                             <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              This will prevent the user from accessing the platform. Please provide a reason.
+                              {getTranslation(listTranslations, "blockUserWarning")}
                             </p>
                             <textarea
                               value={actionReason}
@@ -633,7 +635,7 @@ const AdminUsersList = () => {
                                 disabled={processingAction || !actionReason.trim()}
                                 className="flex-1 p-3 rounded-xl font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
                               >
-                                {processingAction ? 'Blocking...' : 'Block User'}
+                                {processingAction ? 'Blocking...' : getTranslation(userManagementTranslations, "block")}
                               </button>
                             </div>
                           </div>
@@ -654,11 +656,11 @@ const AdminUsersList = () => {
                                 <AlertTriangle className="w-6 h-6 text-amber-500" />
                               </div>
                               <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                                Warn {user.username}
+                                {getTranslation(userManagementTranslations, "warnUser")} {user.username}
                               </h3>
                             </div>
                             <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              Send a warning notification to this user. Please provide a reason.
+                              {getTranslation(userManagementTranslations, "enterReason")}
                             </p>
                             <textarea
                               value={actionReason}
@@ -684,7 +686,7 @@ const AdminUsersList = () => {
                                 disabled={processingAction || !actionReason.trim()}
                                 className="flex-1 p-3 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
                               >
-                                {processingAction ? 'Sending...' : 'Send Warning'}
+                                {processingAction ? 'Sending...' : getTranslation(userManagementTranslations, "warnUser")}
                               </button>
                             </div>
                           </div>
@@ -705,11 +707,11 @@ const AdminUsersList = () => {
                                 <Trash2 className="w-6 h-6 text-red-500" />
                               </div>
                               <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                                Delete {user.username}
+                                {getTranslation(userManagementTranslations, "deleteUser")} {user.username}
                               </h3>
                             </div>
                             <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              <strong className="text-red-500">Warning:</strong> This action cannot be undone. All user data will be permanently deleted.
+                              <strong className="text-red-500">{getTranslation(listTranslations, "warning")}</strong> {getTranslation(userManagementTranslations, "confirmDelete")}
                             </p>
                             <textarea
                               value={actionReason}
@@ -735,7 +737,7 @@ const AdminUsersList = () => {
                                 disabled={processingAction || !actionReason.trim()}
                                 className="flex-1 p-3 rounded-xl font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
                               >
-                                {processingAction ? 'Deleting...' : 'Delete User'}
+                                {processingAction ? 'Deleting...' : getTranslation(userManagementTranslations, "deleteUser")}
                               </button>
                             </div>
                           </div>
@@ -753,7 +755,7 @@ const AdminUsersList = () => {
           <div className="p-12 text-center">
             <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No users found
+              {getTranslation(userManagementTranslations, "noUsersFound")}
             </p>
           </div>
         )}
