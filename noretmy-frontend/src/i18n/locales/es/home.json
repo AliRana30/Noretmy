@@ -395,6 +395,8 @@
   },
   "categories": {
     "header": {
+      "browse": "Explorar Categorías",
+      "findService": "Encuentra el servicio adecuado",
       "explore": "Explorar categorías",
       "browseBy": "Explorar por",
       "expertise": "Especialidad",

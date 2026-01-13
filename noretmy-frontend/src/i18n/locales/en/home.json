@@ -468,6 +468,8 @@
   },
   "categories": {
     "header": {
+      "browse": "Browse Categories",
+      "findService": "Find the right service",
       "explore": "Explore Categories",
       "browseBy": "Browse by",
       "expertise": "Expertise",

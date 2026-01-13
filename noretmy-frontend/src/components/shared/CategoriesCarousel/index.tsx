@@ -128,10 +128,10 @@ const CategoriesCarousel: React.FC<CategoriesCarouselProps> = ({ id }) => {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
           <div>
             <p className="text-orange-500 font-semibold tracking-wide uppercase text-sm mb-3">
-              Browse Categories
+              {t('home:categories.header.browse')}
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              Find the right service
+              {t('home:categories.header.findService')}
             </h2>
           </div>
 

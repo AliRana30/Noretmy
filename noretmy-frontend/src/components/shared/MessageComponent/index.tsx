@@ -4,11 +4,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  DollarSign, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  DollarSign,
   Package,
   ExternalLink,
   User,
@@ -81,13 +81,13 @@ const MessageComponent: React.FC<MessageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  
+
   const messageSenderId = item.userId || item.senderId;
   // Ensure string comparison for ID matching
   const isSelf = String(messageSenderId) === String(userId);
   const messageType = item.messageType || 'text';
-  
-  const avatarSource = isSelf 
+
+  const avatarSource = isSelf
     ? (currentUserAvatar || defaultAvatar)
     : (otherUserAvatar || item.image || defaultAvatar);
 
@@ -141,21 +141,19 @@ const MessageComponent: React.FC<MessageProps> = ({
     const canTakeAction = isSeller && !isSelf && invitationStatus === 'pending';
 
     return (
-      <div className={`rounded-xl shadow-lg overflow-hidden max-w-md ${
-        isSelf ? 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200' 
-              : 'bg-white border border-gray-200'
-      }`}>
+      <div className={`rounded-xl shadow-lg overflow-hidden max-w-md ${isSelf ? 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200'
+        : 'bg-white border border-gray-200'
+        }`}>
         {/* Header */}
-        <div className={`px-4 py-3 flex items-center gap-2 ${
-          invitationStatus === 'accepted' ? 'bg-orange-500' :
+        <div className={`px-4 py-3 flex items-center gap-2 ${invitationStatus === 'accepted' ? 'bg-orange-500' :
           invitationStatus === 'rejected' ? 'bg-red-500' :
-          'bg-gradient-to-r from-orange-500 to-orange-600'
-        } text-white`}>
+            'bg-gradient-to-r from-orange-500 to-orange-600'
+          } text-white`}>
           <Package className="w-5 h-5" />
           <span className="font-semibold">
             {invitationStatus === 'accepted' ? 'Order Accepted' :
-             invitationStatus === 'rejected' ? 'Order Declined' :
-             'Order Invitation'}
+              invitationStatus === 'rejected' ? 'Order Declined' :
+                'Order Invitation'}
           </span>
           {invitationStatus === 'pending' && (
             <span className="ml-auto text-xs bg-white/20 px-2 py-1 rounded-full">Pending</span>
@@ -179,7 +177,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           <h4 className="font-semibold text-gray-900 line-clamp-2">
             {orderData?.gigTitle || 'Service Request'}
           </h4>
-          
+
           {/* Plan & Price */}
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
@@ -208,9 +206,8 @@ const MessageComponent: React.FC<MessageProps> = ({
 
           {/* Status Badge */}
           {invitationStatus !== 'pending' && (
-            <div className={`flex items-center gap-2 p-2 rounded-lg ${
-              invitationStatus === 'accepted' ? 'bg-orange-50 text-orange-700' : 'bg-red-50 text-red-700'
-            }`}>
+            <div className={`flex items-center gap-2 p-2 rounded-lg ${invitationStatus === 'accepted' ? 'bg-orange-50 text-orange-700' : 'bg-red-50 text-red-700'
+              }`}>
               {invitationStatus === 'accepted' ? (
                 <><CheckCircle className="w-4 h-4" /> Order has been accepted</>
               ) : (
@@ -243,7 +240,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 
           {/* View Profile Link (for seller to view client profile) */}
           {isSeller && !isSelf && otherUserId && (
-            <Link 
+            <Link
               href={`/client/${otherUserId}`}
               className="flex items-center justify-center gap-2 py-2 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors"
             >
@@ -294,13 +291,12 @@ const MessageComponent: React.FC<MessageProps> = ({
   // Render order status message
   const renderOrderStatus = () => {
     const isAccepted = messageType === 'order_accepted';
-    
+
     return (
-      <div className={`flex items-center gap-3 p-4 rounded-xl ${
-        isAccepted 
-          ? 'bg-orange-50 border border-orange-200' 
-          : 'bg-red-50 border border-red-200'
-      }`}>
+      <div className={`flex items-center gap-3 p-4 rounded-xl ${isAccepted
+        ? 'bg-orange-50 border border-orange-200'
+        : 'bg-red-50 border border-red-200'
+        }`}>
         {isAccepted ? (
           <CheckCircle className="w-8 h-8 text-orange-500 flex-shrink-0" />
         ) : (
@@ -323,16 +319,15 @@ const MessageComponent: React.FC<MessageProps> = ({
   // Render regular text message
   const renderTextMessage = () => (
     <div
-      className={`p-4 rounded-2xl shadow ${
-        isSelf
-          ? 'bg-gradient-to-r from-orange-400 to-orange-300 text-white'
-          : 'bg-gray-200 text-gray-800'
-      }`}
+      className={`p-4 rounded-2xl shadow ${isSelf
+        ? 'bg-gradient-to-r from-orange-400 to-orange-300 text-white'
+        : 'bg-gray-200 text-gray-800'
+        }`}
     >
       {item.desc && <p>{item.desc}</p>}
       {item.attachments && item.attachments.length > 0 && (
-        <MessageAttachmentDisplay 
-          attachments={item.attachments} 
+        <MessageAttachmentDisplay
+          attachments={item.attachments}
           isSelf={isSelf}
         />
       )}
@@ -342,16 +337,15 @@ const MessageComponent: React.FC<MessageProps> = ({
   // Render file message (message with attachments)
   const renderFileMessage = () => (
     <div
-      className={`p-4 rounded-2xl shadow ${
-        isSelf
-          ? 'bg-gradient-to-r from-orange-400 to-orange-300 text-white'
-          : 'bg-gray-200 text-gray-800'
-      }`}
+      className={`p-4 rounded-2xl shadow ${isSelf
+        ? 'bg-gradient-to-r from-orange-400 to-orange-300 text-white'
+        : 'bg-gray-200 text-gray-800'
+        }`}
     >
       {item.desc && <p className="mb-2">{item.desc}</p>}
       {item.attachments && item.attachments.length > 0 && (
-        <MessageAttachmentDisplay 
-          attachments={item.attachments} 
+        <MessageAttachmentDisplay
+          attachments={item.attachments}
           isSelf={isSelf}
         />
       )}
@@ -384,9 +378,8 @@ const MessageComponent: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`flex items-start gap-4 my-6 ${
-        isSelf ? 'flex-row-reverse' : 'flex-row'
-      }`}
+      className={`flex items-start gap-4 my-6 ${isSelf ? 'flex-row' : 'flex-row-reverse'
+        }`}
     >
       {/* Avatar */}
       <img
@@ -397,15 +390,13 @@ const MessageComponent: React.FC<MessageProps> = ({
 
       {/* Message Content */}
       <div
-        className={`flex flex-col ${
-          isSelf ? 'items-end' : 'items-start'
-        }`}
+        className={`flex flex-col ${isSelf ? 'items-start' : 'items-end'
+          }`}
       >
         {/* User Name */}
         <span
-          className={`text-sm font-semibold mb-1 ${
-            isSelf ? 'text-orange-500' : 'text-gray-700'
-          }`}
+          className={`text-sm font-semibold mb-1 ${isSelf ? 'text-orange-500' : 'text-gray-700'
+            }`}
         >
           {isSelf ? 'Me' : (otherUserName || receiverId)}
         </span>

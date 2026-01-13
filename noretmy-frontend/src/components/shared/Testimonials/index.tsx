@@ -65,7 +65,7 @@ const Testimonials: React.FC<TestimonialProps> = ({ id }) => {
 
         {/* Testimonials Grid */}
         <div className={`grid ${getColumnsClass()} gap-6`}>
-          {testimonials && testimonials.length > 0 && testimonials?.slice(0, 5).map((testimonial, index) => (
+          {testimonials && testimonials.length > 0 && testimonials?.slice(0, 5)?.map((testimonial, index) => (
             <div
               key={index}
               className="group"
