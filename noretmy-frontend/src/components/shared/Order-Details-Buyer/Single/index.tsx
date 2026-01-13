@@ -1043,21 +1043,23 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
 
             {/* Time Remaining Card */}
             <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center">
-                <div className="p-2 rounded-md bg-gray-100 mr-3">
+              <div className="flex items-start">
+                <div className="p-2 rounded-md bg-gray-100 mr-3 flex-shrink-0">
                   <FaClock className="text-gray-600 h-5 w-5" />
                 </div>
-                <div>
-                  <div className="text-sm text-gray-500">Time Remaining</div>
-                  <div className="flex items-center gap-1">
-                    <span className="font-bold text-lg text-gray-800">{timeLeft.days}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-500 mb-1">Time Remaining</div>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="font-bold text-base sm:text-lg text-gray-800">{timeLeft.days}</span>
                     <span className="text-xs text-gray-500">DAYS</span>
-                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.hours}</span>
+                    <span className="font-bold text-base sm:text-lg text-gray-800 ml-1">{timeLeft.hours}</span>
                     <span className="text-xs text-gray-500">HOURS</span>
-                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.minutes}</span>
-                    <span className="text-xs text-gray-500">MINUTES</span>
-                    <span className="font-bold text-lg text-gray-800 ml-1">{timeLeft.seconds}</span>
-                    <span className="text-xs text-gray-500">SECONDS</span>
+                    <span className="font-bold text-base sm:text-lg text-gray-800 ml-1">{timeLeft.minutes}</span>
+                    <span className="text-xs text-gray-500 hidden sm:inline">MINUTES</span>
+                    <span className="text-xs text-gray-500 sm:hidden">MIN</span>
+                    <span className="font-bold text-base sm:text-lg text-gray-800 ml-1">{timeLeft.seconds}</span>
+                    <span className="text-xs text-gray-500 hidden sm:inline">SECONDS</span>
+                    <span className="text-xs text-gray-500 sm:hidden">SEC</span>
                   </div>
                 </div>
               </div>
