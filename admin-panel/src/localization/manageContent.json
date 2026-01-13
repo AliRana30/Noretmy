@@ -50,7 +50,10 @@
     "publishSuccess": "Content published successfully",
     "unpublishSuccess": "Content unpublished successfully",
     "manageFaqs": "Manage FAQs",
-    "managePrivacyPolicy": "Manage Privacy Policy"
+    "managePrivacyPolicy": "Manage Privacy Policy",
+    "accessDenied": "Access Denied",
+    "question": "Question",
+    "answer": "Answer"
   },
   "es": {
     "manageContent": "Gestionar Contenido",
@@ -103,6 +106,9 @@
     "publishSuccess": "Contenido publicado exitosamente",
     "unpublishSuccess": "Contenido despublicado exitosamente",
     "manageFaqs": "Gestionar FAQs",
-    "managePrivacyPolicy": "Gestionar Política de Privacidad"
+    "managePrivacyPolicy": "Gestionar Política de Privacidad",
+    "accessDenied": "Acceso Denegado",
+    "question": "Pregunta",
+    "answer": "Respuesta"
   }
-} 
+}
