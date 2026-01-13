@@ -7,31 +7,31 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const AboutPage = () => {
-    const { t } = useTranslations();
+    const { t } = useTranslations('about');
 
     const stats = [
-        { label: 'Active Freelancers', value: '10,000+', icon: Users },
-        { label: 'Projects Completed', value: '50K+', icon: TrendingUp },
-        { label: 'Customer Satisfaction', value: '4.9/5', icon: Heart },
-        { label: 'Average Response', value: '< 24h', icon: Clock },
+        { label: t('stats.activeFreelancers'), value: '10,000+', icon: Users },
+        { label: t('stats.projectsCompleted'), value: '50K+', icon: TrendingUp },
+        { label: t('stats.customerSatisfaction'), value: '4.9/5', icon: Heart },
+        { label: t('stats.averageResponse'), value: '< 24h', icon: Clock },
     ];
 
     const values = [
         {
-            title: 'Excellence',
-            description: 'We strive for the highest quality in every service offered on our platform.',
+            title: t('values.excellence.title'),
+            description: t('values.excellence.description'),
             icon: Award,
             color: 'bg-orange-100 text-orange-600'
         },
         {
-            title: 'Security',
-            description: 'Your transactions and data are protected by industry-leading security standards.',
+            title: t('values.security.title'),
+            description: t('values.security.description'),
             icon: ShieldCheck,
             color: 'bg-blue-100 text-blue-600'
         },
         {
-            title: 'Community',
-            description: 'We build lasting relationships between talented freelancers and visionary businesses.',
+            title: t('values.community.title'),
+            description: t('values.community.description'),
             icon: Users,
             color: 'bg-green-100 text-green-600'
         }
@@ -46,13 +46,15 @@ const AboutPage = () => {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <span className="inline-block px-4 py-1.5 bg-orange-500/20 text-orange-400 rounded-full text-sm font-semibold mb-6 border border-orange-500/20">
-                        About Noretmy
+                        {t('hero.badge')}
                     </span>
                     <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
-                        Connecting Talent with <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Opportunity</span>
+                        {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[0]}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">{t('hero.opportunity')}</span>
+                        {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[1]}
                     </h1>
                     <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                        Noretmy is more than a marketplace; it&apos;s a global community where creativity meets demand, and where the best digital services are just a click away.
+                        {t('hero.description')}
                     </p>
                 </div>
             </section>
@@ -88,8 +90,8 @@ const AboutPage = () => {
                                 className="rounded-2xl shadow-2xl object-cover"
                             />
                             <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px]">
-                                <p className="text-sm font-bold text-slate-900 mb-1">Trusted globally</p>
-                                <p className="text-xs text-slate-500 text-pretty">Serving clients and freelancers in over 80 countries.</p>
+                                <p className="text-sm font-bold text-slate-900 mb-1">{t('mission.label')}</p>
+                                <p className="text-xs text-slate-500 text-pretty">{t('mission.sublabel')}</p>
                             </div>
                         </div>
                         <div className="space-y-10">
@@ -98,9 +100,9 @@ const AboutPage = () => {
                                     <Target className="w-7 h-7" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">Our Mission</h3>
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{t('mission.title')}</h3>
                                     <p className="text-slate-600 leading-relaxed text-lg">
-                                        To provide a seamless, secure, and rewarding environment where businesses can find the expertise they need to thrive, and freelancers can build fulfilling careers doing what they love.
+                                        {t('mission.description')}
                                     </p>
                                 </div>
                             </div>
@@ -109,9 +111,9 @@ const AboutPage = () => {
                                     <Eye className="w-7 h-7" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">Our Vision</h3>
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{t('vision.title')}</h3>
                                     <p className="text-slate-600 leading-relaxed text-lg">
-                                        To be the world&apos;s most trusted destination for digital services, known for our commitment to quality, transparency, and the success of our global community.
+                                        {t('vision.description')}
                                     </p>
                                 </div>
                             </div>
@@ -124,8 +126,8 @@ const AboutPage = () => {
             <section className="py-24 bg-slate-50 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Our Core Values</h2>
-                        <p className="text-slate-600 max-w-2xl mx-auto">The principles that guide everything we do at Noretmy.</p>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{t('values.title')}</h2>
+                        <p className="text-slate-600 max-w-2xl mx-auto">{t('values.subtitle')}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {values.map((value, idx) => (
@@ -148,22 +150,22 @@ const AboutPage = () => {
                         <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
                         <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
 
-                        <h2 className="text-3xl md:text-4xl font-extrabold mb-6 relative z-10">Ready to join our community?</h2>
+                        <h2 className="text-3xl md:text-4xl font-extrabold mb-6 relative z-10">{t('cta.title')}</h2>
                         <p className="text-orange-100 mb-10 text-lg max-w-2xl mx-auto relative z-10">
-                            Whether you&apos;re looking to hire or want to offer your services, Noretmy is the place to be.
+                            {t('cta.description')}
                         </p>
                         <div className="flex flex-wrap justify-center gap-4 relative z-10">
                             <Link
                                 href="/register"
                                 className="bg-white text-orange-600 hover:bg-orange-50 px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105"
                             >
-                                Join as Freelancer
+                                {t('cta.joinAsFreelancer')}
                             </Link>
                             <Link
                                 href="/search-gigs"
                                 className="bg-slate-900 text-white hover:bg-slate-800 px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105"
                             >
-                                Hire Talent
+                                {t('cta.hireTalent')}
                             </Link>
                         </div>
                     </div>

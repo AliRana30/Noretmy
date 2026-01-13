@@ -197,12 +197,12 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           </div>
 
           {notification.title && (
-            <h4 className={`text-base font-bold mb-1 ${notification.isRead ? 'text-gray-700' : 'text-gray-900 group-hover:text-orange-600 transition-colors'}`}>
+            <h4 className={`text-base font-bold mb-1 ${notification.isRead ? '!text-gray-700' : '!text-gray-900 group-hover:text-orange-600 transition-colors'}`}>
               {notification.title}
             </h4>
           )}
 
-          <p className={`text-sm leading-relaxed ${notification.isRead ? 'text-gray-500' : 'text-gray-700 font-medium'}`}>
+          <p className={`text-sm leading-relaxed ${notification.isRead ? '!text-gray-500' : '!text-gray-700 font-medium'}`}>
             {notification.message}
           </p>
 

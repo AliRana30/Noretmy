@@ -133,7 +133,7 @@ const NotificationBell: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-0.5">
                                                     {notification.title && (
-                                                        <p className={`text-sm font-bold truncate ${notification.isRead ? 'text-gray-700' : 'text-gray-900'}`}>
+                                                        <p className={`text-sm font-bold truncate ${notification.isRead ? '!text-gray-700' : '!text-gray-900'}`}>
                                                             {notification.title}
                                                         </p>
                                                     )}
@@ -141,7 +141,7 @@ const NotificationBell: React.FC = () => {
                                                         {moment(notification.createdAt).fromNow(true)}
                                                     </span>
                                                 </div>
-                                                <p className={`text-sm leading-relaxed ${notification.isRead ? 'text-gray-500' : 'text-gray-700'} line-clamp-2`}>
+                                                <p className={`text-sm leading-relaxed ${notification.isRead ? '!text-gray-500' : '!text-gray-700'} line-clamp-2`}>
                                                     {notification.message}
                                                 </p>
                                                 {notification.link && (

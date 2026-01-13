@@ -1,0 +1,47 @@
+{
+    "title": "About Noretmy",
+    "hero": {
+        "badge": "About Noretmy",
+        "title": "Connecting Talent with {{opportunity}}",
+        "opportunity": "Opportunity",
+        "description": "Noretmy is more than a marketplace; it's a global community where creativity meets demand, and where the best digital services are just a click away."
+    },
+    "stats": {
+        "activeFreelancers": "Active Freelancers",
+        "projectsCompleted": "Projects Completed",
+        "customerSatisfaction": "Customer Satisfaction",
+        "averageResponse": "Average Response"
+    },
+    "mission": {
+        "label": "Trusted globally",
+        "sublabel": "Serving clients and freelancers in over 80 countries.",
+        "title": "Our Mission",
+        "description": "To provide a seamless, secure, and rewarding environment where businesses can find the expertise they need to thrive, and freelancers can build fulfilling careers doing what they love."
+    },
+    "vision": {
+        "title": "Our Vision",
+        "description": "To be the world's most trusted destination for digital services, known for our commitment to quality, transparency, and the success of our global community."
+    },
+    "values": {
+        "title": "Our Core Values",
+        "subtitle": "The principles that guide everything we do at Noretmy.",
+        "excellence": {
+            "title": "Excellence",
+            "description": "We strive for the highest quality in every service offered on our platform."
+        },
+        "security": {
+            "title": "Security",
+            "description": "Your transactions and data are protected by industry-leading security standards."
+        },
+        "community": {
+            "title": "Community",
+            "description": "We build lasting relationships between talented freelancers and visionary businesses."
+        }
+    },
+    "cta": {
+        "title": "Ready to join our community?",
+        "description": "Whether you're looking to hire or want to offer your services, Noretmy is the place to be.",
+        "joinAsFreelancer": "Join as Freelancer",
+        "hireTalent": "Hire Talent"
+    }
+}

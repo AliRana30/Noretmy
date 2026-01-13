@@ -454,12 +454,12 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
                 {/* Actions Only for Sellers */}
                 {isSeller && (
                   <>
-                    <button
+                    {/* <button
                       className="w-full text-left px-3 py-2 text-sm hover:bg-orange-100 flex items-center text-gray-700 transition"
                       onClick={() => handleActionClick('custom')}
                     >
                       <SparklesIcon className="mr-2 h-5 w-5 text-gray-600" /> Create Custom Order
-                    </button>
+                    </button> */}
 
                     <button
                       className="w-full text-left px-3 py-2 text-sm hover:bg-orange-100 flex items-center text-gray-700 transition"

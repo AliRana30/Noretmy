@@ -19,6 +19,7 @@ export function getOptions(lng = 'en') {
       'notifications',
       'favorites',
       'footer',
+      'about',
     ],
     interpolation: {
       escapeValue: false,
