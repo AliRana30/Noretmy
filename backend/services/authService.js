@@ -173,14 +173,19 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     // Execute admin notification without awaiting
     sendAdminNotification();
 
-    // Send verification email
-    try {
-      console.log(`📧 Sending verification email to: ${user.email}`);
-      await sendVerificationEmail(user.email, token);
-      console.log(`✅ Verification email sent successfully to: ${user.email}`);
-    } catch (emailError) {
-      console.error(`❌ Signup email failed for ${user.email}:`, emailError.message);
-    }
+    // Send verification email in background (fire-and-forget to avoid delays)
+    const sendVerificationInBackground = async () => {
+      try {
+        console.log(`📧 Sending verification email to: ${user.email}`);
+        await sendVerificationEmail(user.email, token);
+        console.log(`✅ Verification email sent successfully to: ${user.email}`);
+      } catch (emailError) {
+        console.error(`❌ Signup email failed for ${user.email}:`, emailError.message);
+      }
+    };
+    
+    // Execute verification email without awaiting
+    sendVerificationInBackground();
 
     return {
       success: true,
