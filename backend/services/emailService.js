@@ -1,9 +1,19 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const Vat = require('../models/Vat');
 const EmailLog = require('../models/EmailLog');
+
+// Detect which email service to use
+const USE_SENDGRID = !!process.env.SENDGRID_API_KEY;
+if (USE_SENDGRID) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('📧 Email Service: SendGrid (Production)');
+} else {
+  console.log('📧 Email Service: SMTP/Gmail (Local Development)');
+}
 
 // ============================================
 // EMAIL TRANSPORTER & LOGGING UTILITIES
@@ -107,7 +117,7 @@ const sendEmailWithLogging = async (options) => {
         emailType,
         userId,
         orderId,
-        metadata: { ...metadata, attempt },
+        metadata: { ...metadata, attempt, usingSendGrid: USE_SENDGRID },
         status: 'pending'
       });
       await emailLog.save();
@@ -116,26 +126,48 @@ const sendEmailWithLogging = async (options) => {
     }
 
     try {
-      const transporter = createTransporter();
+      const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_MAIL || process.env.EMAIL_USER || 'noreply@noretmy.com';
       
-      const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_MAIL || process.env.EMAIL_USER;
-      const mailOptions = {
-        from: fromAddress ? `"Noretmy" <${fromAddress}>` : 'Noretmy',
-        to,
-        subject,
-        html,
-        attachments
-      };
-
       console.log(`📧 [Attempt ${attempt}/${maxRetries}] Sending ${emailType} email to ${to}...`);
-      const result = await transporter.sendMail(mailOptions);
+      
+      let result;
+      
+      if (USE_SENDGRID) {
+        // Use SendGrid HTTP API (works on Render/cloud hosting)
+        const msg = {
+          to,
+          from: fromAddress,
+          subject,
+          html,
+          attachments: attachments.map(att => ({
+            content: att.content ? Buffer.from(att.content).toString('base64') : '',
+            filename: att.filename,
+            type: att.contentType || 'application/octet-stream',
+            disposition: 'attachment'
+          }))
+        };
+        
+        result = await sgMail.send(msg);
+        result = { messageId: result[0]?.headers?.['x-message-id'] || 'sendgrid-success', response: 'SendGrid API' };
+      } else {
+        // Use SMTP (for local development)
+        const transporter = createTransporter();
+        const mailOptions = {
+          from: `"Noretmy" <${fromAddress}>`,
+          to,
+          subject,
+          html,
+          attachments
+        };
+        result = await transporter.sendMail(mailOptions);
+      }
       
       if (emailLog) {
         await emailLog.markAsSent({
           messageId: result.messageId,
           response: result.response,
-          accepted: result.accepted,
-          rejected: result.rejected
+          accepted: result.accepted || [to],
+          rejected: result.rejected || []
         });
       }
       
