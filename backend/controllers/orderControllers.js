@@ -22,7 +22,7 @@ const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
 
 const mongoose = require('mongoose');
 const { uploadFiles } = require("../utils/uploadFiles");
-const { sendOrderRequestEmail, sendOnboardingEmail, sendOrderDeliveredEmail, sendOrderCompletedEmail } = require("../services/emailService");
+const { sendOrderRequestEmail, sendOnboardingEmail, sendOrderDeliveredEmail, sendOrderCompletedEmail, sendOrderAcceptedEmail, sendOrderRejectedEmail } = require("../services/emailService");
 const { calculateDeliveryDate } = require("../utils/dateCalculate");
 
 // Badge service for seller level updates
@@ -30,6 +30,7 @@ const badgeService = require("../services/badgeService");
 
 // Notification service for user notifications
 const notificationService = require("../services/notificationService");
+const paymentMilestoneService = require('../services/paymentMilestoneService');
 
 // Controller to create a new order
 // const createOrder = async (req, res) => {
@@ -1829,6 +1830,21 @@ const acceptInvitation = async (req, res) => {
         { orderId: invitation._id, messageType: 'order_invitation' },
         { 'orderData.invitationStatus': 'accepted', 'orderData.status': 'accepted' }
       );
+      // Notify buyer via email
+      try {
+        const buyerUser = await User.findById(invitation.buyerId);
+        if (buyerUser && buyerUser.email) {
+          await sendOrderAcceptedEmail(buyerUser.email, {
+            _id: invitation._id,
+            buyerName: buyerUser.fullName || buyerUser.username,
+            gigTitle: gig?.title || 'Gig',
+            price: invitation.price
+          });
+          console.log(`✅ Order accepted email sent to: ${buyerUser.email}`);
+        }
+      } catch (emailErr) {
+        console.error('Failed to send order acceptance email:', emailErr.message);
+      }
     } catch (err) {
       }
 
@@ -1928,6 +1944,21 @@ const rejectInvitation = async (req, res) => {
         { orderId: invitation._id, messageType: 'order_invitation' },
         { 'orderData.invitationStatus': 'rejected', 'orderData.status': 'cancelled' }
       );
+      // Notify buyer via email
+      try {
+        const buyerUser = await User.findById(invitation.buyerId);
+        if (buyerUser && buyerUser.email) {
+          await sendOrderRejectedEmail(buyerUser.email, {
+            _id: invitation._id,
+            buyerName: buyerUser.fullName || buyerUser.username,
+            gigTitle: gig?.title || 'Gig',
+            reason: reason || 'No specific reason provided'
+          });
+          console.log(`❌ Order rejected email sent to: ${buyerUser.email}`);
+        }
+      } catch (emailErr) {
+        console.error('Failed to send order rejection email:', emailErr.message);
+      }
     } catch (err) {
       }
 
@@ -2964,11 +2995,95 @@ const completeOrderAfterPayment = async (req, res) => {
   }
 };
 
+/**
+ * Cancel order (Buyer initiated after deadline)
+ */
+const cancelOrder = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { orderId, reason } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ message: "Order ID is required." });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    // Verify user is the buyer
+    if (order.buyerId?.toString() !== userId?.toString()) {
+      return res.status(403).json({ message: "Only the buyer can initiate cancellation." });
+    }
+
+    // Check if order can be cancelled
+    if (['completed', 'delivered', 'cancelled', 'disputed'].includes(order.status)) {
+      return res.status(400).json({ 
+        message: `Order cannot be cancelled in its current status: ${order.status}`,
+        currentStatus: order.status 
+      });
+    }
+
+    // Check if deadline has passed
+    const now = new Date();
+    const canCancel = order.deliveryDate && new Date(order.deliveryDate) < now;
+
+    if (!canCancel) {
+      return res.status(400).json({ 
+        message: "You can only cancel the order after the deadline has passed if the seller hasn't delivered yet." 
+      });
+    }
+
+    // Process cancellation using milestone service if applicable
+    if (order.isMilestone || order.payment_intent) {
+      // paymentMilestoneService.processCancellation returns { success, refundedAmount }
+      await paymentMilestoneService.processCancellation(order._id, reason || 'Deadline expired', userId);
+    } else {
+      // Basic cancellation for other cases
+      order.status = 'cancelled';
+      order.timeline.push({
+        event: 'Order Cancelled',
+        description: reason || 'Order cancelled by buyer after deadline expiration.',
+        timestamp: new Date(),
+        actor: 'buyer'
+      });
+      await order.save();
+    }
+
+    // Notify seller
+    const seller = await User.findById(order.sellerId);
+    const gig = await Job.findById(order.gigId);
+
+    try {
+      await notificationService.createNotification({
+        userId: order.sellerId,
+        title: '❌ Order Cancelled',
+        message: `The buyer cancelled the order "${gig?.title || 'Order'}" because the deadline expired.`,
+        type: 'alert',
+        link: `/orders/${order._id}`
+      });
+    } catch (notifErr) {
+      console.error('Failed to notify seller about cancellation:', notifErr);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully.",
+      orderStatus: 'cancelled'
+    });
+
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   completeOrderAfterPayment, getOrders, getUserOrders, getPaymentsSummary, getSingleOrderDetail, createOrderPaypal, captureOrder, confirmMilestoneOrCustomOrder, getCustomerOrderRequests, addOrderRequirement, startOrder, deliverOrder, requestRevision, acceptOrder, updateMilestoneStatus, updateOrders,
   createOrderInvitation, getSellerInvitations, acceptInvitation, rejectInvitation, getBuyerInvitations,
   updateOrderProgress, completeOrderWithPayment, submitReview, getOrderTimeline, getActiveOrders,
-  approveDelivery, approveProgress, requestTimelineExtension, advanceOrderStatus
+  approveDelivery, approveProgress, requestTimelineExtension, advanceOrderStatus, cancelOrder
 };
 

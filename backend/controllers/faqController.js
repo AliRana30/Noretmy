@@ -133,7 +133,7 @@ const createFAQ = async (req, res) => {
       // Validate each FAQ
       const validFAQs = faqs.map(faq => ({
         ...faq,
-        createdBy: req.userId || req.user?._id,
+        createdBy: req.user.id,
         isActive: faq.isActive !== undefined ? faq.isActive : true,
         order: faq.order || 0
       }));
@@ -171,9 +171,9 @@ const createFAQ = async (req, res) => {
   } catch (error) {
     console.error('Error creating FAQ(s):', error);
     if (error.name === 'ValidationError') {
-      return res.status(400).json({ success: false, message: error.message || 'Invalid FAQ data' });
+      return res.status(400).json(createError(400, error.message || 'Invalid FAQ data'));
     }
-    res.status(500).json({ success: false, message: 'Failed to create FAQ(s)' });
+    res.status(500).json(createError(500, 'Failed to create FAQ(s)'));
   }
 };
 

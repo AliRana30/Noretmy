@@ -15,10 +15,10 @@ const SocialProof: React.FC = () => {
   ];
 
   const stats = [
-    { icon: Star, value: '4.9/5', label: t('home:socialProof.averageRating') || 'Average Rating' },
-    { icon: Award, value: '500+', label: t('home:socialProof.expertSellers') || 'Expert Sellers' },
-    { icon: TrendingUp, value: '98%', label: t('home:socialProof.successRate') || 'Success Rate' },
-    { icon: Globe, value: '50+', label: t('home:socialProof.countries') || 'Countries' },
+    { icon: Star, value: '4.9/5', label: t('home:socialProof.averageRating') },
+    { icon: Award, value: '500+', label: t('home:socialProof.expertSellers') },
+    { icon: TrendingUp, value: '98%', label: t('home:socialProof.successRate') },
+    { icon: Globe, value: '50+', label: t('home:socialProof.countries') },
   ];
 
   return (
@@ -26,7 +26,7 @@ const SocialProof: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Trust Text */}
         <p className="text-center text-slate-500 text-sm font-medium uppercase tracking-wider mb-8">
-          {t('home:socialProof.trustedBy') || 'Trusted by 10,000+ businesses worldwide'}
+          {t('home:socialProof.trustedBy')}
         </p>
 
         {/* Logo Bar */}

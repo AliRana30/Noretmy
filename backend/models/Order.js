@@ -137,11 +137,13 @@ const orderSchema = new mongoose.Schema({
    deliveryAttachments: [{ type: String, required: false }],
    revisionReason: { type: String, required: false },
    deliveryDate: { type: Date, required: false },
-   
-   // Timeline for tracking progress
-   timeline: { type: [timelineEventSchema], default: [] },
-   
-   // Completion tracking
+      // Timeline for tracking progress
+    timeline: { type: [timelineEventSchema], default: [] },
+
+    // Deadline extension tracking
+    autoDeadlineExtended: { type: Boolean, default: false },
+    
+    // Completion tracking
    orderCompletionDate: { type: Date, required: false },
    deadlineMet: { type: Boolean, required: false },
    completionTime: { type: Number, required: false }, // in days

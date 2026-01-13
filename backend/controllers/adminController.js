@@ -275,6 +275,7 @@ const getDashboardStats = async (req, res) => {
     ]);
 
     // Format monthly data for chart
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const chartData = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
@@ -283,7 +284,7 @@ const getDashboardStats = async (req, res) => {
       const month = d.getMonth() + 1;
       const found = monthlyRevenueInsight.find(m => m._id.year === year && m._id.month === month);
       chartData.push({
-        month: d.toISOString(),
+        month: d.toISOString(), // Send ISO string or name
         revenue: found?.revenue || 0
       });
     }
@@ -1732,12 +1733,14 @@ const approveWithdrawal = async (req, res) => {
 
     await withdrawal.save();
 
+    // Update user's withdrawn amount
     const user = await User.findById(withdrawal.userId);
     if (user) {
       user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawal.amount;
       await user.save();
     }
 
+    // Notify freelancer
     try {
       await notifyWithdrawalApproved(withdrawal.userId, withdrawal.amount, withdrawal._id);
     } catch (e) {}
@@ -1785,12 +1788,14 @@ const rejectWithdrawal = async (req, res) => {
 
     await withdrawal.save();
 
+    // Return money to user's available balance
     const user = await User.findById(withdrawal.userId);
     if (user) {
       user.revenue.available = (user.revenue.available || 0) + withdrawal.amount;
       await user.save();
     }
 
+    // Notify freelancer
     try {
       await notifyWithdrawalRejected(withdrawal.userId, withdrawal.amount, withdrawal._id, reason);
     } catch (e) {}
@@ -1895,6 +1900,7 @@ const createWithdrawalRequestAdmin = async (req, res) => {
       notes
     });
 
+    // Deduct from available balance (hold it)
     user.revenue.available -= withdrawalAmount;
     await user.save();
 
@@ -2582,6 +2588,27 @@ const getNotifications = async (req, res) => {
   }
 };
 
+const markAllNotificationsAsReadAdmin = async (req, res) => {
+  try {
+    const result = await Notification.updateMany(
+      { isRead: false },
+      { $set: { isRead: true, readAt: new Date() } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'All notifications marked as read',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark all notifications as read',
+      error: error.message
+    });
+  }
+};
+
 const sendBroadcastNotification = async (req, res) => {
   try {
     const { title, message, type, targetRole } = req.body;
@@ -3084,6 +3111,7 @@ module.exports = {
   
   // Notification Management
   getNotifications,
+  markAllNotificationsAsReadAdmin,
   sendBroadcastNotification,
   
   // Project Management

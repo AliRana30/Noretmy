@@ -14,21 +14,21 @@ const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ id }) => {
   const features = [
     {
       id: '01',
-      title: t('home:whyChooseUs.features.0.title') || 'Competitive Pricing',
-      description: t('home:whyChooseUs.features.0.description') || 'Get quality work at prices that fit your budget. No hidden fees.',
+      title: t('home:whyChooseUs.features.0.title'),
+      description: t('home:whyChooseUs.features.0.description'),
       icon: Percent,
     },
     {
       id: '02',
-      title: t('home:whyChooseUs.features.1.title') || 'On-Time Delivery',
-      description: t('home:whyChooseUs.features.1.description') || 'Our sellers are committed to meeting deadlines. Track progress in real-time.',
+      title: t('home:whyChooseUs.features.1.title'),
+      description: t('home:whyChooseUs.features.1.description'),
       icon: CalendarCheck,
       featured: true,
     },
     {
       id: '03',
-      title: t('home:whyChooseUs.features.2.title') || 'Verified Experts',
-      description: t('home:whyChooseUs.features.2.description') || 'Every seller is vetted and verified. Work with proven professionals.',
+      title: t('home:whyChooseUs.features.2.title'),
+      description: t('home:whyChooseUs.features.2.description'),
       icon: UserCheck,
     },
   ];
@@ -96,13 +96,13 @@ const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ id }) => {
         <div className="text-center">
           <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-slate-50 px-8 py-6 rounded-2xl border border-slate-100">
             <span className="text-slate-700 font-medium text-lg">
-              {t('home:whyChooseUs.cta.text') || 'Ready to get started?'}
+              {t('home:whyChooseUs.cta.text')}
             </span>
             <Link
               href="/search-gigs"
               className="group inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-orange-500/25 transition-all"
             >
-              {t('home:whyChooseUs.cta.button') || 'Browse Services'}
+              {t('home:whyChooseUs.cta.button')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

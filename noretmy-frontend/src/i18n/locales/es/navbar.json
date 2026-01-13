@@ -2,6 +2,7 @@
   "navigation": {
     "home": "Inicio",
     "searchServices": "Buscar Servicios",
+    "about": "Nosotros",
     "orders": "Pedidos",
     "chat": "Chat"
   },
@@ -23,4 +24,4 @@
     "profileButton": "Abrir menú de perfil",
     "closeModal": "Cerrar modal de perfil"
   }
-} 
+}

@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Linkedin, Instagram, Facebook, Mail, MapPin } from 'lucide-react';
+import { useTranslations } from '@/hooks/useTranslations';
 
 const Footer = () => {
   const [year, setYear] = useState(2025);
+  const { t } = useTranslations('footer');
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -14,21 +16,21 @@ const Footer = () => {
 
   const footerLinks = {
     company: [
-      { label: 'About Us', href: '/#about-us' },
-      { label: 'Services', href: '/#services' },
-      { label: 'Industries', href: '/#industries' },
-      { label: 'Case Studies', href: '/#case-studies' },
+      { label: t('footer:aboutUs'), href: '/about' },
+      { label: t('footer:services'), href: '/#services' },
+      { label: t('footer:industries'), href: '/#industries' },
+      { label: t('footer:caseStudies'), href: '/#case-studies' },
     ],
     support: [
-      { label: 'Contact Us', href: '/contact-us' },
-      { label: 'FAQs', href: '/faqs' },
-      { label: 'Trust & Safety', href: '/#why-tags' },
+      { label: t('footer:contactUs'), href: '/contact-us' },
+      { label: t('footer:faqs'), href: '/faqs' },
+      { label: t('footer:trustSafety'), href: '/#why-tags' },
     ],
     legal: [
-      { label: 'Privacy Policy', href: '/privacy-policy' },
-      { label: 'Terms & Conditions', href: '/terms-condition' },
-      { label: 'Cookie Policy', href: '/cookie-policy' },
-      { label: 'Legal Notice', href: '/legal-notice' },
+      { label: t('footer:privacyPolicy'), href: '/privacy-policy' },
+      { label: t('footer:termsConditions'), href: '/terms-condition' },
+      { label: t('footer:cookiePolicy'), href: '/cookie-policy' },
+      { label: t('footer:legalNotice'), href: '/legal-notice' },
     ],
   };
 
@@ -70,7 +72,7 @@ const Footer = () => {
               />
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
-              Noretmy is the leading global marketplace connecting businesses with top-tier freelance talent to drive innovation and growth.
+              {t('footer:description')}
             </p>
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-3 text-slate-400 text-sm">
@@ -103,7 +105,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-orange-500 rounded-full"></span>
-              Company
+              {t('footer:company')}
             </h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
@@ -120,7 +122,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-orange-500 rounded-full"></span>
-              Support
+              {t('footer:support')}
             </h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
@@ -137,7 +139,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-orange-500 rounded-full"></span>
-              Legal
+              {t('footer:legal')}
             </h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
@@ -155,12 +157,12 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-slate-500 text-sm">
-            © {year} Noretmy LLC. Built with passion for the creator economy.
+            © {year} Noretmy LLC. {t('footer:copyright')}
           </p>
           <div className="flex items-center gap-8">
-            <Link href="/privacy-policy" className="text-xs text-slate-500 hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms-condition" className="text-xs text-slate-500 hover:text-white transition-colors">Terms</Link>
-            <Link href="/cookie-policy" className="text-xs text-slate-500 hover:text-white transition-colors">Cookies</Link>
+            <Link href="/privacy-policy" className="text-xs text-slate-500 hover:text-white transition-colors">{t('footer:privacy')}</Link>
+            <Link href="/terms-condition" className="text-xs text-slate-500 hover:text-white transition-colors">{t('footer:terms')}</Link>
+            <Link href="/cookie-policy" className="text-xs text-slate-500 hover:text-white transition-colors">{t('footer:cookies')}</Link>
           </div>
         </div>
       </div>

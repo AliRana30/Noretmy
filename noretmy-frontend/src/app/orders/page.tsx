@@ -164,17 +164,6 @@ const OrdersPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Action Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/order-request')}
-            className="btn btn-primary inline-flex items-center"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            {t('orders:actions.customOrder')}
-          </button>
-        </div>
-
         {/* Filters */}
         <div className="mb-6">
           <OrderFilters onApply={handleFilterApply} />

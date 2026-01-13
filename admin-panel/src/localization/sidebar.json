@@ -26,12 +26,18 @@
     "adminFaqs": "Admin FAQs",
     "adminDocuments": "Admin Documents",
     "websiteContent": "Website Content",
+    "documentVerify": "Document Verify",
+    "withdrawalRequests": "Withdrawal Requests",
     "documentVerificationSection": "Document Verification",
     "paymentWithdrawalApproval": "Payment Withdrawal Approval",
     "systemHealth": "System Health",
     "logs": "Logs",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "jobs": "Jobs",
+    "withdrawals": "Withdrawals",
+    "content": "Content",
+    "documents": "Documents"
   },
   "es": {
     "main": "PRINCIPAL",
@@ -60,11 +66,17 @@
     "adminFaqs": "Preguntas Frecuentes Admin",
     "adminDocuments": "Documentos Admin",
     "websiteContent": "Contenido del Sitio Web",
+    "documentVerify": "Verificación de Documentos",
+    "withdrawalRequests": "Solicitudes de Retiro",
     "documentVerificationSection": "Verificación de Documentos",
     "paymentWithdrawalApproval": "Aprobación de Retiro de Pago",
     "systemHealth": "Salud del Sistema",
     "logs": "Registros",
     "profile": "Perfil",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "jobs": "Trabajos",
+    "withdrawals": "Retiros",
+    "content": "Contenido",
+    "documents": "Documentos"
   }
 }

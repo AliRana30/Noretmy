@@ -5,19 +5,15 @@ import {
   Clock,
   DollarSign,
   Check,
-  X,
   MessageCircle,
-  ShoppingCart,
   Info
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SingleOrderSection from '../MilestoneOrderHandler';
 import OrderTimeline from '@/components/shared/OrderTimeline';
-import PaymentMilestones from '@/components/shared/PaymentMilestones';
 
 interface Milestone {
   _id: string;
@@ -108,20 +104,15 @@ const MilestoneOrderDisplay: React.FC<MilestoneOrderDisplayProps> = ({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <div>
-          <OrderTimeline
-            status={orderDetails?.orderStatus || orderDetails?.status || 'created'}
-            timeline={orderDetails?.timeline || []}
-            isPaid={orderDetails?.isPaid}
-            orderDate={orderDetails?.createdAt}
-            deliveryDate={orderDetails?.deliveryDate}
-            orderCompletionDate={orderDetails?.completedAt}
-          />
-        </div>
-        <div>
-          <PaymentMilestones orderId={orderDetails?.orderId} isSeller={false} />
-        </div>
+      <div className="mb-6">
+        <OrderTimeline
+          status={orderDetails?.orderStatus || orderDetails?.status || 'created'}
+          timeline={orderDetails?.timeline || []}
+          isPaid={orderDetails?.isPaid}
+          orderDate={orderDetails?.createdAt}
+          deliveryDate={orderDetails?.deliveryDate}
+          orderCompletionDate={orderDetails?.completedAt}
+        />
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">

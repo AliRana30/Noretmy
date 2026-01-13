@@ -150,7 +150,7 @@ const GigTop: React.FC<GigTopProps> = ({
             </h1>
 
             {/* Seller Info */}
-            <Link href={`/portfolio/${seller}`} className="flex items-center gap-3 group">
+            <Link href={`/freelancer/${seller}`} className="flex items-center gap-3 group">
               <FallbackAvatar
                 src={avatar}
                 alt={seller}

@@ -40,7 +40,7 @@ export const SIDEBAR_NAV_LIST = [
     icon: ShoppingBag,
     allowedRoles: ['admin'],
     requiredPermission: 'order_management',
-    translationKey: 'orders'
+    translationKey: 'adminOrders'
   },
   {
     id: '/admin/jobs',

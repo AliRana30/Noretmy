@@ -292,16 +292,15 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
                 <span className="text-slate-300">|</span>
                 <div className="flex items-center gap-1 text-sm text-slate-500">
                   <CheckCircle className="w-3.5 h-3.5 text-orange-500" />
-                  <span>{displaySales} sold</span>
+                  <span>{displaySales} Sales</span>
                 </div>
               </>
             )}
-          </div>
-
-          {/* Delivery Time */}
-          <div className="flex items-center gap-1.5 text-sm text-slate-600 mb-4">
-            <Clock className="w-4 h-4 text-slate-400" />
-            <span>Delivery in {deliveryDays} days</span>
+            <span className="text-slate-300">|</span>
+            <div className="flex items-center gap-1 text-sm text-slate-500">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{deliveryDays} Days</span>
+            </div>
           </div>
 
           {/* Price */}

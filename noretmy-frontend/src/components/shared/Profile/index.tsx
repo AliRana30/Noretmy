@@ -334,6 +334,7 @@ const ProfileSection = () => {
                   updateProfileData({ profileHeadline: newTagline })
                 }
                 onUpdateProfilePicture={(file) => uploadProfilePicture(file)}
+                onSectionChange={handleSectionChange}
               />
             </div>
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">

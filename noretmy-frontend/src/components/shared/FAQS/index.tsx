@@ -1027,11 +1027,11 @@ const FAQScreen: React.FC = () => {
   );
 
   return (
-    <div className="bg-gradient-to-b from-blue-50 via-white to-white min-h-screen">
+    <div className="bg-gradient-to-b from-orange-50 via-white to-white min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12 relative">
-          <span className="inline-block px-4 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-3">
+          <span className="inline-block px-4 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium mb-3">
             Support Center
           </span>
           <h1 className="text-4xl font-bold mb-3 text-gray-900">
@@ -1050,10 +1050,10 @@ const FAQScreen: React.FC = () => {
               placeholder="Search for answers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-4 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
             />
             <Search
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-500"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500"
               size={20}
             />
           </div>
@@ -1065,7 +1065,7 @@ const FAQScreen: React.FC = () => {
               </span>
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-orange-600 hover:text-orange-800"
               >
                 Clear
               </button>
@@ -1078,7 +1078,7 @@ const FAQScreen: React.FC = () => {
           {/* Quick Links Sidebar */}
           <div className="lg:w-72 shrink-0">
             <div className="sticky top-6 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-              <div className="px-6 py-5 bg-blue-600 text-white">
+              <div className="px-6 py-5 bg-orange-600 text-white">
                 <h3 className="text-lg font-semibold flex items-center">
                   <BookOpen size={18} className="mr-2" />
                   Categories
@@ -1090,21 +1090,21 @@ const FAQScreen: React.FC = () => {
                     <button
                       onClick={() => scrollToCategory(category)}
                       className={`w-full text-left px-6 py-4 font-medium transition-colors flex items-center justify-between group ${activeCategory === category
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-orange-50 text-orange-700'
                         : 'text-gray-700 hover:bg-gray-50'
                         }`}
                     >
                       <div className="flex items-center">
                         <span
                           className={`w-2 h-2 rounded-full mr-3 ${activeCategory === category
-                            ? 'bg-blue-600'
+                            ? 'bg-orange-600'
                             : 'bg-gray-300'
                             }`}
                         />
                         {category}
                       </div>
                       <span
-                        className={`text-sm ${activeCategory === category ? 'text-blue-500' : 'text-gray-400'}`}
+                        className={`text-sm ${activeCategory === category ? 'text-orange-500' : 'text-gray-400'}`}
                       >
                         {filteredFAQs[category].length}
                       </span>
@@ -1116,7 +1116,7 @@ const FAQScreen: React.FC = () => {
                 <p className="text-sm text-gray-600 text-center">
                   Cn&apos;t find an answer?
                 </p>
-                <button className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
+                <button className="w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md transition-colors">
                   Contact Support
                 </button>
               </div>
@@ -1127,8 +1127,8 @@ const FAQScreen: React.FC = () => {
           <div className="flex-grow">
             {Object.keys(filteredFAQs).length === 0 ? (
               <div className="text-center py-16 px-8 bg-white rounded-xl shadow-md border border-gray-100">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                  <Search size={24} className="text-blue-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
+                  <Search size={24} className="text-orange-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No results found</h3>
                 <p className="text-gray-600 mb-6">
@@ -1136,7 +1136,7 @@ const FAQScreen: React.FC = () => {
                 </p>
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-5 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
                 >
                   Clear search
                 </button>
@@ -1152,14 +1152,14 @@ const FAQScreen: React.FC = () => {
                       }}
                       className="scroll-mt-6 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100"
                     >
-                      <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-white">
+                      <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-orange-50 to-white">
                         <h2 className="text-xl font-semibold text-gray-800">
                           {category}
                         </h2>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => expandCategory(category)}
-                            className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                            className="p-1 text-gray-500 hover:text-orange-600 transition-colors"
                             aria-label="Expand all"
                             title="Expand all"
                           >
@@ -1167,7 +1167,7 @@ const FAQScreen: React.FC = () => {
                           </button>
                           <button
                             onClick={() => collapseCategory(category)}
-                            className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                            className="p-1 text-gray-500 hover:text-orange-600 transition-colors"
                             aria-label="Collapse all"
                             title="Collapse all"
                           >
@@ -1194,16 +1194,16 @@ const FAQScreen: React.FC = () => {
                             >
                               <AccordionTrigger
                                 onClick={() => handleAccordionChange(itemValue)}
-                                className={`py-5 px-6 hover:bg-gray-50 text-left font-medium group ${isExpanded ? 'bg-blue-50' : ''}`}
+                                className={`py-5 px-6 hover:bg-gray-50 text-left font-medium group ${isExpanded ? 'bg-orange-50' : ''}`}
                               >
                                 <div className="flex items-start">
-                                  <span className="mr-3 text-blue-600 font-semibold">
+                                  <span className="mr-3 text-orange-600 font-semibold">
                                     Q:
                                   </span>
                                   <span
                                     className={
                                       isExpanded
-                                        ? 'text-blue-700'
+                                        ? 'text-orange-700'
                                         : 'text-gray-800'
                                     }
                                   >
@@ -1219,7 +1219,7 @@ const FAQScreen: React.FC = () => {
                                   <div>
                                     <p>{faq.answer}</p>
                                     {/* <div className="mt-4 flex items-center text-sm text-gray-500">
-                                    <button className="text-blue-600 hover:underline mr-4 flex items-center">
+                                    <button className="text-orange-600 hover:underline mr-4 flex items-center">
                                       <span>Was this helpful?</span>
                                     </button>
                                   </div> */}
@@ -1243,7 +1243,7 @@ const FAQScreen: React.FC = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="fixed bottom-6 right-6 bg-orange-600 text-white p-3 rounded-full shadow-lg hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
           aria-label="Scroll to top"
         >
           <ArrowUp size={20} />

@@ -63,6 +63,7 @@ const {
   
   // Notification Management
   getNotifications,
+  markAllNotificationsAsReadAdmin,
   sendBroadcastNotification,
   
   // Project Management
@@ -174,6 +175,7 @@ router.put('/marketing/promotions/:promotionId/status', ...requirePermission('pr
 
 // ==================== NOTIFICATION MANAGEMENT ====================
 router.get('/notifications', getNotifications);
+router.put('/notifications/mark-all-read', markAllNotificationsAsReadAdmin);
 router.post('/notifications/broadcast', ...requirePermission('user_management'), sendBroadcastNotification);
 
 // ==================== PROJECT MANAGEMENT ====================

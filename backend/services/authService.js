@@ -173,11 +173,20 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     // Execute admin notification without awaiting
     sendAdminNotification();
 
+    // Send verification email
+    try {
+      console.log(`📧 Sending verification email to: ${user.email}`);
+      await sendVerificationEmail(user.email, token);
+      console.log(`✅ Verification email sent successfully to: ${user.email}`);
+    } catch (emailError) {
+      console.error(`❌ Signup email failed for ${user.email}:`, emailError.message);
+    }
+
     return {
       success: true,
       code: 'SIGNUP_SUCCESS',
-      message: 'Registration successful! You can now login to your account.',
-      emailSent: false, // No email sent
+      message: 'Registration successful! Please check your email to verify your account.',
+      emailSent: true,
       user: {
         id: user._id,
         email: user.email,

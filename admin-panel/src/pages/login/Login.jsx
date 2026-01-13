@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
@@ -39,6 +40,7 @@ const Login = () => {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
+      toast.error(getTranslation(loginTranslations, "fillAllFields") || "Please fill in all fields");
       return;
     }
 
@@ -49,15 +51,20 @@ const Login = () => {
       
       if (result.success) {
         setLoginSuccess(true);
+        toast.success(getTranslation(loginTranslations, "loginSuccess") || "Login successful!");
         // Show success message briefly before redirecting
         setTimeout(() => {
           // Redirect to the page they were trying to access, or dashboard
           const from = location.state?.from?.pathname || "/";
           navigate(from, { replace: true });
         }, 1500);
+      } else {
+        // If success is false, show the error from the result
+        toast.error(result.error || getTranslation(loginTranslations, "loginFailed") || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
+      toast.error(error.message || getTranslation(loginTranslations, "loginFailed") || "Login failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +149,7 @@ const Login = () => {
           {/* Form Section */}
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Error Message */}
+              {/* Error Message - Show real backend error */}
               {error && (
                 <div className="p-4 rounded-xl text-sm text-center"
                   style={{

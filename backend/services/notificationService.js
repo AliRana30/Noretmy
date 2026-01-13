@@ -290,26 +290,48 @@ const notifyWithdrawalRequestSubmitted = async (adminIds, freelancerId, amount, 
  * Withdrawal Request Approved (for freelancer)
  */
 const notifyWithdrawalApproved = async (freelancerId, amount, requestId) => {
-  return createNotification({
+  const notification = await createNotification({
     userId: freelancerId,
     title: '✅ Withdrawal Approved',
     message: `Your withdrawal request of $${amount} has been approved and will be processed shortly.`,
     type: 'withdrawal',
     data: { amount, requestId }
   });
+
+  const io = global.io;
+  if (io && freelancerId) {
+    io.to(`user_${freelancerId}`).emit('notification', {
+      title: '✅ Withdrawal Approved',
+      message: `Your withdrawal request of $${amount} has been approved.`,
+      type: 'withdrawal'
+    });
+  }
+
+  return notification;
 };
 
 /**
  * Withdrawal Request Rejected (for freelancer)
  */
 const notifyWithdrawalRejected = async (freelancerId, amount, requestId, reason) => {
-  return createNotification({
+  const notification = await createNotification({
     userId: freelancerId,
     title: '❌ Withdrawal Rejected',
     message: `Your withdrawal request of $${amount} has been rejected. Reason: ${reason}`,
     type: 'withdrawal',
     data: { amount, requestId, reason }
   });
+
+  const io = global.io;
+  if (io && freelancerId) {
+    io.to(`user_${freelancerId}`).emit('notification', {
+      title: '❌ Withdrawal Rejected',
+      message: `Your withdrawal request of $${amount} was rejected.`,
+      type: 'withdrawal'
+    });
+  }
+
+  return notification;
 };
 
 /**
@@ -357,7 +379,7 @@ const notifyNewMessage = async (userId, senderId, senderName, conversationId) =>
  */
 const getAdminIds = async () => {
   try {
-    const admins = await User.find({ role: 'admin' }).select('_id');
+    const admins = await User.find({ role: { $regex: /^admin$/i } }).select('_id');
     return admins.map(admin => admin._id);
   } catch (error) {
     console.error('Error fetching admin IDs:', error);

@@ -36,8 +36,8 @@ const contentRoutes = require('./routes/contentRoutes');
 
 // Cron jobs
 const { initBadgeCronJobs } = require('./services/badgeCronJobs');
+const { initDeadlineCronJobs } = require('./services/orderDeadlineCron');
 const { initPromotionExpirationCron } = require('./scripts/expirePromotions');
-
 require('./controllers/vatController'); 
 
 const { uploadFiles, uploadImages } = require('./controllers/uploadController');
@@ -208,5 +208,6 @@ const PORT = process.env.PORT || 5001;
 server.listen(PORT, '0.0.0.0', () => {
   // Initialize cron jobs
   initBadgeCronJobs();
+  initDeadlineCronJobs();
   initPromotionExpirationCron();
 });

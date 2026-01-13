@@ -426,9 +426,49 @@ const ManageContent = () => {
           <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Privacy Policy Management
           </h2>
-          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Privacy policy management functionality will be implemented here.
+          <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Edit the Privacy Policy content below. Changes will be reflected on the frontend immediately after saving.
           </p>
+          
+          {privacyLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              <textarea
+                value={privacyPolicy}
+                onChange={(e) => setPrivacyPolicy(e.target.value)}
+                rows={20}
+                placeholder="Enter the Privacy Policy content here..."
+                className={`w-full px-4 py-3 rounded-xl transition-all outline-none resize-y font-mono text-sm ${
+                  darkMode 
+                    ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                } focus:border-orange-500`}
+              />
+              
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={savePrivacyPolicy}
+                  disabled={privacySaving}
+                  className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium transition-all disabled:opacity-50"
+                >
+                  {privacySaving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Privacy Policy
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

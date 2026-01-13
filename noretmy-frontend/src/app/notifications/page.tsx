@@ -59,7 +59,7 @@ const NotificationsPage: React.FC = () => {
               <div className="p-2 bg-orange-100 rounded-xl">
                 <Bell className="w-6 h-6 text-orange-600" />
               </div>
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('notifications:title')}</h1>
+              <h1 className="text-3xl font-extrabold text-gray-900 !text-gray-900 tracking-tight">{t('notifications:title')}</h1>
               {unreadCount > 0 && (
                 <span className="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-orange-200 uppercase tracking-wider animate-bounce">
                   {unreadCount} {t('notifications:new')}

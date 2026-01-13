@@ -2171,6 +2171,167 @@ const sendTestEmail = async (email, testMessage = 'This is a test email from Nor
   });
 };
 
+/**
+ * Send email to buyer when order is accepted
+ */
+const sendOrderAcceptedEmail = async (email, orderDetails) => {
+  const orderId = orderDetails?._id || orderDetails?.orderId || 'N/A';
+  const buyerName = orderDetails?.buyerName || 'Client';
+  const gigTitle = orderDetails?.gigTitle || 'Service';
+  const price = orderDetails?.price || 0;
+
+  const emailSubject = `Order Accepted - #${orderId}`;
+  const emailBody = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+          .container { padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+          .header { color: #ea581e; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+          .footer { margin-top: 30px; font-size: 12px; color: #888; }
+          .order-details { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .btn { background: #ea581e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">Order Accepted!</div>
+          <p>Dear ${buyerName},</p>
+          <p>Great news! The freelancer has accepted your order request for <strong>${gigTitle}</strong>.</p>
+          <div class="order-details">
+            <p><strong>Order ID:</strong> #${orderId}</p>
+            <p><strong>Price:</strong> $${price}</p>
+          </div>
+          <p>Please proceed to your dashboard to view the order and track its progress.</p>
+          <p style="margin-top: 25px;">
+            <a href="https://noretmy.com/orders/${orderId}" class="btn">View Order</a>
+          </p>
+          <div class="footer">
+            <p>&copy; 2025 Noretmy | All Rights Reserved</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmailWithLogging({
+    to: email,
+    subject: emailSubject,
+    html: emailBody,
+    emailType: 'order_accepted',
+    orderId,
+    recipientName: buyerName,
+    recipientType: 'buyer'
+  });
+};
+
+/**
+ * Send email to buyer when order is rejected
+ */
+const sendOrderRejectedEmail = async (email, orderDetails) => {
+  const orderId = orderDetails?._id || orderDetails?.orderId || 'N/A';
+  const buyerName = orderDetails?.buyerName || 'Client';
+  const gigTitle = orderDetails?.gigTitle || 'Service';
+  const reason = orderDetails?.reason || 'No specific reason provided.';
+
+  const emailSubject = `Order Request Update - #${orderId}`;
+  const emailBody = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+          .container { padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+          .header { color: #555; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+          .footer { margin-top: 30px; font-size: 12px; color: #888; }
+          .reason-box { background: #fff5f5; border-left: 4px solid #fc8181; padding: 15px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">Order Request Update</div>
+          <p>Dear ${buyerName},</p>
+          <p>We are writing to inform you that your order request for <strong>${gigTitle}</strong> has been declined by the freelancer at this time.</p>
+          <div class="reason-box">
+            <p><strong>Reason provided:</strong></p>
+            <p>${reason}</p>
+          </div>
+          <p>You can browse other similar services or contact the freelancer for more information.</p>
+          <p style="margin-top: 25px;">
+            <a href="https://noretmy.com/search-gigs" style="color: #ea581e; text-decoration: none; font-weight: bold;">Browse Other Services</a>
+          </p>
+          <div class="footer">
+            <p>&copy; 2025 Noretmy | All Rights Reserved</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmailWithLogging({
+    to: email,
+    subject: emailSubject,
+    html: emailBody,
+    emailType: 'order_rejected',
+    orderId,
+    recipientName: buyerName,
+    recipientType: 'buyer'
+  });
+};
+
+/**
+ * Send email to freelancer when deadline expires
+ */
+const sendDeadlineWarningEmail = async (email, orderDetails) => {
+  const orderId = orderDetails?._id || orderDetails?.orderId || 'N/A';
+  const sellerName = orderDetails?.sellerName || 'Freelancer';
+  const gigTitle = orderDetails?.gigTitle || 'Service';
+  const newDeadline = orderDetails?.newDeadline || 'N/A';
+
+  const emailSubject = `⚠️ ACTION REQUIRED: Order Deadline Expired - #${orderId}`;
+  const emailBody = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+          .container { padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+          .header { color: #e53e3e; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+          .footer { margin-top: 30px; font-size: 12px; color: #888; }
+          .warning-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .btn { background: #ea581e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">Order Deadline Expired</div>
+          <p>Dear ${sellerName},</p>
+          <div class="warning-box">
+            <p>The deadline for order <strong>${gigTitle}</strong> (#${orderId}) has expired.</p>
+          </div>
+          <p>As per our policy, we have automatically extended the deadline by <strong>2 days</strong> to give you extra time to complete the work.</p>
+          <p><strong>New Deadline:</strong> ${newDeadline}</p>
+          <p>Please complete and deliver the work as soon as possible. <strong>Important:</strong> If the work is not delivered by the new deadline, the client will have the option to cancel the order immediately.</p>
+          <p style="margin-top: 25px;">
+            <a href="https://noretmy.com/orders/${orderId}" class="btn">Go to Order</a>
+          </p>
+          <div class="footer">
+            <p>&copy; 2025 Noretmy | All Rights Reserved</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmailWithLogging({
+    to: email,
+    subject: emailSubject,
+    html: emailBody,
+    emailType: 'deadline_warning',
+    orderId,
+    recipientName: sellerName,
+    recipientType: 'seller'
+  });
+};
+
 module.exports = { 
   // Core utilities
   sendEmailWithLogging,
@@ -2197,7 +2358,10 @@ module.exports = {
   sendPaymentMilestoneEmail,
   sendPaymentFailedEmail,
   
-  // Withdrawal emails
+  // Order status emails
+  sendOrderAcceptedEmail,
+  sendOrderRejectedEmail,
+  sendDeadlineWarningEmail,
   sendWithdrawalStripeNotificationEmail,
   sendWithdrawalSuccessEmail,
   sendWithdrawalRejectionEmail,

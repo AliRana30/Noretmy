@@ -240,8 +240,8 @@ export default function AppHeader() {
     navigate('/login');
   };
 
-  const markAsRead = (id) => {
-    // Update state
+  const markAsRead = async (id) => {
+    // Optimistic update - immediately update state
     setNotifications(prev => 
       prev.map(n => n.id === id ? { ...n, read: true } : n)
     );
@@ -250,14 +250,32 @@ export default function AppHeader() {
     if (!readIds.includes(id)) {
       saveReadNotificationIds([...readIds, id]);
     }
+    // Call backend API to persist read state
+    try {
+      await axios.put(`${API_CONFIG.BASE_URL}/api/notification/${id}/read`, {}, {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // State already updated optimistically, no rollback needed for better UX
+    }
   };
 
-  const markAllAsRead = () => {
-    // Update state
+  const markAllAsRead = async () => {
+    // Optimistic update - immediately update state
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     // Persist all IDs to localStorage
     const allIds = notifications.map(n => n.id);
     saveReadNotificationIds(allIds);
+    // Call backend API to mark all as read
+    try {
+      await axios.put(`${API_CONFIG.BASE_URL}/api/notification/mark-all-read`, {}, {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      // State already updated optimistically, no rollback for better UX
+    }
   };
 
   // Get only unread notifications for display in dropdown
@@ -344,7 +362,7 @@ export default function AppHeader() {
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                 {unreadCount}
               </span>
             )}

@@ -10,31 +10,31 @@ const ProblemSolution: React.FC = () => {
   const benefits = [
     {
       stat: '10x',
-      label: t('home:problemSolution.benefits.fasterHiring.label') || 'Faster Hiring',
-      description: t('home:problemSolution.benefits.fasterHiring.description') || 'Find pre-vetted talent in hours, not weeks'
+      label: t('home:problemSolution.benefits.fasterHiring.label'),
+      description: t('home:problemSolution.benefits.fasterHiring.description')
     },
     {
       stat: '98%',
-      label: t('home:problemSolution.benefits.successRate.label') || 'Success Rate',
-      description: t('home:problemSolution.benefits.successRate.description') || 'Projects delivered on time and within budget'
+      label: t('home:problemSolution.benefits.successRate.label'),
+      description: t('home:problemSolution.benefits.successRate.description')
     },
     {
       stat: '100%',
-      label: t('home:problemSolution.benefits.securePayments.label') || 'Secure Payments',
-      description: t('home:problemSolution.benefits.securePayments.description') || 'Funds released only when you approve the work'
+      label: t('home:problemSolution.benefits.securePayments.label'),
+      description: t('home:problemSolution.benefits.securePayments.description')
     },
     {
       stat: '24/7',
-      label: t('home:problemSolution.benefits.support.label') || 'Support',
-      description: t('home:problemSolution.benefits.support.description') || 'Dedicated team to assist you at every step'
+      label: t('home:problemSolution.benefits.support.label'),
+      description: t('home:problemSolution.benefits.support.description')
     }
   ];
 
   const features = [
-    t('home:problemSolution.features.verified') || 'Verified professionals with proven track records',
-    t('home:problemSolution.features.escrow') || 'Secure escrow payment protection',
-    t('home:problemSolution.features.directCommunication') || 'Direct communication with sellers',
-    t('home:problemSolution.features.unlimitedRevisions') || 'Unlimited revisions until satisfied'
+    t('home:problemSolution.features.verified'),
+    t('home:problemSolution.features.escrow'),
+    t('home:problemSolution.features.directCommunication'),
+    t('home:problemSolution.features.unlimitedRevisions')
   ];
 
   return (
@@ -54,16 +54,16 @@ const ProblemSolution: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-orange-400 font-semibold tracking-wide uppercase text-sm mb-4">
-            {t('home:problemSolution.tagline') || 'Why Leading Companies Choose Us'}
+            {t('home:problemSolution.tagline')}
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
-            {t('home:problemSolution.headline') || 'Built for businesses that'}
+            {t('home:problemSolution.headline')}
             <span className="block mt-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">
-              {t('home:problemSolution.headlineHighlight') || 'demand excellence'}
+              {t('home:problemSolution.headlineHighlight')}
             </span>
           </h2>
           <p className="text-slate-300 text-lg leading-relaxed">
-            {t('home:problemSolution.description') || "We've reimagined the freelance experience. Our platform connects you with verified professionals who deliver results, backed by enterprise-grade security."}
+            {t('home:problemSolution.description')}
           </p>
         </div>
 
@@ -107,14 +107,14 @@ const ProblemSolution: React.FC = () => {
             href="/search-gigs"
             className="group inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-orange-500/25 transition-all duration-300"
           >
-            {t('home:problemSolution.exploreServices') || 'Explore Services'}
+            {t('home:problemSolution.exploreServices')}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-semibold py-4 px-8 rounded-xl transition-all"
           >
-            {t('home:problemSolution.becomeSeller') || 'Become a Seller'}
+            {t('home:problemSolution.becomeSeller')}
           </Link>
         </div>
       </div>

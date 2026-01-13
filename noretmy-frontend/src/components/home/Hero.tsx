@@ -26,35 +26,35 @@ const Hero: React.FC = () => {
         <div className="text-center max-w-5xl mx-auto">
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
-            {t('home:heroSection.headline') || 'Find Expert Talent'}
+            {t('home:heroSection.headline')}
             <span className="block mt-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">
-              {t('home:heroSection.headlineHighlight') || 'In Minutes, Not Months'}
+              {t('home:heroSection.headlineHighlight')}
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl lg:text-2xl text-slate-300 max-w-3xl mx-auto mb-8 leading-relaxed">
-            {t('home:heroSection.subheadline') || 'Connect with verified professionals who deliver exceptional results.'}
-            <span className="text-white font-semibold"> {t('home:heroSection.trustCount') || '10,000+ businesses'}</span> {t('home:heroSection.trustMessage') || 'trust us to get their projects done right.'}
+            {t('home:heroSection.subheadline')}
+            <span className="text-white font-semibold"> {t('home:heroSection.trustCount')}</span> {t('home:heroSection.trustMessage')}
           </p>
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-10">
             <div className="flex items-center gap-2 text-slate-300">
               <CheckCircle className="w-5 h-5 text-orange-400" />
-              <span className="text-sm">{t('home:heroSection.verifiedExperts') || 'Verified Experts'}</span>
+              <span className="text-sm">{t('home:heroSection.verifiedExperts')}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
               <Shield className="w-5 h-5 text-slate-400" />
-              <span className="text-sm">{t('home:heroSection.securePayments') || 'Secure Payments'}</span>
+              <span className="text-sm">{t('home:heroSection.securePayments')}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
               <Clock className="w-5 h-5 text-orange-400" />
-              <span className="text-sm">{t('home:heroSection.responseTime') || '24h Response Time'}</span>
+              <span className="text-sm">{t('home:heroSection.responseTime')}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
               <Zap className="w-5 h-5 text-orange-300" />
-              <span className="text-sm">{t('home:heroSection.moneyBack') || 'Money-Back Guarantee'}</span>
+              <span className="text-sm">{t('home:heroSection.moneyBack')}</span>
             </div>
           </div>
 
@@ -64,7 +64,7 @@ const Hero: React.FC = () => {
               href="/search-gigs"
               className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 transform hover:scale-105"
             >
-              <span className="text-lg">{t('home:heroSection.findExpert') || 'Find Your Expert Now'}</span>
+              <span className="text-lg">{t('home:heroSection.findExpert')}</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
 
@@ -72,8 +72,8 @@ const Hero: React.FC = () => {
               href="/register"
               className="group inline-flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300"
             >
-              <span className="text-lg">{t('home:heroSection.becomeSeller') || 'Become a Seller'}</span>
-              <span className="text-orange-400">{t('home:heroSection.earnAmount') || 'Earn $5K+/mo'}</span>
+              <span className="text-lg">{t('home:heroSection.becomeSeller')}</span>
+              <span className="text-orange-400">{t('home:heroSection.earnAmount')}</span>
             </Link>
           </div>
 
@@ -101,7 +101,7 @@ const Hero: React.FC = () => {
                   ))}
                   <span className="text-white font-bold ml-1">4.9</span>
                 </div>
-                <p className="text-slate-400 text-sm">{t('home:heroSection.fromReviews') || 'from 10,000+ reviews'}</p>
+                <p className="text-slate-400 text-sm">{t('home:heroSection.fromReviews')}</p>
               </div>
             </div>
 
@@ -112,15 +112,15 @@ const Hero: React.FC = () => {
             <div className="grid grid-cols-3 gap-6 sm:gap-8">
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-white">$2M+</div>
-                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.paidToSellers') || 'Paid to Sellers'}</div>
+                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.paidToSellers')}</div>
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-white">50K+</div>
-                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.projectsDone') || 'Projects Done'}</div>
+                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.projectsDone')}</div>
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-white">99%</div>
-                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.satisfaction') || 'Satisfaction'}</div>
+                <div className="text-slate-400 text-xs sm:text-sm">{t('home:heroSection.satisfaction')}</div>
               </div>
             </div>
           </div>

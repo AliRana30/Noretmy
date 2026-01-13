@@ -1,5 +1,5 @@
 const express = require('express');
-const { handleWithdrawalRequest, approveWithdrawRequest, getAllWithdrawRequests, getWithdrawRequestDetail, rejectWithdrawRequest, getUserWithdrawalRequest, setWithdrawalMethod } = require('../controllers/withdrawlController');
+const { handleWithdrawalRequest,approveWithdrawRequest,getAllWithdrawRequests, getWithdrawRequestDetail, rejectWithdrawRequest, getUserWithdrawalRequest, setWithdrawalMethod} = require('../controllers/withdrawlController');
 const { verifyToken, checkRole, requireAdmin } = require('../middleware/jwt');
 
 const router = express.Router();
@@ -9,7 +9,8 @@ router.post('/',verifyToken, checkRole(["seller"]),handleWithdrawalRequest);
 router.post('/reject', verifyToken, ...requireAdmin, rejectWithdrawRequest);
 router.post('/:requestId/approve', verifyToken, ...requireAdmin, approveWithdrawRequest);
 router.get('/', verifyToken, ...requireAdmin, getAllWithdrawRequests);
-router.get('/:requestId', verifyToken, ...requireAdmin, getWithdrawRequestDetail);
-router.get('/request/user',verifyToken,checkRole(["seller"]),getUserWithdrawalRequest)
+// IMPORTANT: Specific routes must come before parameterized routes
+router.get('/request/user',verifyToken,checkRole(["seller"]),getUserWithdrawalRequest);
+router.get('/:requestId', verifyToken, ...requireAdmin, getWithdrawRequestDetail)
 
 module.exports = router;

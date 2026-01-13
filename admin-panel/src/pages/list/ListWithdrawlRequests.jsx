@@ -1,7 +1,8 @@
 import Datatable from "../../components/datatable/Datatable";
 import { useState, useEffect } from "react";
 import { getWithdrawalRequestsColumns } from "../../datatablesource";
-import { approveWithdrawal, rejectWithdrawal, getAdminWithdrawals } from "../../utils/adminApi";
+import { approveWithdrawal, rejectWithdrawal } from "../../utils/adminApi";
+import { getAdminWithdrawals } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import listTranslations from "../../localization/list.json";
 import commonTranslations from "../../localization/common.json";
@@ -31,6 +32,7 @@ const ListWithdrawlRequests = () => {
       setLoading(true);
       setError(null);
       const res = await getAdminWithdrawals({ status: 'all', limit: 100 });
+      // makeRequest returns response.data directly, so res is the array
       setData(Array.isArray(res) ? res : (res?.data || []));
     } catch (err) {
       setError(err.message);

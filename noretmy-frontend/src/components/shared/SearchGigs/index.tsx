@@ -38,7 +38,9 @@ interface GigData {
   price: string;
   category?: string;
   seller?: {
-    name: string;
+    name?: string;
+    username?: string;
+    profilePicture?: string;
     level?: 'Basic' | 'Pro' | 'Elite';
   };
   sellerBadge?: {

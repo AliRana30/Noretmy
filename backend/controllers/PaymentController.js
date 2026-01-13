@@ -86,6 +86,8 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
   if (additionalData && (additionalData.isMilestone || (additionalData.orderId && additionalData.orderId.isMilestone))) {
      isMilestone = true;
   }
+  // Check if orderId implies milestone (if passed as string but we can't check db here easily)
+  // Assuming additionalData passed from controller has the flag
 
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new Error('Invalid amount');
@@ -138,6 +140,13 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
 
     // Create a Payment Intent linked to the customer
     const paymentIntent = await stripe.paymentIntents.create(intentParams);
+
+    console.log('\n========== PAYMENT INTENT CREATED ==========');
+    console.log('Payment Intent ID:', paymentIntent.id);
+    console.log('Amount:', paymentIntent.amount / 100);
+    console.log('Payment Type:', metadata.paymentType);
+    console.log('Metadata:', JSON.stringify(metadata, null, 2));
+    console.log('==========================================\n');
 
     return { 
       payment_intent: paymentIntent.id,
@@ -502,7 +511,7 @@ exports.processRefund = async (req, res) => {
     }
 };
 
- exports.handleStripeWebhook = async (req, res) => {
+exports.handleStripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature']; 
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
   let event;

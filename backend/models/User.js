@@ -12,6 +12,9 @@ const userSchema = new mongoose.Schema({
   isCompany: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   isWarned: { type: Boolean, default: false },
+  country: { type: String, required: false },
+  city: { type: String, required: false },
+  phone: { type: String, required: false },
   
   // Seller type: individual freelancer or company/agency
   sellerType: {

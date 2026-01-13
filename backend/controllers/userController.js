@@ -471,7 +471,7 @@ const getSellerData = async (req, res) => {
           gigId: gigTitleMap[review.gigId]
             ? { title: gigTitleMap[review.gigId] }
             : review.gigId,
-          userId: {
+          user: {
             username: reviewerInfo.username || review.reviewerName || 'Anonymous',
             fullName: reviewerInfo.fullName || review.reviewerName || 'Anonymous',
             profilePicture: reviewerInfo.profilePicture || review.reviewerImage || undefined,

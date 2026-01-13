@@ -9,6 +9,7 @@ import Link from 'next/link';
 
 interface GigType {
   _id: number;
+  starNumber: number;
   title: string;
   photos: string[];
   profileUrl: string;

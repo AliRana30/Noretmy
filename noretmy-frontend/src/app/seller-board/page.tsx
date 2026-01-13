@@ -218,15 +218,6 @@ const SellerDashboard = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              {dashboardData.pendingInvitations > 0 && (
-                <Link
-                  href="/orders/invitations"
-                  className="px-4 py-2 bg-blue-50 text-orange-200 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  {dashboardData.pendingInvitations} Pending Invitations
-                </Link>
-              )}
               <button
                 onClick={handleWithdrawClick}
                 disabled={!withdrawalAllowed}

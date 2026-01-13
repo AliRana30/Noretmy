@@ -104,6 +104,19 @@ const PaymentMilestones: React.FC<PaymentMilestonesProps> = ({
     }
   }, [orderId]);
 
+  // Optional auto-refresh: if parent provides `onMilestoneUpdate`, keep polling until completed.
+  useEffect(() => {
+    if (!orderId) return;
+    if (!onMilestoneUpdate) return;
+    if (totals?.currentStage === 'completed') return;
+
+    const refreshInterval = setInterval(() => {
+      fetchPaymentStatus();
+    }, 3000);
+
+    return () => clearInterval(refreshInterval);
+  }, [orderId, onMilestoneUpdate, totals?.currentStage]);
+
   const getStageIcon = (status: string) => {
     switch (status) {
       case 'completed':

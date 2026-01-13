@@ -62,6 +62,7 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
       <div className="space-y-4">
         {reviews.map((review) => {
           const username = typeof review.userId === 'object' ? review.userId.username : 'Anonymous';
+          const fullName = typeof review.userId === 'object' ? (review.userId as any).fullName : username;
           const profilePic = typeof review.userId === 'object' ? review.userId.profilePicture : null;
           const gigTitle = typeof review.gigId === 'object' ? review.gigId.title : null;
 
@@ -76,12 +77,12 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
                   {profilePic ? (
                     <img
                       src={profilePic}
-                      alt={username}
+                      alt={fullName}
                       className="w-12 h-12 rounded-full object-cover ring-2 ring-orange-50"
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shadow-sm">
-                      {username.charAt(0).toUpperCase()}
+                      {fullName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
@@ -90,7 +91,7 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{username}</h4>
+                      <h4 className="font-semibold text-slate-900">{fullName}</h4>
                       {gigTitle && (
                         <p className="text-slate-500 text-xs">For: {gigTitle}</p>
                       )}

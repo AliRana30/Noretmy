@@ -51,6 +51,7 @@ function App() {
             background: darkMode ? '#1a1a2e' : '#fff',
             color: darkMode ? '#fff' : '#1a1a2e',
             border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb',
+            zIndex: 99999,
           },
           success: {
             iconTheme: { primary: '#22c55e', secondary: '#fff' },
@@ -58,7 +59,6 @@ function App() {
           error: {
             iconTheme: { primary: '#ef4444', secondary: '#fff' },
           },
-          zIndex: 99999, // Added zIndex to toastOptions
         }}
       />
       <AuthProvider>

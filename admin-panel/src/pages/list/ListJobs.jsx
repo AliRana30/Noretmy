@@ -5,6 +5,8 @@ import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import { API_CONFIG } from "../../config/api";
 import commonTranslations from "../../localization/common.json";
+import listTranslations from "../../localization/list.json";
+import datatableColumnsTranslations from "../../localization/datatableColumns.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import { Briefcase, Search, Filter, Eye, Trash2, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -90,78 +92,21 @@ const ListJobs = () => {
       <ErrorMessage 
         message={`${getTranslation(commonTranslations, "error")}: ${error}`}
         onRetry={loadData}
-        retryText="Retry"
+        retryText={getTranslation(commonTranslations, "retry")}
       />
     );
   }
 
   return (
     <div className="w-full">
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className={`w-full max-w-md p-6 rounded-2xl shadow-xl ${
-            darkMode ? 'bg-gray-900 border border-white/10' : 'bg-white'
-          }`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Delete Job
-              </h3>
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className={`p-1 rounded-lg ${darkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
-            </p>
-            <div className="mb-4">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Reason (optional)
-              </label>
-              <input
-                type="text"
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                placeholder="Enter reason for deletion..."
-                className={`w-full px-4 py-2 rounded-lg ${
-                  darkMode 
-                    ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
-                } focus:outline-none focus:border-orange-500`}
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium ${
-                  darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
-              >
-                {deleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Jobs Management
+            {getTranslation(listTranslations, "jobsManagement")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            View and manage all job listings
+            {getTranslation(listTranslations, "jobsSubtitle")}
           </p>
         </div>
         <button
@@ -173,17 +118,17 @@ const ListJobs = () => {
           }`}
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          {getTranslation(listTranslations, "refresh")}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Jobs', value: data.length, color: '#6366f1' },
-          { label: 'Active', value: data.filter(j => j.jobStatus?.toLowerCase() === 'active').length, color: '#22c55e' },
-          { label: 'Inactive', value: data.filter(j => j.jobStatus?.toLowerCase() !== 'active').length, color: '#f59e0b' },
-          { label: 'Featured', value: data.filter(j => j.upgradeOption && j.upgradeOption !== 'Free').length, color: '#8b5cf6' },
+          { label: getTranslation(listTranslations, "totalJobs"), value: data.length, color: '#6366f1' },
+          { label: getTranslation(commonTranslations, "active"), value: data.filter(j => j.jobStatus?.toLowerCase() === 'active').length, color: '#22c55e' },
+          { label: getTranslation(commonTranslations, "inactive"), value: data.filter(j => j.jobStatus?.toLowerCase() !== 'active').length, color: '#f59e0b' },
+          { label: getTranslation(listTranslations, "featured"), value: data.filter(j => j.upgradeOption && j.upgradeOption !== 'Free').length, color: '#8b5cf6' },
         ].map(({ label, value, color }) => (
           <div 
             key={label}
@@ -219,7 +164,7 @@ const ListJobs = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search jobs..."
+            placeholder={getTranslation(listTranslations, "searchJobs")}
             className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-all outline-none ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
@@ -239,9 +184,9 @@ const ListJobs = () => {
                 : 'bg-gray-50 border border-gray-200 text-gray-900'
             } focus:border-orange-500`}
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">{getTranslation(listTranslations, "allStatus")}</option>
+            <option value="active">{getTranslation(commonTranslations, "active")}</option>
+            <option value="inactive">{getTranslation(commonTranslations, "inactive")}</option>
           </select>
         </div>
       </div>
@@ -256,26 +201,26 @@ const ListJobs = () => {
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Job</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "title")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Seller</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "seller")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Status</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "status")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Category</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "category")}</th>
 
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Plan</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "upgradePlan")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Date</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "date")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Actions</th>
+                }`}>{getTranslation(commonTranslations, "actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -300,7 +245,7 @@ const ListJobs = () => {
                         ? 'bg-orange-500/20 text-orange-500'
                         : 'bg-amber-500/20 text-amber-500'
                     }`}>
-                      {job.jobStatus || 'Active'}
+                      {job.jobStatus || getTranslation(commonTranslations, "active")}
                     </span>
                   </td>
                   <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -320,10 +265,10 @@ const ListJobs = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button
+                       <button
                         onClick={() => window.open(`${API_CONFIG.FRONTEND_URL}/gig/${job._id}`, '_blank')}
                         className="p-2 rounded-lg bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 transition-colors"
-                        title="View on Frontend"
+                        title={getTranslation(commonTranslations, "view")}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -331,8 +276,8 @@ const ListJobs = () => {
                       {process.env.NODE_ENV !== 'production' && (
                         <button
                           onClick={() => handleDelete(job)}
-                          className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
-                          title="Delete"
+                          className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                          title={getTranslation(commonTranslations, "delete")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -349,7 +294,7 @@ const ListJobs = () => {
           <div className="p-12 text-center">
             <Briefcase className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No jobs found
+              {getTranslation(listTranslations, "noData")}
             </p>
           </div>
         )}
@@ -359,7 +304,7 @@ const ListJobs = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} jobs
+            {getTranslation(listTranslations, "showing")} {((currentPage - 1) * itemsPerPage) + 1} {getTranslation(commonTranslations, "to")} {Math.min(currentPage * itemsPerPage, filteredData.length)} {getTranslation(listTranslations, "of")} {filteredData.length} {getTranslation(listTranslations, "jobs")}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -401,6 +346,85 @@ const ListJobs = () => {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Job Modal */}
+      {deleteModalOpen && jobToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-md rounded-2xl p-6 ${
+            darkMode ? 'bg-[#1a1a2e]' : 'bg-white'
+          }`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {getTranslation(listTranslations, "deleteJob")}
+              </h3>
+              <button 
+                onClick={() => { setDeleteModalOpen(false); setJobToDelete(null); }}
+                className={`p-2 rounded-xl transition-colors ${
+                  darkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+                }`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <div className={`p-4 rounded-xl mb-4 ${darkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
+                <p className={`text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  <strong>{getTranslation(commonTranslations, "error")}:</strong> {getTranslation(listTranslations, "deleteJobWarning")}
+                </p>
+              </div>
+              
+              <div className={`p-3 rounded-xl mb-4 ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {getTranslation(listTranslations, "jobTitle")}: <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{jobToDelete.title}</span>
+                </p>
+              </div>
+              
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {getTranslation(listTranslations, "reasonForDeletion")}
+              </label>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder={getTranslation(listTranslations, "enterDeletionReason")}
+                rows={3}
+                className={`w-full px-4 py-3 rounded-xl text-sm transition-all outline-none resize-none ${
+                  darkMode
+                    ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-red-500/50'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                }`}
+              />
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setDeleteModalOpen(false); setJobToDelete(null); }}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors ${
+                  darkMode 
+                    ? 'bg-white/10 text-white hover:bg-white/20' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {getTranslation(commonTranslations, "cancel")}
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
+              >
+                {deleting ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 className="w-5 h-5" />
+                    {getTranslation(listTranslations, "deleteJob")}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

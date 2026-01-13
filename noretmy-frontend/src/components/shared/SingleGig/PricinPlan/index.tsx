@@ -45,8 +45,6 @@ const PricingPlans = ({
   const userId = user?._id || user?.id;
   const isOwnGig = userId && sellerId ? String(userId) === String(sellerId) : false;
 
-
-
   const handlePlanSelect = (index: number) => {
     if (!isLoggedIn) {
       toast.info(t('gigs:single.pricing.signInRequired') || 'Please sign in to purchase this service', {

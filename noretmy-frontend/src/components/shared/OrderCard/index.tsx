@@ -79,7 +79,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
 
   // Determine if current user is the seller or buyer
   const isSeller = currentUserId && order?.sellerId?._id === currentUserId;
-  const messageButtonText = isSeller ? 'Message Buyer' : 'Message Seller';
 
   // Handle both formats: backend returns gig.title/image OR gigId.title/photos
   const gigPhoto =
@@ -207,18 +206,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
             Leave a Review
           </button>
         )}
-
-        {/* Chat Button - shown for active orders */}
-        {showChatButton && (
-          <button
-            onClick={handleChatClick}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-50 py-2 text-sm font-medium text-orange-600 hover:bg-orange-100 transition-colors"
-          >
-            <MessageCircle size={16} />
-            {messageButtonText}
-          </button>
-        )}
-      </div>
+            </div>
 
       {/* Review Modal */}
       <ReviewModal

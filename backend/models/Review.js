@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema({
   gigId: { type: String, required: true },
   orderId: { type: String, required: true },
-  userId: { type: String, required: true }, // Reviewer (buyer)
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reviewer (buyer)
   sellerId: { type: String, required: true }, // Seller being reviewed
   star: { type: Number, required: true, min: 1, max: 5 },
   desc: { type: String, required: true },

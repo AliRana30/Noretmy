@@ -99,30 +99,31 @@ function FreelancerSearchContent() {
           </div>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-            <div className="flex items-center bg-white rounded-xl shadow-lg">
-              <div className="pl-4">
-                <Search className="w-5 h-5 text-slate-400" />
+          <form onSubmit={handleSearch} className="max-w-2xl mx-auto px-4 sm:px-0">
+            <div className="flex items-center bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="pl-3 sm:pl-4 flex-shrink-0">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('freelancers:searchPlaceholder') || 'Search by name, skill, or keyword...'}
-                className="flex-1 py-4 px-4 text-slate-900 placeholder-slate-400 bg-transparent outline-none"
+                placeholder={t('freelancers:searchPlaceholder') || 'Search...'}
+                className="flex-1 min-w-0 py-3 sm:py-4 px-2 sm:px-4 text-sm sm:text-base text-slate-900 placeholder-slate-400 bg-transparent outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className="p-3 text-slate-500 hover:text-slate-700 transition-colors"
+                className="p-2 sm:p-3 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0"
               >
-                <Filter className="w-5 h-5" />
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 type="submit"
-                className="m-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all"
+                className="m-1.5 sm:m-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all text-sm sm:text-base flex-shrink-0"
               >
-                Search
+                <span className="hidden xs:inline">Search</span>
+                <Search className="w-4 h-4 xs:hidden" />
               </button>
             </div>
           </form>

@@ -221,7 +221,71 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
       if (result.error) {
         setError(result.error.message || 'Payment failed');
       } else {
-        setPaymentSuccess(true);
+        // Payment succeeded - now verify and complete on backend (LMS-style)
+        try {
+          const { gigId, orderId, promotionalPlan } = orderData || {};
+          
+          if (paymentType === 'order_payment' && orderId) {
+            // Complete order
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/complete-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                orderId: orderId,
+                payment_intent_id: result.paymentIntent.id
+              }),
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Order completion failed:', response.status, errorText);
+              setError('Failed to complete order. Please contact support with payment ID: ' + result.paymentIntent.id);
+              return;
+            }
+            
+            const completionResult = await response.json();
+            if (!completionResult.success) {
+              setError(completionResult.message || 'Failed to complete order');
+              return;
+            }
+          } else if ((paymentType === 'monthly_promotional' || paymentType === 'gig_promotion') && promotionalPlan) {
+            // Complete promotion
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscription/complete-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                payment_intent_id: result.paymentIntent.id,
+                promotionPlan: promotionalPlan,
+                gigId: gigId || null,
+                paymentType: gigId ? 'gig_promotion' : 'monthly_promotion'
+              }),
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Promotion completion failed:', response.status, errorText);
+              setError('Failed to activate promotion. Please contact support with payment ID: ' + result.paymentIntent.id);
+              return;
+            }
+            
+            const completionResult = await response.json();
+            if (!completionResult.success) {
+              setError(completionResult.message || 'Failed to activate promotion');
+              return;
+            }
+          }
+          
+          setPaymentSuccess(true);
+        } catch (completionError) {
+          console.error('Completion error:', completionError);
+          setError('Payment succeeded but failed to complete. Please contact support.');
+        }
       }
     } catch (err) {
       console.error('Payment error:', err);

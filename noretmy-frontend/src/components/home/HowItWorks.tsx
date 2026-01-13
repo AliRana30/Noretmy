@@ -11,26 +11,26 @@ const HowItWorks: React.FC = () => {
     {
       number: '01',
       icon: Search,
-      title: t('home:howItWorks.steps.search.title') || 'Search & Discover',
-      description: t('home:howItWorks.steps.search.description') || 'Browse our curated marketplace of verified professionals. Filter by expertise, ratings, and budget.',
+      title: t('home:howItWorks.steps.search.title'),
+      description: t('home:howItWorks.steps.search.description'),
     },
     {
       number: '02',
       icon: MessageSquare,
-      title: t('home:howItWorks.steps.connect.title') || 'Connect & Discuss',
-      description: t('home:howItWorks.steps.connect.description') || 'Chat directly with sellers to discuss project requirements and receive tailored proposals.',
+      title: t('home:howItWorks.steps.connect.title'),
+      description: t('home:howItWorks.steps.connect.description'),
     },
     {
       number: '03',
       icon: CreditCard,
-      title: t('home:howItWorks.steps.payment.title') || 'Secure Payment',
-      description: t('home:howItWorks.steps.payment.description') || 'Pay safely through our escrow system. Funds are released only after you approve the work.',
+      title: t('home:howItWorks.steps.payment.title'),
+      description: t('home:howItWorks.steps.payment.description'),
     },
     {
       number: '04',
       icon: CheckCircle,
-      title: t('home:howItWorks.steps.receive.title') || 'Receive & Review',
-      description: t('home:howItWorks.steps.receive.description') || 'Get your project delivered on time. Request revisions if needed until fully satisfied.',
+      title: t('home:howItWorks.steps.receive.title'),
+      description: t('home:howItWorks.steps.receive.description'),
     },
   ];
 
@@ -44,13 +44,13 @@ const HowItWorks: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-orange-500 font-semibold tracking-wide uppercase text-sm mb-4">
-            {t('home:howItWorks.tagline') || 'Simple Process'}
+            {t('home:howItWorks.tagline')}
           </p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-            {t('home:howItWorks.headline') || 'How it works'}
+            {t('home:howItWorks.headline')}
           </h2>
           <p className="text-slate-600 text-lg">
-            {t('home:howItWorks.description') || 'Get started in minutes. Our streamlined process makes finding and hiring talent effortless.'}
+            {t('home:howItWorks.description')}
           </p>
         </div>
 
@@ -92,11 +92,11 @@ const HowItWorks: React.FC = () => {
             href="/search-gigs"
             className="group inline-flex items-center gap-3 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all duration-300"
           >
-            {t('home:howItWorks.getStarted') || 'Get Started Free'}
+            {t('home:howItWorks.getStarted')}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           <p className="mt-4 text-slate-500 text-sm">
-            {t('home:howItWorks.noCreditCard') || 'No credit card required • Free to browse'}
+            {t('home:howItWorks.noCreditCard')}
           </p>
         </div>
       </div>

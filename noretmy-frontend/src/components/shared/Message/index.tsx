@@ -31,28 +31,16 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
   const conversationId = pathname.split('/')[2];
   const sellerId = searchParams.get('sellerId');
-  // const buyerId = searchParams.get('buyerId');
   const [buyerId, setBuyerId] = useState<string | null>(null);
   const [otherUserName, setOtherUserName] = useState<string>('');
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('');
   const [otherUserAvatar, setOtherUserAvatar] = useState<string>('');
   const [isOtherUserSeller, setIsOtherUserSeller] = useState<boolean>(false);
 
-  const user = useSelector((state: RootState) => state?.auth?.user);
-  const userId = user?._id || user?.id;
-  const userProfilePicture = user?.profilePicture;
-
-  const receiverId = userId === sellerId ? buyerId : sellerId;
-
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [pendingAttachments, setPendingAttachments] = useState<AttachmentData[]>([]);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
-
-  useEffect(() => {
-    const id = searchParams.get('buyerId');
-    setBuyerId(id);
-  }, [searchParams]);
   const [isLoading, setIsLoading] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<any>(null);
@@ -60,6 +48,15 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const isSeller = useUserRole();
+  const userProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
+  const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
+  const receiverId = userId === sellerId ? buyerId : sellerId;
+
+  // Initialize buyerId from searchParams
+  useEffect(() => {
+    const id = searchParams.get('buyerId');
+    setBuyerId(id);
+  }, [searchParams]);
 
   // Set current user avatar from Redux store
   useEffect(() => {

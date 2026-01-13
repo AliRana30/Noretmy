@@ -20,7 +20,9 @@ adminAxios.interceptors.request.use(
     // Add headers
     const headers = getAuthHeaders();
     if (headers) {
-      Object.assign(config.headers, headers);
+      Object.keys(headers).forEach(key => {
+        config.headers[key] = headers[key];
+      });
     }
     
     return config;
@@ -116,18 +118,23 @@ const makeRequest = async (method, endpoint, data = null, params = {}) => {
     if (error.response) {
       const status = error.response.status;
       const serverMessage = error.response.data?.message;
+      const serverError = error.response.data?.error;
       
       // Map status codes to user-friendly messages
       if (status === 401) {
         throw new Error('Your session has expired. Please log in again.');
+      } else if (status === 402) {
+        // Payment required - typically PayPal insufficient funds
+        throw new Error(serverMessage || 'Payment provider has insufficient funds. Please add funds and try again.');
       } else if (status === 403) {
         throw new Error('Access denied. You don\'t have permission to perform this action.');
       } else if (status === 404) {
         throw new Error('The requested resource was not found.');
       } else if (status === 422) {
-        throw new Error(serverMessage || 'Invalid data provided. Please check your input.');
+        // Use server message for validation errors (including PayPal errors)
+        throw new Error(serverMessage || serverError || 'Invalid data provided. Please check your input.');
       } else if (status >= 500) {
-        throw new Error('Server error. Please try again later.');
+        throw new Error(serverMessage || 'Server error. Please try again later.');
       } else {
         throw new Error(serverMessage || `Request failed with status ${status}`);
       }
@@ -247,6 +254,10 @@ export const getAdminWithdrawals = async (filters = {}) => {
 
 export const getAdminWithdrawalDetail = async (withdrawalId) => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_DETAIL, null, { withdrawalId });
+};
+
+export const createAdminWithdrawalRequest = async (payload) => {
+  return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_CREATE, payload);
 };
 
 export const approveWithdrawal = async (withdrawalId, adminNote) => {
@@ -388,7 +399,7 @@ export const createAdmin = async (userData) => {
 // FAQ Management API Functions
 export const getFaqCategories = async () => {
   try {
-    const response = await adminAxios.get(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.GET_CATEGORIES}`);
+    const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_CATEGORIES}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching FAQ categories:", error);
@@ -398,7 +409,7 @@ export const getFaqCategories = async () => {
 
 export const getFaqsByCategory = async (category, activeOnly = true) => {
   try {
-    const response = await adminAxios.get(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.GET_FAQS_BY_CATEGORY}/${category}?activeOnly=${activeOnly}`);
+    const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_FAQS_BY_CATEGORY}/${category}?activeOnly=${activeOnly}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching FAQs by category:", error);
@@ -418,7 +429,7 @@ export const getAllFaqs = async (params = {}) => {
       sortOrder: params.sortOrder || 'desc'
     });
 
-    const response = await adminAxios.get(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.GET_ALL_FAQS}?${queryParams}`);
+    const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_ALL_FAQS}?${queryParams}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching all FAQs:", error);
@@ -428,7 +439,7 @@ export const getAllFaqs = async (params = {}) => {
 
 export const getFaqStats = async () => {
   try {
-    const response = await adminAxios.get(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.GET_FAQ_STATS}`);
+    const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_FAQ_STATS}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching FAQ stats:", error);
@@ -438,7 +449,7 @@ export const getFaqStats = async () => {
 
 export const getSingleFaq = async (id) => {
   try {
-    const response = await adminAxios.get(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.GET_SINGLE_FAQ}/${id}`);
+    const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_SINGLE_FAQ}/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching single FAQ:", error);
@@ -448,7 +459,7 @@ export const getSingleFaq = async (id) => {
 
 export const createFaq = async (faqData) => {
   try {
-    const response = await adminAxios.post(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.CREATE_FAQ}`, faqData);
+    const response = await adminAxios.post(`${FAQ_ENDPOINTS.CREATE_FAQ}`, faqData);
     return response.data;
   } catch (error) {
     console.error("Error creating FAQ:", error);
@@ -458,7 +469,7 @@ export const createFaq = async (faqData) => {
 
 export const updateFaq = async (id, updateData) => {
   try {
-    const response = await adminAxios.put(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.UPDATE_FAQ}/${id}`, updateData);
+    const response = await adminAxios.put(`${FAQ_ENDPOINTS.UPDATE_FAQ}/${id}`, updateData);
     return response.data;
   } catch (error) {
     console.error("Error updating FAQ:", error);
@@ -468,7 +479,7 @@ export const updateFaq = async (id, updateData) => {
 
 export const deleteFaq = async (id) => {
   try {
-    const response = await adminAxios.delete(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.DELETE_FAQ}/${id}`);
+    const response = await adminAxios.delete(`${FAQ_ENDPOINTS.DELETE_FAQ}/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting FAQ:", error);
@@ -478,7 +489,7 @@ export const deleteFaq = async (id) => {
 
 export const bulkUpdateFaqs = async (faqIds, updates) => {
   try {
-    const response = await adminAxios.put(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.UPDATE_FAQ}/bulk`, {
+    const response = await adminAxios.put(`${FAQ_ENDPOINTS.UPDATE_FAQ}/bulk`, {
       faqIds,
       updates
     });
@@ -491,7 +502,7 @@ export const bulkUpdateFaqs = async (faqIds, updates) => {
 
 export const bulkDeleteFaqs = async (faqIds) => {
   try {
-    const response = await adminAxios.delete(`${API_CONFIG.BASE_URL}${FAQ_ENDPOINTS.DELETE_FAQ}/bulk`, {
+    const response = await adminAxios.delete(`${FAQ_ENDPOINTS.DELETE_FAQ}/bulk`, {
       data: { faqIds }
     });
     return response.data;
@@ -656,6 +667,7 @@ export default {
   getAdminFinancialOverview,
   getAdminWithdrawals,
   getAdminWithdrawalDetail,
+  createAdminWithdrawalRequest,
   approveWithdrawal,
   rejectWithdrawal,
   
@@ -692,6 +704,9 @@ export default {
   
   // Admin Management
   createAdmin,
+  
+  // Notification Management
+  deleteNotification,
   
   // Badge Management
   getAdminBadges,

@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { API_CONFIG, getApiUrl, ROLES, PERMISSIONS } from '../config/api';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -66,18 +65,20 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Login failed');
       }
 
+      // Handle the response format and enhance with role information
       const enhancedUserData = {
         ...data,
+        // Default role assignment if not provided by backend
         role: data.role || (data.isAdmin ? ROLES.ADMIN : (data.isSeller ? ROLES.FREELANCER : ROLES.CLIENT)),
         permissions: data.permissions || [],
         isAdmin: data.isAdmin || data.role === ROLES.ADMIN,
         img: data.profilePicture || data.img || "https://via.placeholder.com/150",
+        // Ensure token is preserved if it exists at the top level, otherwise try to extract it
         token: data.token || data.accessToken || null
       };
       
       // Check if user has admin role - only admins can access admin panel
       if (enhancedUserData.role !== ROLES.ADMIN && !enhancedUserData.isAdmin) {
-        toast.error('Access denied - Admin role required');
         setErrorKey('accessDenied');
         setError('Login unsuccessful - Admin access required');
         return { success: false, error: 'Login unsuccessful - Admin access required' };
@@ -87,41 +88,54 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('userData', JSON.stringify(enhancedUserData));
       
       setUser(enhancedUserData);
-      toast.success('Logged in successfully!');
       return { success: true };
     } catch (error) {
-      // Handle different types of errors
-      let errorMessage = 'Login failed. Please try again.';
+      console.error('Login error:', error);
       
+      // Handle different types of errors with priority on backend messages
       if (error.code === 'ECONNABORTED') {
         setErrorKey('timeoutError');
-        errorMessage = 'Request timeout. Please try again.';
+        setError('Request timeout. Please try again.');
+        return { success: false, error: 'Request timeout. Please try again.' };
       } else if (error.message.includes('Network Error')) {
         setErrorKey('networkError');
-        errorMessage = 'Network error. Please check your connection and try again.';
+        setError('Network error. Please check your connection and try again.');
+        return { success: false, error: 'Network error. Please check your connection and try again.' };
       } else if (error.response) {
-        errorMessage = error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
-        
+        // Server responded with error status
+        // Extract the actual error message from backend
+        const backendMessage = error.response.data?.message || error.response.data?.error;
         const statusCode = error.response.status;
+        
+        let userFriendlyMessage;
+        
         if (statusCode === 401) {
+          // Unauthorized - invalid credentials
+          userFriendlyMessage = backendMessage || 'Invalid email or password';
           setErrorKey('invalidCredentials');
         } else if (statusCode === 403) {
+          // Forbidden - could be email not verified or account blocked
+          userFriendlyMessage = backendMessage || 'Access denied';
           setErrorKey('accessDenied');
         } else if (statusCode === 404) {
+          userFriendlyMessage = backendMessage || 'User not found';
           setErrorKey('notFound');
         } else if (statusCode >= 500) {
+          userFriendlyMessage = 'Server error. Please try again later.';
           setErrorKey('serverError');
         } else {
+          userFriendlyMessage = backendMessage || 'Login failed. Please try again.';
           setErrorKey('loginFailed');
         }
+        
+        setError(userFriendlyMessage);
+        return { success: false, error: userFriendlyMessage };
       } else {
         setErrorKey('loginFailed');
-        errorMessage = error.message || errorMessage;
+        const errorMessage = error.message || 'Login failed. Please try again.';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
       }
-      
-      setError(errorMessage);
-      toast.error(errorMessage);
-      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }

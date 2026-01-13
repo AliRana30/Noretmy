@@ -254,12 +254,12 @@ const Projects: React.FC = () => {
 
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-black">
-          My <span className="text-indigo-600">Projects</span>
+          My <span className="text-orange-600">Projects</span>
         </h1>
 
         <button
           onClick={handleCreateNew}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-md"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-md"
         >
           <FaPlus size={16} />
           <span className="font-medium">Add Project</span>
@@ -268,7 +268,7 @@ const Projects: React.FC = () => {
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
         </div>
       ) : (
         <>
@@ -301,7 +301,7 @@ const Projects: React.FC = () => {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                       placeholder="Enter project title"
                       required
                     />
@@ -318,7 +318,7 @@ const Projects: React.FC = () => {
                         </div>
                       )}
                       <label className="flex-1 cursor-pointer px-4 py-2 border border-gray-300 rounded-lg text-center hover:bg-gray-50">
-                        <span className="text-indigo-600">{imagePreview ? 'Change Image' : 'Upload Image'}</span>
+                        <span className="text-orange-600">{imagePreview ? 'Change Image' : 'Upload Image'}</span>
                         <input
                           type="file"
                           id="image"
@@ -339,13 +339,13 @@ const Projects: React.FC = () => {
                       {formData.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
+                          className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
                         >
                           {skill}
                           <button
                             type="button"
                             onClick={() => handleRemoveSkill(skill)}
-                            className="text-indigo-600 hover:text-indigo-800"
+                            className="text-orange-600 hover:text-orange-800"
                           >
                             <FaTimes size={12} />
                           </button>
@@ -357,7 +357,7 @@ const Projects: React.FC = () => {
                         type="text"
                         value={newSkill}
                         onChange={(e) => setNewSkill(e.target.value)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                         placeholder="Add a skill"
                       />
                       <button
@@ -380,7 +380,7 @@ const Projects: React.FC = () => {
                       value={formData.description}
                       onChange={handleInputChange}
                       rows={5}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                       placeholder="Describe your project"
                       required
                     />
@@ -396,7 +396,7 @@ const Projects: React.FC = () => {
                       name="githubLink"
                       value={formData.githubLink}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                       placeholder="https://github.com/username/repo"
                       required
                     />
@@ -412,7 +412,7 @@ const Projects: React.FC = () => {
                       name="liveDemoLink"
                       value={formData.liveDemoLink}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                       placeholder="https://example.com"
                       required
                     />
@@ -433,7 +433,7 @@ const Projects: React.FC = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`${submitting ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                    className={`${submitting ? 'bg-orange-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'
                       } text-white px-5 py-2 rounded-lg transition-colors flex items-center gap-2`}
                   >
                     {submitting ? (
@@ -450,14 +450,14 @@ const Projects: React.FC = () => {
 
           {projects.length === 0 ? (
             <div className="bg-gray-50 rounded-lg p-12 text-center">
-              <div className="text-indigo-500 text-5xl mb-4">
+              <div className="text-orange-500 text-5xl mb-4">
                 <FaPlus className="mx-auto" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">No projects yet</h3>
               <p className="text-gray-500 mb-6">Showcase your work by adding your first project</p>
               <button
                 onClick={handleCreateNew}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md font-medium"
+                className="bg-orange-600 hover:bg-orange-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md font-medium"
               >
                 Add Your First Project
               </button>
@@ -479,7 +479,7 @@ const Projects: React.FC = () => {
                     <div className="absolute top-0 right-0 p-2 space-x-2">
                       <button
                         onClick={() => handleEdit(project)}
-                        className="bg-white text-indigo-600 p-2 rounded-full shadow-md hover:bg-indigo-50 transition-colors"
+                        className="bg-white text-orange-600 p-2 rounded-full shadow-md hover:bg-orange-50 transition-colors"
                         title="Edit Project"
                       >
                         <FaEdit size={16} />
@@ -509,7 +509,7 @@ const Projects: React.FC = () => {
                       {project.skills.map((skill, index) => (
                         <span
                           key={index}
-                          className="bg-indigo-100 text-indigo-800 px-2 py-1 text-xs rounded-full"
+                          className="bg-orange-100 text-orange-800 px-2 py-1 text-xs rounded-full"
                         >
                           {skill}
                         </span>
@@ -534,7 +534,7 @@ const Projects: React.FC = () => {
                         href={project.liveDemoLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
+                        className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
                       >
                         <FaExternalLinkAlt size={14} />
                         <span>Demo</span>

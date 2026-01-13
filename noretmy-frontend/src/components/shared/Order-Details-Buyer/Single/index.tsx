@@ -287,6 +287,28 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     }
   };
 
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order? This action cannot be undone and will trigger a refund request if payment was already processed.")) {
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `${BACKEND_URL}/orders/cancel`,
+        {
+          orderId: orderDetails.orderId,
+          reason: "Deadline passed"
+        },
+        { withCredentials: true }
+      );
+
+      showSuccess(response.data.message || 'Order cancelled successfully!');
+      onOperationComplete();
+    } catch (error: any) {
+      showError(error.response?.data?.message || 'Failed to cancel order');
+    }
+  };
+
   const handleAdvanceOrderStatus = async (targetStatus: string) => {
     try {
       const response = await axios.post(
@@ -781,12 +803,21 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
               onAdvanceStatus={handleAdvanceOrderStatus}
             />
 
-            {/* Extend Timeline Button - Only for buyers on active orders */}
+            {/* Action Buttons - Only for buyers on active orders */}
             {isOrderBuyer && ['accepted', 'requirementsSubmitted', 'started', 'halfwayDone', 'delivered', 'requestedRevision'].includes(orderStatus) && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-3">
+                {metrics.isLate && (
+                  <button
+                    onClick={handleCancelOrder}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all text-sm font-medium"
+                  >
+                    <FaExclamationCircle className="w-4 h-4" />
+                    Cancel Order
+                  </button>
+                )}
                 <button
                   onClick={() => setShowExtendTimeline(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all text-sm font-medium"
                 >
                   <FaCalendarAlt className="w-4 h-4" />
                   Extend Timeline

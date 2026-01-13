@@ -217,6 +217,15 @@ const Settings = () => {
         {/* Notifications */}
         <SettingSection icon={Bell} title={t('notifications')}>
           <SettingRow 
+            label={t('emailNotifications')} 
+            description={t('emailNotificationsDesc')}
+          >
+            <Toggle 
+              enabled={settings.emailNotifications} 
+              onToggle={() => handleToggle('emailNotifications')} 
+            />
+          </SettingRow>
+          <SettingRow 
             label="Push Notifications" 
             description={t('pushNotificationsDesc')}
           >

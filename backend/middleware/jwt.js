@@ -4,8 +4,8 @@ const User = require("../models/User");
 
 // Original token verification for backward compatibility
 const verifyToken = (req, res, next) => {
-    // Check both cookie and Authorization header
-    const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+    // Check both Authorization header and cookie (preference to header)
+    const token = req.headers.authorization?.split(" ")[1] || req.cookies.accessToken;
     
     if (!token) return res.status(401).json({ message: "You are not authenticated!" });
     
@@ -97,7 +97,8 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
 const verifyTokenEnhanced = async (req, res, next) => {
 
     try {
-        const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+        // Prefer Authorization header over cookie, particularly for admin panel to avoid session conflicts
+        const token = req.headers.authorization?.split(" ")[1] || req.cookies.accessToken;
         if (!token) {
             return res.status(401).json({ 
                 success: false, 
@@ -189,11 +190,11 @@ const checkRoleEnhanced = (allowedRoles, options = {}) => {
                 checkPermissions = [] // Additional permissions to check
             } = options;
 
-            const userRole = req.user.role;
+            const userRole = req.user.role?.toLowerCase();
             const userRoleLevel = ROLE_HIERARCHY[userRole] || 0;
 
-            // Convert single role to array for consistency
-            const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+            // Convert single role to array for consistency and normalize to lowercase
+            const rolesArray = (Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]).map(r => r.toLowerCase());
 
             // Check if user has required role(s)
             let hasAccess = false;
@@ -211,8 +212,9 @@ const checkRoleEnhanced = (allowedRoles, options = {}) => {
 
             // Additional permission checks
             if (hasAccess && checkPermissions.length > 0) {
+                const userPermissions = req.user.permissions || [];
                 hasAccess = checkPermissions.every(permission => 
-                    req.user.hasPermission(permission)
+                    userPermissions.includes(permission)
                 );
             }
 

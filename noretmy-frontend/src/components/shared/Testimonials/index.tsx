@@ -116,7 +116,7 @@ const Testimonials: React.FC<TestimonialProps> = ({ id }) => {
                   </div>
                   <div className="flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full flex-shrink-0">
                     <CheckCircle className="w-3 h-3" />
-                    <span>Verified</span>
+                    <span>{t('home:testimonials.header.verified')}</span>
                   </div>
                 </div>
               </div>

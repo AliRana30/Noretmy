@@ -287,19 +287,6 @@ const PrivacyPolicyPage: React.FC = () => {
                   you may have the right to lodge a complaint with your local data protection authority.
                 </p>
 
-                <div className="flex flex-wrap gap-4 mt-4">
-                  <Link href="/legal-notice" className="text-sm text-blue-600 hover:text-blue-800">
-                    Legal Notice
-                  </Link>
-                  <Link href="/terms-condition" className="text-sm text-blue-600 hover:text-blue-800">
-                    Terms & Conditions
-                  </Link>
-                 
-                </div>
-
-                <p className="text-sm text-gray-500 mt-4">
-                  © {new Date().getFullYear()} Noretmy LLC. All rights reserved.
-                </p>
               </div>
             </div>
           </div>

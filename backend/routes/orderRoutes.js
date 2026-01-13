@@ -33,7 +33,8 @@ const {
   approveDelivery,
   approveProgress,
   requestTimelineExtension,
-  advanceOrderStatus
+  advanceOrderStatus,
+  cancelOrder
 } = require('../controllers/orderControllers');
 const { verifyToken, checkRole } = require('../middleware/jwt');
 const { upload } = require('../utils/uploadFiles');
@@ -73,6 +74,7 @@ router.post("/timeline/extend", verifyToken, requestTimelineExtension);
 router.put("/approve-delivery", verifyToken, approveDelivery);
 router.put("/approve-progress", verifyToken, approveProgress);
 router.post("/advance-status", verifyToken, advanceOrderStatus);
+router.put("/cancel", verifyToken, cancelOrder);
 
 // Payment after completion (milestone/after-delivery payment)
 router.post("/complete-payment-milestone", verifyToken, completeOrderWithPayment);

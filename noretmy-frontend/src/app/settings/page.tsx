@@ -255,12 +255,7 @@ const SettingsScreen: React.FC = () => {
                   label: 'Payment Reminders',
                   description: 'Get alerts about upcoming or overdue payments',
                 },
-                {
-                  key: 'weeklyPerformanceSummary',
-                  label: 'Weekly Performance Summary',
-                  description:
-                    'Receive a weekly digest of your platform activity',
-                },
+               
               ].map((notification) => (
                 <div
                   key={notification.key}

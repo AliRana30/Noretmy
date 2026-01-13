@@ -37,6 +37,7 @@ const AddJobScreen: React.FC = () => {
   const [jobStatus, setJobStatus] = useState('Available');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [currentSection, setCurrentSection] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   type PlanType = 'basic' | 'premium' | 'pro';
 
@@ -137,7 +138,7 @@ const AddJobScreen: React.FC = () => {
       return;
     }
 
-    if (!selectedOption) {
+    if (selectedOption === null) {
       showError('Please select a promotion type.');
       return;
     }
@@ -147,6 +148,7 @@ const AddJobScreen: React.FC = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       // ⏳ PREPARE FORM DATA
       const formData = new FormData();
@@ -186,11 +188,13 @@ const AddJobScreen: React.FC = () => {
       setJobStatus('');
       setAddons([]);
 
+      showSuccess('Gig created successfully!');
+
       // 🚀 REDIRECT BASED ON PLAN
       if (selectedOption !== 3) {
         const sPlan = upgradeOptions[selectedOption];
         const query = new URLSearchParams({
-          gigId: String(response.data._id),
+          gigId: String(response.data.data._id),
           promotionalPlan: String(sPlan.value),
           title: String(sPlan.title),
           price: String(sPlan.price),
@@ -199,9 +203,10 @@ const AddJobScreen: React.FC = () => {
         }).toString();
 
         router.push(`/checkout?${query}`);
+      } else {
+        // Redirect to gigs page for free plan
+        router.push('/dashboard/gigs');
       }
-
-      showSuccess('Gig created successfully!');
     } catch (error) {
       console.error('Error posting job:', error);
       if (axios.isAxiosError(error)) {
@@ -210,6 +215,8 @@ const AddJobScreen: React.FC = () => {
       } else {
         showError('An unexpected error occurred.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -330,6 +337,7 @@ const AddJobScreen: React.FC = () => {
           setJobStatus={setJobStatus}
           onBack={() => handleSectionChange('back')}
           onSubmit={handleSubmit}
+          isLoading={isLoading}
         />
       </div>
 

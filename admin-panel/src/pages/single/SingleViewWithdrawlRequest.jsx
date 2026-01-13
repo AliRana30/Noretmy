@@ -22,7 +22,9 @@ const ViewWithdrawalRequest = () => {
         setLoading(true);
         setError(null);
         const res = await getAdminWithdrawalDetail(resolvedId);
-        setRequestData(res?.data || res || null);
+        console.log('[Withdrawal Detail] API Response:', res);
+        // Backend returns the data directly, not wrapped in .data
+        setRequestData(res || null);
       } catch (err) {
         setError(err?.message || 'Failed to load withdrawal request');
       } finally {
@@ -44,32 +46,31 @@ const ViewWithdrawalRequest = () => {
     return <ErrorMessage message="Withdrawal request not found" onRetry={() => window.location.reload()} retryText="Retry" />;
   }
 
-  const detail = requestData?.data?.withdrawRequest || requestData?.withdrawRequest || requestData;
-  const fallbackUser = {
+  // requestData is the direct API response
+  // Backend returns: { success, ...withdrawRequest, userId, user, username, email, withdrawalMethod, payoutEmail }
+  const detail = requestData;
+  
+  // User object - backend returns populated user object or flattened fields
+  const populatedUser = requestData?.user || {
+    _id: requestData?.userId,
     username: requestData?.username,
     fullName: requestData?.fullName,
     email: requestData?.email,
   };
-  const populatedUser = (detail?.user && typeof detail.user === 'object')
-    ? detail.user
-    : (detail?.userId && typeof detail.userId === 'object')
-      ? detail.userId
-      : (requestData?.user && typeof requestData.user === 'object')
-        ? requestData.user
-        : (requestData?.userId && typeof requestData.userId === 'object')
-          ? requestData.userId
-          : fallbackUser;
 
   const normalized = useMemo(() => {
     const amount = typeof detail?.amount === 'number' ? detail.amount : Number(detail?.amount || 0);
-    const status = detail?.status || requestData?.status || 'pending';
-    const createdAt = detail?.createdAt || requestData?.createdAt;
-    const updatedAt = detail?.updatedAt || requestData?.updatedAt;
-    const method = requestData?.withdrawalMethod || detail?.paymentMethod || detail?.withdrawalMethod || requestData?.paymentMethod;
-    const payoutEmail = requestData?.payoutEmail || detail?.payoutEmail || detail?.paypalEmail || requestData?.paypalEmail;
+    const status = detail?.status || 'pending';
+    const createdAt = detail?.createdAt;
+    const updatedAt = detail?.updatedAt;
+    // withdrawalMethod and payoutEmail are at root level of response
+    const method = detail?.withdrawalMethod || null;
+    const payoutEmail = detail?.payoutEmail || null;
+
+    console.log('[Withdrawal Detail] Normalized:', { method, payoutEmail, email: populatedUser?.email });
 
     return {
-      id: detail?._id || requestData?._id || requestData?.requestId || resolvedId,
+      id: detail?._id || resolvedId,
       amount,
       status,
       createdAt,
@@ -78,7 +79,7 @@ const ViewWithdrawalRequest = () => {
       payoutEmail,
       user: populatedUser || {},
     };
-  }, [detail, populatedUser, requestData, resolvedId]);
+  }, [detail, populatedUser, resolvedId]);
 
   const formatMoney = (value) => {
     const n = typeof value === 'number' ? value : Number(value || 0);
@@ -207,6 +208,7 @@ const ViewWithdrawalRequest = () => {
             </div>
           </div>
 
+          {/* Raw IDs */}
           <h3 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             Request Metadata
           </h3>

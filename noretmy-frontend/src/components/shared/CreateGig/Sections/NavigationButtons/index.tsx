@@ -7,6 +7,7 @@ interface ButtonProps {
   className?: string;
   icon?: ReactNode;
   iconPosition?: 'left' | 'right';
+  disabled?: boolean;
 }
 
 interface NavigationButtonsProps {
@@ -21,10 +22,11 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   <div className="flex justify-between mt-4">
     {leftButton ? (
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: leftButton.disabled ? 1 : 1.1 }}
+        whileTap={{ scale: leftButton.disabled ? 1 : 0.95 }}
         onClick={leftButton.onClick}
         className={leftButton.className}
+        disabled={leftButton.disabled}
       >
         {leftButton.icon && leftButton.iconPosition === 'left' && (
           <span className="mr-2">{leftButton.icon}</span>
@@ -39,10 +41,11 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     )}
     {rightButton && (
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: rightButton.disabled ? 1 : 1.1 }}
+        whileTap={{ scale: rightButton.disabled ? 1 : 0.95 }}
         onClick={rightButton.onClick}
         className={rightButton.className}
+        disabled={rightButton.disabled}
       >
         {rightButton.icon && rightButton.iconPosition === 'left' && (
           <span className="mr-2">{rightButton.icon}</span>

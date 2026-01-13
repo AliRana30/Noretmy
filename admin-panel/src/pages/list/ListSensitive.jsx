@@ -3,6 +3,8 @@ import { getSensitiveMessages } from "../../datatablesource";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import commonTranslations from "../../localization/common.json";
+import listTranslations from "../../localization/list.json";
+import datatableColumnsTranslations from "../../localization/datatableColumns.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import { AlertTriangle, Search, Filter, AlertCircle, Ban, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
 import axios from "axios";
@@ -125,7 +127,7 @@ const ListSensitive = () => {
       <ErrorMessage 
         message={`${getTranslation(commonTranslations, "error")}: ${error}`}
         onRetry={loadData}
-        retryText="Retry"
+        retryText={getTranslation(commonTranslations, "retry")}
       />
     );
   }
@@ -136,10 +138,10 @@ const ListSensitive = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Sensitive Messages
+            {getTranslation(listTranslations, "sensitiveMessages")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Review and moderate flagged messages
+            {getTranslation(listTranslations, "sensitiveSubtitle")}
           </p>
         </div>
         <button
@@ -151,16 +153,16 @@ const ListSensitive = () => {
           }`}
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          {getTranslation(listTranslations, "refresh")}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Flagged', value: data.length, color: '#ef4444' },
-          { label: 'Pending Review', value: data.filter(m => !m.reviewed).length, color: '#f59e0b' },
-          { label: 'Reviewed', value: data.filter(m => m.reviewed).length, color: '#22c55e' },
+          { label: getTranslation(listTranslations, "totalFlagged"), value: data.length, color: '#ef4444' },
+          { label: getTranslation(listTranslations, "pendingReview"), value: data.filter(m => !m.reviewed).length, color: '#f59e0b' },
+          { label: getTranslation(listTranslations, "reviewed"), value: data.filter(m => m.reviewed).length, color: '#22c55e' },
         ].map(({ label, value, color }) => (
           <div 
             key={label}
@@ -196,7 +198,7 @@ const ListSensitive = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search messages..."
+            placeholder={getTranslation(listTranslations, "searchMessages")}
             className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-all outline-none ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500' 
@@ -216,13 +218,13 @@ const ListSensitive = () => {
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>User ID</th>
+                }`}>{getTranslation(commonTranslations, "userId")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Message</th>
+                }`}>{getTranslation(datatableColumnsTranslations, "message")}</th>
                 <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>Actions</th>
+                }`}>{getTranslation(commonTranslations, "actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -249,7 +251,7 @@ const ListSensitive = () => {
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
                       >
                         <AlertCircle className="w-3 h-3" />
-                        {actionLoading === msg.userId + '-warn' ? 'Warning...' : 'Warn'}
+                        {actionLoading === msg.userId + '-warn' ? getTranslation(listTranslations, "warning") : getTranslation(listTranslations, "warn")}
                       </button>
                       <button
                         onClick={() => handleBlock(msg.userId)}
@@ -257,7 +259,7 @@ const ListSensitive = () => {
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
                       >
                         <Ban className="w-3 h-3" />
-                        {actionLoading === msg.userId + '-block' ? 'Blocking...' : 'Block'}
+                        {actionLoading === msg.userId + '-block' ? getTranslation(listTranslations, "blocking") : getTranslation(listTranslations, "block")}
                       </button>
                     </div>
                   </td>
@@ -271,7 +273,7 @@ const ListSensitive = () => {
           <div className="p-12 text-center">
             <AlertTriangle className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
             <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No sensitive messages found
+              {getTranslation(listTranslations, "noData")}
             </p>
           </div>
         )}
@@ -281,7 +283,7 @@ const ListSensitive = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} messages
+             {getTranslation(listTranslations, "showing")} {((currentPage - 1) * itemsPerPage) + 1} {getTranslation(commonTranslations, "to")} {Math.min(currentPage * itemsPerPage, filteredData.length)} {getTranslation(listTranslations, "of")} {filteredData.length} {getTranslation(listTranslations, "messages")}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -331,7 +333,7 @@ const ListSensitive = () => {
           }`}>
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Block User
+                {getTranslation(listTranslations, "blockUser")}
               </h3>
               <button 
                 onClick={() => { setBlockModalOpen(false); setBlockUserId(null); setBlockReason(''); }}
@@ -346,17 +348,17 @@ const ListSensitive = () => {
             <div className="mb-6">
               <div className={`p-4 rounded-xl mb-4 ${darkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
                 <p className={`text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
-                  <strong>Warning:</strong> Blocking this user will prevent them from accessing their account and using the platform.
+                  <strong>{getTranslation(commonTranslations, "error")}:</strong> {getTranslation(listTranslations, "blockUserWarning")}
                 </p>
               </div>
               
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Reason for blocking *
+                {getTranslation(listTranslations, "reasonForBlocking")}
               </label>
               <textarea
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                placeholder="Enter the reason for blocking this user..."
+                placeholder={getTranslation(listTranslations, "enterBlockingReason")}
                 rows={4}
                 className={`w-full px-4 py-3 rounded-xl text-sm transition-all outline-none resize-none ${
                   darkMode
@@ -375,7 +377,7 @@ const ListSensitive = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Cancel
+                {getTranslation(commonTranslations, "cancel")}
               </button>
               <button
                 onClick={confirmBlock}
@@ -387,7 +389,7 @@ const ListSensitive = () => {
                 ) : (
                   <>
                     <Ban className="w-5 h-5" />
-                    Block User
+                    {getTranslation(listTranslations, "blockUser")}
                   </>
                 )}
               </button>

@@ -171,32 +171,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             })}
           </nav>
         </div>
-
-        {/* Quick Actions */}
-        {quickActions.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('profile:sidebar.quickActions', 'Quick Actions')}
-              </h4>
-            </div>
-            <div className="p-3 space-y-2">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={action.id}
-                    onClick={() => router.push(action.href)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 group"
-                  >
-                    <Icon className="w-4 h-4 text-orange-500/70 group-hover:text-orange-600 transition-colors" />
-                    <span className="text-sm">{action.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
     </aside>
   );

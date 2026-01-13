@@ -314,9 +314,7 @@ const uploadChatFiles = async (req, res) => {
           conversationId,
           attachmentCount: attachmentsForMessage.length,
           attachmentNames: attachmentsForMessage.map(a => a.name).slice(0, 3) // First 3 file names
-        }).catch(err => {
-          console.error("Error sending chat attachment email:", err);
-        });
+        }).catch(err => console.error("Error sending chat attachment email:", err));
       }
     } catch (emailError) {
       console.error("Error sending chat attachment email:", emailError);
