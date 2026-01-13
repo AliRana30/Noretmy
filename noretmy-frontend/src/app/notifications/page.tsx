@@ -18,10 +18,12 @@ import {
 import { SkeletonNotification } from '@/components/shared/Skeletons';
 import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/context/NotificationContext';
+import { useTranslations } from '@/hooks/useTranslations';
 import moment from 'moment';
 
 // Notification Page Component
 const NotificationsPage: React.FC = () => {
+  const { t } = useTranslations('notifications');
   const {
     notifications,
     unreadCount,
@@ -57,14 +59,14 @@ const NotificationsPage: React.FC = () => {
               <div className="p-2 bg-orange-100 rounded-xl">
                 <Bell className="w-6 h-6 text-orange-600" />
               </div>
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Notifications</h1>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('notifications:title')}</h1>
               {unreadCount > 0 && (
                 <span className="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-orange-200 uppercase tracking-wider animate-bounce">
-                  {unreadCount} New
+                  {unreadCount} {t('notifications:new')}
                 </span>
               )}
             </div>
-            <p className="text-gray-500 font-medium">Stay updated with your latest activity and alerts</p>
+            <p className="text-gray-500 font-medium">{t('notifications:subtitle')}</p>
           </div>
 
           {notifications.length > 0 && (
@@ -75,7 +77,7 @@ const NotificationsPage: React.FC = () => {
                   className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-orange-200 hover:text-orange-600 shadow-sm transition-all active:scale-95"
                 >
                   <CheckCheck className="w-4 h-4 text-orange-500" />
-                  Mark all as read
+                  {t('notifications:markAllAsRead')}
                 </button>
               )}
             </div>
@@ -94,8 +96,8 @@ const NotificationsPage: React.FC = () => {
             <div className="w-24 h-24 mx-auto mb-6 bg-orange-50 rounded-full flex items-center justify-center">
               <Bell className="w-12 h-12 text-orange-400 opacity-50" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">You're all caught up!</h3>
-            <p className="text-gray-500 max-w-xs mx-auto">No new notifications at the moment. We'll let you know when something important happens.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('notifications:empty.title')}</h3>
+            <p className="text-gray-500 max-w-xs mx-auto">{t('notifications:empty.description')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -144,6 +146,8 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
     }
   };
 
+  const { t } = useTranslations();
+
   return (
     <div
       onClick={onClick}
@@ -169,10 +173,10 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           <div className="flex items-center justify-between gap-4 mb-1">
             <div className="flex items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${notification.type === 'order' ? 'bg-orange-100 text-orange-700' :
-                  notification.type === 'payment' ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-600'
+                notification.type === 'payment' ? 'bg-green-100 text-green-700' :
+                  'bg-gray-100 text-gray-600'
                 }`}>
-                {notification.type}
+                {t(`notifications:type.${notification.type}` as any) || notification.type}
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -204,7 +208,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
 
           {notification.link && (
             <div className="mt-4 flex items-center gap-2 text-xs font-black text-orange-500 uppercase tracking-tighter group-hover:tracking-normal transition-all">
-              Details and Action <ExternalLink className="w-3.5 h-3.5" />
+              {t('notifications:detailsAndAction')} <ExternalLink className="w-3.5 h-3.5" />
             </div>
           )}
         </div>
@@ -213,7 +217,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
       {/* Unread Indicator Dot */}
       {!notification.isRead && (
         <div className="absolute top-0 right-0 p-2 origin-top-right">
-          <div className="w-3 i-3 bg-orange-500 rounded-full border-2 border-white shadow-sm animate-pulse" />
+          <div className="w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm animate-pulse" />
         </div>
       )}
     </div>

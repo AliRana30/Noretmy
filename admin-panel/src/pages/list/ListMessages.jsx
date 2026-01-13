@@ -40,10 +40,12 @@ import { useState, useEffect, useContext } from "react";
     try {
       await deleteNotification(id);
       setData((prevData) => prevData.filter((item) => item._id !== id));
-      toast.success('Notification deleted successfully');
+      toast.success(getTranslation(commonTranslations, "deletedSuccess") || 'Notification deleted successfully');
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to delete notification');
+      console.error('Delete notification error:', err);
+      // Show the actual error message from the API
+      const errorMessage = err.message || 'Failed to delete notification';
+      toast.error(errorMessage);
     }
   };
 
@@ -51,7 +53,7 @@ import { useState, useEffect, useContext } from "react";
     try {
       await markNotificationAsRead(id);
       setData((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
-      toast.success('Notification marked as read');
+      toast.success(getTranslation(listTranslations, "markedReadSuccess") || 'Notification marked as read');
     } catch (err) {
       console.error('Mark notification as read error:', err);
       toast.error(err.message || 'Failed to mark as read');
@@ -70,7 +72,7 @@ import { useState, useEffect, useContext } from "react";
               className="px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
               onClick={() => handleMarkRead(params.row._id)}
             >
-              Mark read
+              {getTranslation(listTranslations, "markRead")}
             </div>
           )}
           {process.env.NODE_ENV !== 'production' && (
@@ -96,10 +98,10 @@ import { useState, useEffect, useContext } from "react";
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              All Notifications
+              {getTranslation(listTranslations, "allNotifications")}
             </h1>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              View all system notifications
+              {getTranslation(listTranslations, "notificationsSubtitle")}
             </p>
           </div>
         </div>
@@ -112,7 +114,7 @@ import { useState, useEffect, useContext } from "react";
           }`}
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          {getTranslation(listTranslations, "refresh")}
         </button>
       </div>
 
@@ -126,7 +128,7 @@ import { useState, useEffect, useContext } from "react";
         <ErrorMessage 
           message={`${getTranslation(commonTranslations, "error")}: ${error}`}
           onRetry={loadData}
-          retryText="Retry"
+          retryText={getTranslation(commonTranslations, "retry") || "Retry"}
         />
       )}
 

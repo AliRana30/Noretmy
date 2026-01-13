@@ -1,18 +1,25 @@
 {
   "title": "Notificaciones",
+  "subtitle": "Administra tus alertas y mantente actualizado con la actividad reciente",
+  "new": "Nuevas",
   "markAllAsRead": "Marcar todo como leído",
+  "detailsAndAction": "Detalles y Acción",
   "empty": {
-    "title": "Sin notificaciones",
-    "description": "¡Estás al día!"
+    "title": "¡Estás al día!",
+    "description": "No hay notificaciones nuevas en este momento. Te avisaremos cuando ocurra algo importante."
   },
   "error": {
     "failed": "No se pudieron cargar las notificaciones."
   },
   "type": {
     "message": "Mensaje",
+    "order": "Pedido",
+    "payment": "Pago",
+    "success": "Éxito",
     "system": "Sistema",
     "alert": "Alerta",
+    "warning": "Advertencia",
     "default": "Notificación"
   },
   "delete": "Eliminar notificación"
-} 
+}

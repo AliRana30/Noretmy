@@ -1,0 +1,22 @@
+{
+    "title": "Mis Favoritos",
+    "back": "Atrás",
+    "gigSaved": "servicio guardado",
+    "gigsSaved": "servicios guardados",
+    "loading": "Cargando tus favoritos...",
+    "empty": {
+        "title": "Aún no tienes favoritos",
+        "description": "Explora servicios y haz clic en el icono del corazón para guardar tus favoritos aquí y acceder a ellos fácilmente más tarde.",
+        "button": "Explorar Servicios"
+    },
+    "startingAt": "Desde",
+    "viewGig": "Ver Servicio",
+    "service": "Servicio",
+    "days": "días",
+    "toast": {
+        "signIn": "Por favor, inicia sesión para ver tus favoritos",
+        "fetchError": "No se pudieron cargar los favoritos",
+        "removeSuccess": "Eliminado de favoritos",
+        "removeError": "Error al eliminar de favoritos"
+    }
+}

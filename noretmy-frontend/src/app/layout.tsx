@@ -35,19 +35,19 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang={i18next.language} suppressHydrationWarning style={{ overflowX: 'hidden', maxWidth: '100%' }}>
+    <html lang={i18next.language} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <link rel="icon" href="/logo/noretmy_logo.png" />
         <title>Noretmy</title>
         <meta name="description" content="Providing solutions for your business" />
       </head>
-      <body className={poppins.className} style={{ overflowX: 'hidden', maxWidth: '100%', width: '100%', position: 'relative', margin: 0, padding: 0 }}>
+      <body className={poppins.className}>
         <ReduxProvider store={store}>
           <NotificationProvider>
-            <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative">
+            <div className="flex flex-col min-h-screen w-full relative">
               <Navbar />
-              <main className="flex-grow w-full max-w-full overflow-x-hidden relative">
+              <main className="flex-grow w-full relative">
                 {children}
               </main>
               <Footer />

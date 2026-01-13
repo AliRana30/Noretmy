@@ -17,6 +17,7 @@ export function getOptions(lng = 'en') {
       'search',
       'order-request',
       'notifications',
+      'favorites',
     ],
     interpolation: {
       escapeValue: false,

@@ -1,52 +1,75 @@
-/* Comprehensive overflow fix */
+/* SCROLLBAR NUKE - AGGRESSIVE FIX */
 
-/* Root level - prevent any horizontal scroll */
+/* locking html prevents the outer browser scrollbar from fighting with body */
 html {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-height: 100vh !important;
 }
 
+/* body becomes the only scrolling element */
 body {
+    overflow-y: auto !important;
     overflow-x: hidden !important;
-    max-width: 100% !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative;
+}
+
+/* Ensure no other containers invoke scrollbars */
+#__next,
+main,
+.flex-col,
+.min-h-screen,
+[class*="PageTransitionWrapper"] {
+    overflow: visible !important;
+    height: auto !important;
     width: 100% !important;
+    max-height: none !important;
 }
 
-/* Next.js root */
-#__next {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
-}
-
-/* Main content area */
-main {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* All sections and containers */
-section {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
-}
-
-/* Specifically target animation containers */
+/* Fix for animation containers */
 [class*="AnimateOnScroll"] {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
+    overflow: visible !important;
 }
 
-/* Hero and large sections */
-.hero,
-[class*="Hero"],
-[class*="hero"] {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
+/* Hide scrollbars on everything except body */
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
 }
 
-/* Container classes */
-.container,
-[class*="container"] {
-    max-width: 100% !important;
+body::-webkit-scrollbar {
+    width: 8px;
+    display: block !important;
+}
+
+body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Mobile specific fixes */
+@media (max-width: 768px) {
+
+    html,
+    body {
+        height: 100% !important;
+        overflow-y: auto !important;
+        /* Revert to standard scrolling on mobile */
+        -webkit-overflow-scrolling: touch;
+    }
 }

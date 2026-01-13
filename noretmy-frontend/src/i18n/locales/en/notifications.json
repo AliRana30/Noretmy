@@ -1,18 +1,25 @@
 {
   "title": "Notifications",
+  "subtitle": "Manage your alerts and staying updated with recent activity",
+  "new": "New",
   "markAllAsRead": "Mark all as read",
+  "detailsAndAction": "Details and Action",
   "empty": {
-    "title": "No notifications",
-    "description": "You're all caught up!"
+    "title": "You're all caught up!",
+    "description": "No new notifications at the moment. We'll let you know when something important happens."
   },
   "error": {
     "failed": "Failed to load notifications."
   },
   "type": {
     "message": "Message",
+    "order": "Order",
+    "payment": "Payment",
+    "success": "Success",
     "system": "System",
     "alert": "Alert",
+    "warning": "Warning",
     "default": "Notification"
   },
   "delete": "Delete Notification"
-} 
+}

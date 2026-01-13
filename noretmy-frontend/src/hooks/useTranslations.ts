@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-export const useTranslations = () => {
-  const { t, i18n } = useTranslation();
+export const useTranslations = (ns?: string | string[]) => {
+  const { t, i18n } = useTranslation(ns);
 
   const changeLanguage = async (language: string) => {
     try {

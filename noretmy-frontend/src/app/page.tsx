@@ -128,7 +128,7 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
 
-      <main className="overflow-x-hidden">
+      <div className="">
         <PageTransitionWrapper>
           {(navigateWithTransition) => (
             <>
@@ -199,7 +199,7 @@ const Home = () => {
             </>
           )}
         </PageTransitionWrapper>
-      </main>
+      </div>
     </>
   );
 };

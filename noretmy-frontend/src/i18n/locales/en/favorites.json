@@ -1,0 +1,22 @@
+{
+    "title": "My Favorites",
+    "back": "Back",
+    "gigSaved": "gig saved",
+    "gigsSaved": "gigs saved",
+    "loading": "Loading your favorites...",
+    "empty": {
+        "title": "No favorites yet",
+        "description": "Browse gigs and click the heart icon to save your favorites here for easy access later.",
+        "button": "Browse Gigs"
+    },
+    "startingAt": "Starting at",
+    "viewGig": "View Gig",
+    "service": "Service",
+    "days": "days",
+    "toast": {
+        "signIn": "Please sign in to view your favorites",
+        "fetchError": "Failed to load favorites",
+        "removeSuccess": "Removed from favorites",
+        "removeError": "Failed to remove from favorites"
+    }
+}

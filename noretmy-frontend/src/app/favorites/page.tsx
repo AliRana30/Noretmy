@@ -8,8 +8,7 @@ import Link from 'next/link';
 import { Heart, Star, Clock, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axiosInstance from '@/lib/axiosInstance';
-import { useTranslation } from 'react-i18next';
-import Footer from '@/components/ui/Footer';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface FavoriteGig {
   _id: string;
@@ -36,7 +35,7 @@ interface FavoriteGig {
 }
 
 const FavoritesPage = () => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslations('favorites');
   const router = useRouter();
   const user = useSelector((state: any) => state?.auth?.user);
   const isLoggedIn = !!user;
@@ -47,7 +46,7 @@ const FavoritesPage = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      toast.info('Please sign in to view your favorites', {
+      toast.info(t('favorites:toast.signIn'), {
         position: 'top-center',
         autoClose: 3000,
       });
@@ -64,7 +63,7 @@ const FavoritesPage = () => {
       setFavorites(response.data.favorites || []);
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      toast.error('Failed to load favorites');
+      toast.error(t('favorites:toast.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -78,10 +77,10 @@ const FavoritesPage = () => {
     try {
       await axiosInstance.delete(`/users/favorites/${gigId}`);
       setFavorites(prev => prev.filter(fav => fav._id !== gigId));
-      toast.success('Removed from favorites');
+      toast.success(t('favorites:toast.removeSuccess'));
     } catch (error) {
       console.error('Error removing favorite:', error);
-      toast.error('Failed to remove from favorites');
+      toast.error(t('favorites:toast.removeError'));
     } finally {
       setRemovingIds(prev => {
         const newSet = new Set(prev);
@@ -113,16 +112,16 @@ const FavoritesPage = () => {
               className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
+              <span>{t('favorites:back')}</span>
             </button>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
                 <Heart className="w-6 h-6 text-white fill-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">My Favorites</h1>
+                <h1 className="text-3xl font-bold text-white">{t('favorites:title')}</h1>
                 <p className="text-slate-400">
-                  {favorites.length} {favorites.length === 1 ? 'gig' : 'gigs'} saved
+                  {favorites.length} {favorites.length === 1 ? t('favorites:gigSaved') : t('favorites:gigsSaved')}
                 </p>
               </div>
             </div>
@@ -132,22 +131,22 @@ const FavoritesPage = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-              <p className="text-slate-400">Loading your favorites...</p>
+              <p className="text-slate-400">{t('favorites:loading')}</p>
             </div>
           ) : favorites.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mb-6">
                 <Heart className="w-12 h-12 text-slate-600" />
               </div>
-              <h2 className="text-2xl font-semibold text-white mb-2">No favorites yet</h2>
+              <h2 className="text-2xl font-semibold text-white mb-2">{t('favorites:empty.title')}</h2>
               <p className="text-slate-400 text-center max-w-md mb-6">
-                Browse gigs and click the heart icon to save your favorites here for easy access later.
+                {t('favorites:empty.description')}
               </p>
               <Link
                 href="/search-gigs"
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all"
               >
-                Browse Gigs
+                {t('favorites:empty.button')}
               </Link>
             </div>
           ) : (
@@ -164,7 +163,6 @@ const FavoritesPage = () => {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 };
@@ -176,6 +174,7 @@ interface FavoriteCardProps {
 }
 
 const FavoriteCard: React.FC<FavoriteCardProps> = ({ gig, onRemove, isRemoving }) => {
+  const { t } = useTranslations('favorites');
   const [imageError, setImageError] = useState(false);
 
   const displayPrice = gig.pricingPlan?.basic?.price || 0;
@@ -198,7 +197,7 @@ const FavoriteCard: React.FC<FavoriteCardProps> = ({ gig, onRemove, isRemoving }
           {/* Category Badge */}
           <div className="absolute top-3 left-3">
             <span className="bg-orange-500/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
-              {gig.cat || 'Service'}
+              {gig.cat || t('favorites:service')}
             </span>
           </div>
 
@@ -261,21 +260,21 @@ const FavoriteCard: React.FC<FavoriteCardProps> = ({ gig, onRemove, isRemoving }
           </div>
           <div className="flex items-center gap-1 text-slate-400">
             <Clock className="w-4 h-4" />
-            <span>{deliveryDays} days</span>
+            <span>{deliveryDays} {t('favorites:days')}</span>
           </div>
         </div>
 
         {/* Price & Action */}
         <div className="pt-4 border-t border-white/10 flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-400">Starting at</span>
+            <span className="text-xs text-slate-400">{t('favorites:startingAt')}</span>
             <p className="text-xl font-bold text-white">${displayPrice.toFixed(0)}</p>
           </div>
           <Link
             href={`/gig/${gig._id}`}
             className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all"
           >
-            View Gig
+            {t('favorites:viewGig')}
           </Link>
         </div>
       </div>
