@@ -133,15 +133,15 @@ const NotificationBell: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-0.5">
                                                     {notification.title && (
-                                                        <p className={`text-sm font-bold truncate ${notification.isRead ? '!text-gray-700' : '!text-gray-900'}`}>
+                                                        <p className="text-sm font-bold truncate !text-gray-900 dark:!text-gray-100" style={{ color: '#111827 !important' }}>
                                                             {notification.title}
                                                         </p>
                                                     )}
-                                                    <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
+                                                    <span className="text-[10px] !text-gray-500 whitespace-nowrap ml-2" style={{ color: '#6b7280 !important' }}>
                                                         {moment(notification.createdAt).fromNow(true)}
                                                     </span>
                                                 </div>
-                                                <p className={`text-sm leading-relaxed ${notification.isRead ? '!text-gray-500' : '!text-gray-700'} line-clamp-2`}>
+                                                <p className="text-sm leading-relaxed !text-gray-700 dark:!text-gray-300 line-clamp-2" style={{ color: '#374151 !important' }}>
                                                     {notification.message}
                                                 </p>
                                                 {notification.link && (
