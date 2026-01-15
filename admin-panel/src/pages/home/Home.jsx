@@ -25,7 +25,6 @@ const Home = () => {
     adminStats: null,
     loading: true,
     error: null,
-    // Additional stats
     totalUsers: 0,
     totalOrders: 0,
     totalJobs: 0,
@@ -56,16 +55,12 @@ const Home = () => {
     setDashboardData(prev => ({ ...prev, ...updates }));
   };
 
-  // Load dashboard data from local endpoints
   const loadLocalDashboard = async () => {
     try {
-      // Fetch users
       const users = await fetchData();
       
-      // Fetch orders
       const orders = await getOrders();
       
-      // Fetch jobs
       const jobs = await getJobs();
 
       const today = new Date().setHours(0, 0, 0, 0);
@@ -125,7 +120,6 @@ const Home = () => {
     }
   };
 
-  // Load admin dashboard stats
   const loadAdminDashboard = async () => {
     try {
       const adminResponse = await getAdminDashboardStats();
@@ -164,7 +158,6 @@ const Home = () => {
         if (isAdmin()) {
           await loadAdminDashboard();
         } else {
-          // Only load local data if not an admin or if admin stats failed
           await loadLocalDashboard();
         }
       } catch (error) {
@@ -178,7 +171,6 @@ const Home = () => {
     loadDashboardData();
   }, [isAdmin, currentLanguage]);
 
-  // Quick Stats Cards
   const QuickStats = () => {
     const stats = [
       { label: getTranslation(homeTranslations, "pendingOrders"), value: pendingOrders, icon: Clock, color: '#f59e0b' },
@@ -214,7 +206,6 @@ const Home = () => {
     );
   };
 
-  // Admin Analytics Cards
   const AdminAnalyticsSection = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* User Breakdown */}
@@ -265,7 +256,6 @@ const Home = () => {
     </div>
   );
 
-  // Quick Actions
   const QuickActions = () => {
     const actions = [
       { href: '/admin/users', icon: <Users className="w-6 h-6 text-orange-500" />, title: getTranslation(homeTranslations, "manageUsers"), subtitle: `${totalUsers} ${getTranslation(homeTranslations, "users")}`, permission: 'user_management' },
@@ -300,7 +290,6 @@ const Home = () => {
     );
   };
 
-  // Loading State
   if (loading) {
     return (
       <div className="w-full">
@@ -313,7 +302,6 @@ const Home = () => {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <ErrorMessage 

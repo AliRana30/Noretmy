@@ -26,7 +26,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Change language on client side if saved in localStorage
   useEffect(() => {
     const savedLang = localStorage.getItem('i18nextLng');
     if (savedLang && i18next.language !== savedLang) {

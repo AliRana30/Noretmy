@@ -9,7 +9,6 @@ const AddNewFaq = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load categories on component mount
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -23,7 +22,6 @@ const AddNewFaq = () => {
     loadCategories();
   }, []);
 
-  // Load FAQs when category changes
   useEffect(() => {
     if (selectedCategory) {
       loadFaqs(selectedCategory);

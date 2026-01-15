@@ -9,7 +9,6 @@ router.post('/',verifyToken, checkRole(["seller"]),handleWithdrawalRequest);
 router.post('/reject', verifyToken, ...requireAdmin, rejectWithdrawRequest);
 router.post('/:requestId/approve', verifyToken, ...requireAdmin, approveWithdrawRequest);
 router.get('/', verifyToken, ...requireAdmin, getAllWithdrawRequests);
-// IMPORTANT: Specific routes must come before parameterized routes
 router.get('/request/user',verifyToken,checkRole(["seller"]),getUserWithdrawalRequest);
 router.get('/:requestId', verifyToken, ...requireAdmin, getWithdrawRequestDetail)
 

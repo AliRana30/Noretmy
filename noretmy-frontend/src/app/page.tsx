@@ -12,13 +12,11 @@ import { useEffect, useState } from 'react';
 import i18n from '@/i18n';
 import AnimateOnScroll from '@/components/shared/AnimateOnScroll';
 
-// New Sales-Focused Components
 import Hero from '@/components/home/Hero';
 import SocialProof from '@/components/home/SocialProof';
 import ProblemSolution from '@/components/home/ProblemSolution';
 import HowItWorks from '@/components/home/HowItWorks';
 
-// Existing Components
 import CategoriesCarousel from '@/components/shared/CategoriesCarousel';
 import SearchGigsRedirection from '@/components/shared/SearchGigRedirection';
 import HomeGigs from '@/components/shared/GigsGrid';
@@ -40,7 +38,6 @@ const Home = () => {
     }
   }, []);
 
-  // Show skeleton loading state while i18n initializes
   if (!ready) {
     return (
       <main className="min-h-screen ">

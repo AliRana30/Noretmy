@@ -63,17 +63,14 @@ const MilestoneOrderDisplay: React.FC<MilestoneOrderDisplayProps> = ({
     setSelectedMilestone(updatedMilestone);
   }, [orderDetails]);
 
-  // Check if all milestones have the last status as 'approved'
   const allApproved = milestones.every(m => {
     const lastStatus = m.statusHistory?.[m.statusHistory.length - 1]?.status?.toLowerCase();
     return lastStatus === 'approved';
   });
 
-  // Get the last milestone ID
   const lastMilestoneId = milestones[milestones.length - 1]?._id;
   const isLastMilestone = selectedMilestone?._id === lastMilestoneId;
 
-  // Check if both conditions are true: all approved and selected milestone is the last one
   const canReview = allApproved && isLastMilestone;
 
   const handleMilestoneClick = (milestone: Milestone, index: number) => {

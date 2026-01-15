@@ -1,4 +1,3 @@
-// Quick script to check PromotionPurchase collection
 require('dotenv').config();
 const mongoose = require('mongoose');
 

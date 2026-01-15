@@ -1,5 +1,4 @@
 import IndustriesServeCards from '@/components/shared/IndustriesServeCards';
-// import DiveDeeper from '@/components/shared/DiveDeeper';
 import IndustryTestimonial from '@/components/shared/IndustryTestimonial';
 const Industry = () => {
   return (

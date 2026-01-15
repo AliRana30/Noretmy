@@ -37,10 +37,8 @@ const LoginPage = () => {
     mode: 'onChange',
   });
 
-  // Watch form values for validation
   const watchedValues = watch();
 
-  // Generate random sum for captcha
   useEffect(() => {
     setRandomSum({
       num1: Math.floor(Math.random() * 10) + 1,
@@ -48,14 +46,12 @@ const LoginPage = () => {
     });
   }, []);
 
-  // Check if form is valid for button state
   const isFormValid = () => {
     const { email, password, userSum } = watchedValues;
     return email && password && userSum && Number(userSum) === randomSum.num1 + randomSum.num2;
   };
 
   const onSubmit = async (data: LoginFormData) => {
-    // Validate captcha
     if (Number(data.userSum) !== randomSum.num1 + randomSum.num2) {
       toast.error(t('auth:login.captchaError') || 'Incorrect captcha answer');
       return;

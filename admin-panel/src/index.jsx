@@ -5,7 +5,6 @@ import { DarkModeContextProvider } from "./context/darkModeContext.jsx";
 import axios from 'axios';
 import "./index.css";
 
-// Configure axios globally to always include withCredentials
 axios.defaults.withCredentials = true;
 
 const container = document.getElementById("root");

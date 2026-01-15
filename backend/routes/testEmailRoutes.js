@@ -8,10 +8,8 @@ const {
 } = require('../services/emailService');
 const { verifyToken } = require('../middleware/jwt');
 
-// Test endpoint to send a test email (protected - admin only)
 router.post('/test-email', verifyToken, async (req, res) => {
   try {
-    // Only allow admins to test emails
     if (req.role !== 'admin') {
       return res.status(403).json({ 
         success: false, 
@@ -79,7 +77,6 @@ router.post('/test-email', verifyToken, async (req, res) => {
   }
 });
 
-// Health check for email service
 router.get('/email-health', async (req, res) => {
   try {
     const { verifyEmailConnection } = require('../services/emailService');

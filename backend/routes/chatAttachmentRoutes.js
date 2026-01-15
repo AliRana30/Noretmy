@@ -1,4 +1,3 @@
-// routes/chatAttachmentRoutes.js
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
@@ -13,11 +12,9 @@ const {
   FILE_CONFIG
 } = require('../controllers/chatAttachmentController');
 
-// Configure multer for memory storage (before Cloudinary upload)
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  // Check blocked extensions
   const extension = file.originalname.split('.').pop().toLowerCase();
   const blockedExtensions = ['exe', 'bat', 'cmd', 'com', 'msi', 'scr', 'pif', 'vbs', 'js', 'jar', 'sh', 'ps1', 'dll', 'sys'];
   
@@ -38,7 +35,6 @@ const upload = multer({
   }
 });
 
-// Error handling middleware for multer
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {

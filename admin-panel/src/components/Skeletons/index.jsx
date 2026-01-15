@@ -5,7 +5,6 @@ import React from 'react';
  * Consistent skeleton loaders for all admin data loading states
  */
 
-// Base skeleton component
 export const Skeleton = ({ className = '', style = {} }) => {
   return (
     <div 
@@ -15,7 +14,6 @@ export const Skeleton = ({ className = '', style = {} }) => {
   );
 };
 
-// Text skeleton
 export const SkeletonText = ({ lines = 1, className = '' }) => {
   return (
     <div className={className}>
@@ -33,7 +31,6 @@ export const SkeletonText = ({ lines = 1, className = '' }) => {
   );
 };
 
-// Avatar skeleton
 export const SkeletonAvatar = ({ size = 'md' }) => {
   const sizes = {
     sm: '32px',
@@ -50,7 +47,6 @@ export const SkeletonAvatar = ({ size = 'md' }) => {
   );
 };
 
-// Button skeleton
 export const SkeletonButton = ({ width = '100px' }) => {
   return (
     <div 
@@ -60,7 +56,6 @@ export const SkeletonButton = ({ width = '100px' }) => {
   );
 };
 
-// Stats card skeleton
 export const SkeletonStatsCard = () => {
   return (
     <div className="card p-6">
@@ -75,7 +70,6 @@ export const SkeletonStatsCard = () => {
   );
 };
 
-// Stats grid skeleton
 export const SkeletonStatsGrid = ({ count = 4 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -86,7 +80,6 @@ export const SkeletonStatsGrid = ({ count = 4 }) => {
   );
 };
 
-// Table row skeleton
 export const SkeletonTableRow = ({ columns = 5 }) => {
   return (
     <tr>
@@ -105,7 +98,6 @@ export const SkeletonTableRow = ({ columns = 5 }) => {
   );
 };
 
-// Table skeleton
 export const SkeletonTable = ({ rows = 5, columns = 6 }) => {
   return (
     <div className="table-container">
@@ -129,7 +121,6 @@ export const SkeletonTable = ({ rows = 5, columns = 6 }) => {
   );
 };
 
-// User list item skeleton
 export const SkeletonUserItem = () => {
   return (
     <div className="flex items-center gap-4 p-4 border-b border-[var(--border-color)]">
@@ -144,7 +135,6 @@ export const SkeletonUserItem = () => {
   );
 };
 
-// User list skeleton
 export const SkeletonUserList = ({ count = 5 }) => {
   return (
     <div className="card">
@@ -155,7 +145,6 @@ export const SkeletonUserList = ({ count = 5 }) => {
   );
 };
 
-// Order card skeleton
 export const SkeletonOrderCard = () => {
   return (
     <div className="card p-4">
@@ -178,7 +167,6 @@ export const SkeletonOrderCard = () => {
   );
 };
 
-// Orders list skeleton
 export const SkeletonOrdersList = ({ count = 5 }) => {
   return (
     <div className="space-y-4">
@@ -189,7 +177,6 @@ export const SkeletonOrdersList = ({ count = 5 }) => {
   );
 };
 
-// Dashboard skeleton
 export const SkeletonDashboard = () => {
   return (
     <div className="space-y-6">
@@ -243,7 +230,6 @@ export const SkeletonDashboard = () => {
   );
 };
 
-// Withdrawal request skeleton
 export const SkeletonWithdrawalCard = () => {
   return (
     <div className="card p-4">
@@ -268,7 +254,6 @@ export const SkeletonWithdrawalCard = () => {
   );
 };
 
-// Analytics card skeleton
 export const SkeletonAnalyticsCard = () => {
   return (
     <div className="card p-6">
@@ -281,7 +266,6 @@ export const SkeletonAnalyticsCard = () => {
   );
 };
 
-// Content overlay loader - keeps content visible while loading
 export const ContentOverlay = ({ isLoading, children, className = '' }) => {
   return (
     <div className={`relative ${className}`}>
@@ -295,7 +279,6 @@ export const ContentOverlay = ({ isLoading, children, className = '' }) => {
   );
 };
 
-// Subtle spinner for inline loading
 export const SubtleSpinner = ({ size = 'md', className = '' }) => {
   const sizes = {
     sm: { width: '16px', height: '16px', borderWidth: '2px' },
@@ -316,7 +299,6 @@ export const SubtleSpinner = ({ size = 'md', className = '' }) => {
   );
 };
 
-// Top progress bar for navigation
 export const TopProgressBar = ({ isLoading }) => {
   const [progress, setProgress] = React.useState(0);
   const [visible, setVisible] = React.useState(false);
@@ -358,7 +340,6 @@ export const TopProgressBar = ({ isLoading }) => {
   );
 };
 
-// Page loading wrapper
 export const PageSkeleton = ({ children }) => {
   return (
     <div className="animate-pulse">

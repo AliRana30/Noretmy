@@ -15,7 +15,6 @@ const createWithdrawalRequest = async (req, res) => {
     const userId = req.userId;
     const { amount, paymentMethod, accountDetails, notes } = req.body;
 
-    // Validate input
     if (!amount || amount < 10) {
       return res.status(400).json({
         success: false,
@@ -30,7 +29,6 @@ const createWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Get user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -39,7 +37,6 @@ const createWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Check if user is in cooldown period
     const cooldownStatus = await WithdrawalRequest.isInCooldown(userId);
     if (cooldownStatus.inCooldown) {
       return res.status(400).json({
@@ -50,7 +47,6 @@ const createWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Check if user has enough available balance
     if (user.revenue.available < amount) {
       return res.status(400).json({
         success: false,
@@ -58,7 +54,6 @@ const createWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Check for pending withdrawal requests
     const pendingRequest = await WithdrawalRequest.findOne({
       userId,
       status: 'pending'
@@ -71,7 +66,6 @@ const createWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Create withdrawal request
     const withdrawalRequest = await WithdrawalRequest.create({
       userId,
       amount,
@@ -80,11 +74,9 @@ accountDetails,
       notes
     });
 
-    // Deduct from available balance (hold it)
     user.revenue.available -= amount;
     await user.save();
 
-    // Notify admins
     const adminIds = await getAdminIds();
     if (adminIds.length > 0) {
       await notifyWithdrawalRequestSubmitted(
@@ -168,7 +160,6 @@ const getAllWithdrawalRequests = async (req, res) => {
 
     const total = await WithdrawalRequest.countDocuments(filter);
 
-    // Format for admin panel
     const formattedRequests = withdrawalRequests.map(request => ({
       _id: request._id,
       id: request._id,
@@ -229,7 +220,6 @@ const approveWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Update request
     withdrawalRequest.status = 'approved';
     withdrawalRequest.processedAt = new Date();
     withdrawalRequest.processedBy = adminId;
@@ -237,14 +227,12 @@ const approveWithdrawalRequest = async (req, res) => {
     withdrawalRequest.adminNotes = adminNotes;
     await withdrawalRequest.save();
 
-    // Update user's withdrawn amount
     const user = await User.findById(withdrawalRequest.userId);
     if (user) {
       user.revenue.withdrawn += withdrawalRequest.amount;
       await user.save();
     }
 
-    // Notify freelancer
     await notifyWithdrawalApproved(
       withdrawalRequest.userId,
       withdrawalRequest.amount,
@@ -297,7 +285,6 @@ const rejectWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Update request
     withdrawalRequest.status = 'rejected';
     withdrawalRequest.processedAt = new Date();
     withdrawalRequest.processedBy = adminId;
@@ -305,14 +292,12 @@ const rejectWithdrawalRequest = async (req, res) => {
     withdrawalRequest.adminNotes = adminNotes;
     await withdrawalRequest.save();
 
-    // Return money to user's available balance
     const user = await User.findById(withdrawalRequest.userId);
     if (user) {
       user.revenue.available += withdrawalRequest.amount;
       await user.save();
     }
 
-    // Notify freelancer
     await notifyWithdrawalRejected(
       withdrawalRequest.userId,
       withdrawalRequest.amount,
@@ -351,7 +336,6 @@ const cancelWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Check if user owns this request
     if (withdrawalRequest.userId.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -366,10 +350,8 @@ const cancelWithdrawalRequest = async (req, res) => {
       });
     }
 
-    // Delete the request
     await WithdrawalRequest.findByIdAndDelete(requestId);
 
-    // Return money to user's available balance
     const user = await User.findById(userId);
     if (user) {
       user.revenue.available += withdrawalRequest.amount;
@@ -400,7 +382,6 @@ const getCooldownStatus = async (req, res) => {
     const cooldownStatus = await WithdrawalRequest.isInCooldown(userId);
     const cooldownDays = WithdrawalRequest.getCooldownDays();
     
-    // Get user's revenue info
     const user = await User.findById(userId).select('revenue');
     
     res.status(200).json({

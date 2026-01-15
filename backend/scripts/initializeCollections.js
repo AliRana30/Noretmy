@@ -1,7 +1,6 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 
-// Import all models to ensure collections are created
 const User = require('../models/User');
 const Job = require('../models/Job');
 const UserProfile = require('../models/UserProfile');
@@ -22,7 +21,6 @@ const Freelancer = require('../models/Freelancer');
 async function initializeCollections() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    // Get all model names
     const models = [
       { name: 'User', model: User },
       { name: 'Job', model: Job },
@@ -42,7 +40,6 @@ async function initializeCollections() {
       { name: 'Freelancer', model: Freelancer },
     ];
 
-    // Create collections if they don't exist
     const existingCollections = (await mongoose.connection.db.listCollections().toArray())
       .map(col => col.name);
 
@@ -59,7 +56,6 @@ async function initializeCollections() {
     collections.forEach((col, index) => {
       });
 
-    // Get count of documents in each collection
     for (const { name, model } of models) {
       const count = await model.countDocuments();
       }
@@ -73,5 +69,4 @@ async function initializeCollections() {
   }
 }
 
-// Run the initialization
 initializeCollections();

@@ -39,24 +39,20 @@ const Navbar: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Mark as mounted after client-side hydration
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleLogout = async () => {
     try {
-      // Call the backend API to log out
       const response = await fetch(`${BACKEND_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include', // Ensure cookies are cleared
       });
 
       if (response.ok) {
-        // Clear Redux state
         dispatch(logoutUser());
 
-        // Redirect to login page
         router.push('/login');
       } else {
         console.error('Logout failed');
@@ -226,7 +222,6 @@ const Navbar: React.FC = () => {
       text: t('navbar:navigation.about') || 'About',
       href: '/about',
     },
-    // Conditionally show Search Gigs for sellers only
     ...(!isSeller ? [
       {
         icon: <SearchIcon className="h-5 w-5 mr-1" />,
@@ -313,7 +308,6 @@ const Navbar: React.FC = () => {
                 </button>
               </>
             ) : (
-              // Sign in and Join buttons for non-logged-in users
               <div className="hidden sm:flex items-center space-x-3">
                 <Link
                   href="/login"

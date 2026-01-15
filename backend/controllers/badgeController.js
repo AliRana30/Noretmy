@@ -10,7 +10,6 @@ const Review = require('../models/Review');
 const Job = require('../models/Job');
 const badgeService = require('../services/badgeService');
 
-// ==================== PUBLIC ENDPOINTS ====================
 
 /**
  * Get seller badge info (public)
@@ -30,7 +29,6 @@ const getSellerBadge = async (req, res) => {
     const badge = await badgeService.getSellerBadgeInfo(sellerId);
     
     if (!badge) {
-      // Return default badge info for new sellers
       return res.status(200).json({
         success: true,
         data: {
@@ -89,14 +87,12 @@ const getMultipleSellerBadges = async (req, res) => {
       });
     }
 
-    // Limit to 50 sellers per request
     const limitedIds = sellerIds.slice(0, 50);
     
     const badges = await SellerBadge.find({
       userId: { $in: limitedIds }
     }).select('userId currentLevel label trustScore searchBoost metrics.averageRating metrics.completedOrders metrics.onTimeDeliveryRate metrics.responseRate');
 
-    // Create a map for easy lookup
     const badgeMap = {};
     badges.forEach(badge => {
       badgeMap[badge.userId.toString()] = {
@@ -111,7 +107,6 @@ const getMultipleSellerBadges = async (req, res) => {
       };
     });
 
-    // Fill in defaults for sellers without badges
     limitedIds.forEach(id => {
       if (!badgeMap[id]) {
         badgeMap[id] = {
@@ -202,7 +197,6 @@ const getSellerBadgeHistory = async (req, res) => {
   }
 };
 
-// ==================== SELLER ENDPOINTS (Authenticated) ====================
 
 /**
  * Get own badge details (for sellers)
@@ -214,7 +208,6 @@ const getMyBadge = async (req, res) => {
     const badge = await SellerBadge.findOne({ userId });
     
     if (!badge) {
-      // Create a new badge for this seller
       const newBadge = await SellerBadge.create({ userId });
       return res.status(200).json({
         success: true,
@@ -257,10 +250,8 @@ const getMyPerformanceDetails = async (req, res) => {
   try {
     const { userId } = req;
     
-    // Get badge info
     const badge = await SellerBadge.findOne({ userId });
     
-    // Get additional performance data
     const [
       totalOrders,
       completedOrders,
@@ -277,7 +268,6 @@ const getMyPerformanceDetails = async (req, res) => {
       Job.countDocuments({ sellerId: userId, jobStatus: 'active' })
     ]);
 
-    // Calculate next level requirements
     const levelRequirements = {
       level_1: { orders: 10, rating: 4.7, completion: 90, earnings: 500 },
       level_2: { orders: 50, rating: 4.8, completion: 95, earnings: 5000 },
@@ -362,7 +352,6 @@ const getMyPerformanceDetails = async (req, res) => {
   }
 };
 
-// ==================== ADMIN ENDPOINTS ====================
 
 /**
  * Admin: Get all seller badges with filtering
@@ -403,7 +392,6 @@ const adminGetAllBadges = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    // If search is provided, filter by user info
     if (search) {
       badges = badges.filter(badge => {
         const user = badge.userId;
@@ -459,7 +447,6 @@ const adminGetSellerBadgeDetails = async (req, res) => {
       });
     }
 
-    // Get additional stats
     const [totalOrders, activeGigs, recentReviews] = await Promise.all([
       Order.countDocuments({ sellerId }),
       Job.countDocuments({ sellerId, jobStatus: 'active' }),
@@ -520,7 +507,6 @@ const adminOverrideBadge = async (req, res) => {
       });
     }
 
-    // Log the action
     res.status(200).json({
       success: true,
       message: 'Badge level overridden successfully',
@@ -668,7 +654,6 @@ const adminReEvaluateBadge = async (req, res) => {
       });
     }
 
-    // Recalculate metrics from scratch
     await badgeService.recalculateSellerMetrics(sellerId);
     
     const updatedBadge = await SellerBadge.findOne({ userId: sellerId });
@@ -764,7 +749,6 @@ const adminGetBadgeStats = async (req, res) => {
       ]).then(r => r[0]?.count || 0)
     ]);
 
-    // Format level distribution
     const levels = { new: 0, level_1: 0, level_2: 0, top_rated: 0 };
     levelDistribution.forEach(l => {
       levels[l._id] = l.count;
@@ -812,7 +796,6 @@ const adminGetBadgeAuditLog = async (req, res) => {
       .select('userId badgeHistory')
       .lean();
 
-    // Flatten badge history into audit entries
     let auditLog = [];
     badges.forEach(badge => {
       if (badge.badgeHistory && badge.badgeHistory.length > 0) {
@@ -831,10 +814,8 @@ const adminGetBadgeAuditLog = async (req, res) => {
       }
     });
 
-    // Sort by date descending
     auditLog.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
 
-    // Paginate
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const paginatedLog = auditLog.slice(skip, skip + parseInt(limit));
 
@@ -859,17 +840,14 @@ const adminGetBadgeAuditLog = async (req, res) => {
 };
 
 module.exports = {
-  // Public
   getSellerBadge,
   getMultipleSellerBadges,
   getSellerAchievements,
   getSellerBadgeHistory,
   
-  // Seller (authenticated)
   getMyBadge,
   getMyPerformanceDetails,
   
-  // Admin
   adminGetAllBadges,
   adminGetSellerBadgeDetails,
   adminOverrideBadge,

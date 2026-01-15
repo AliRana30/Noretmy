@@ -14,7 +14,6 @@ const Settings = () => {
   const [exporting, setExporting] = useState(false);
   const [clearing, setClearing] = useState(false);
   
-  // Translation helper
   const t = (key) => getTranslation(settingsTranslations, key) || key;
   
   const [settings, setSettings] = useState({
@@ -35,13 +34,11 @@ const Settings = () => {
   };
 
   const handleSave = () => {
-    // Save settings to localStorage
     localStorage.setItem('adminSettings', JSON.stringify(settings));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  // Load settings from localStorage on mount
   useEffect(() => {
     const savedSettings = localStorage.getItem('adminSettings');
     if (savedSettings) {
@@ -53,11 +50,9 @@ const Settings = () => {
     }
   }, []);
 
-  // Export all platform data
   const handleExportData = async () => {
     setExporting(true);
     try {
-      // Collect all available data
       const exportData = {
         exportDate: new Date().toISOString(),
         exportedBy: user?.email || 'admin',
@@ -69,7 +64,6 @@ const Settings = () => {
         settings: settings
       };
 
-      // Try to fetch data from API
       try {
         const [usersRes, ordersRes, jobsRes] = await Promise.all([
           axios.get(`${API_CONFIG.BASE_URL}/api/admin/users`, { withCredentials: true }).catch(() => ({ data: [] })),
@@ -83,7 +77,6 @@ const Settings = () => {
       } catch (apiError) {
         }
 
-      // Create and download JSON file
       const dataStr = JSON.stringify(exportData, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
@@ -103,11 +96,9 @@ const Settings = () => {
     }
   };
 
-  // Clear cache
   const handleClearCache = () => {
     setClearing(true);
     try {
-      // Clear localStorage cache (except essential items)
       const essentialKeys = ['userData', 'adminSettings'];
       const keysToRemove = [];
       
@@ -120,7 +111,6 @@ const Settings = () => {
       
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      // Clear session storage
       sessionStorage.clear();
       
       setTimeout(() => {

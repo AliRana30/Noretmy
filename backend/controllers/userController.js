@@ -51,34 +51,23 @@ const getTotalUsers = async (req, res) => {
 
 const getVerifiedSellers = async (req, res) => {
   try {
-    // Build query based on user role if authenticated
     let query = { isSeller: true };
     
-    // Check if request has authenticated user info
     const { userId, userRole, isSeller } = req;
     
-    // If user is authenticated and has a role, apply role-based filtering
     if (userId && userRole) {
-      // Fetch the requesting user details to check their sellerType
       const requestingUser = await User.findById(userId);
       
       if (requestingUser) {
-        // Admins see all sellers
         if (requestingUser.role === 'admin') {
-          // No additional filter needed, see all sellers
         } 
-        // Sellers (individual freelancers) can only see their own documents
         else if (requestingUser.role === 'freelancer' && requestingUser.sellerType === 'individual') {
           query._id = userId;
         }
-        // Companies can only see documents from their company (users with same sellerType=company)
         else if (requestingUser.role === 'freelancer' && requestingUser.sellerType === 'company') {
-          // Company users see only their own documents
           query._id = userId;
         }
-        // Clients retain existing access (read-only, can see all for verification purposes)
         else if (requestingUser.role === 'client') {
-          // Clients see all verified sellers (no filter change - existing behavior preserved)
         }
       }
     }
@@ -114,7 +103,6 @@ const getVerifiedSellers = async (req, res) => {
   }
 };
 
-// Warn User Controller
 const warnUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -124,12 +112,10 @@ const warnUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Increment warning count
     user.warningCount = (user.warningCount || 0) + 1;
     user.lastWarningDate = new Date();
     await user.save();
 
-    // Send warning email
     try {
       await sendUserNotificationEmail(user.email, 'warn');
     } catch (emailError) {
@@ -147,7 +133,6 @@ const warnUser = async (req, res) => {
   }
 };
 
-// Block User Controller
 const blockUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -159,13 +144,11 @@ const blockUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Set the user as blocked
     user.isBlocked = true;
     user.blockReason = reason || 'Violated platform guidelines';
     user.blockedAt = new Date();
     await user.save();
 
-    // Send block email
     try {
       await sendUserNotificationEmail(user.email, 'block');
     } catch (emailError) {
@@ -182,24 +165,19 @@ const blockUser = async (req, res) => {
   }
 };
 
-// Route to Create or Update User Profile
 
-// Controller to create or update user profile
 const createOrUpdateProfile = async (req, res) => {
   try {
     const { userId, profilePicture, location, description, skills } = req.body;
 
-    // Check if profile exists for this user
     let userProfile = await UserProfile.findOne({ userId });
 
     if (userProfile) {
-      // If profile exists, update it
       userProfile.profilePicture = profilePicture;
       userProfile.location = location;
       userProfile.description = description;
       userProfile.skills = skills;
     } else {
-      // If profile doesn't exist, create a new one
       userProfile = new UserProfile({
         userId,
         profilePicture,
@@ -209,7 +187,6 @@ const createOrUpdateProfile = async (req, res) => {
       });
     }
 
-    // Save the profile to the database
     await userProfile.save();
 
     res.status(200).json({ 
@@ -224,38 +201,10 @@ const createOrUpdateProfile = async (req, res) => {
   }
 };
 
-// const updateSingleAttribute = async (req, res) => {
-//   try {
-//     const { userId } = req;
-//     const updates = req.body;  // This will contain the fields to be updated
     
-//     // Find the user profile by userId
-//     let userProfile = await UserProfile.findOne({ userId });
 
-//     if (!userProfile) {
-//       // If no profile is found, create a new one
-//       userProfile = new UserProfile({
-//         userId,
-//         ...updates // Apply the updates directly to the new profile
-//       });
-//     } else {
-//       // If the profile exists, update only the fields passed in the request body
-//       for (let key in updates) {
-//         if (updates[key] !== undefined) {
-//           userProfile[key] = updates[key];
-//         }
-//       }
-//     }
 
-//     // Save the new or updated profile
-//     await userProfile.save();
 
-//     res.status(200).json(userProfile );
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
 
 const updateSingleAttribute = async (req, res) => {
   try {
@@ -263,18 +212,15 @@ const updateSingleAttribute = async (req, res) => {
     const updates = req.body; 
     let profilePictureUrl;
 
-    // Check if a profile picture file is uploaded
     if (req.files ) {
       const [uploadedUrl] = await uploadDocuments(req);
       profilePictureUrl = uploadedUrl; 
     }
 
-    // Fields that belong to User model vs UserProfile model
     const userFields = ['fullName', 'username', 'email', 'sellerType'];
     const userUpdates = {};
     const profileUpdates = {};
     
-    // Separate updates for User and UserProfile models
     for (let key in updates) {
       if (updates[key] !== undefined && updates[key] !== '') {
         if (userFields.includes(key)) {
@@ -285,7 +231,6 @@ const updateSingleAttribute = async (req, res) => {
       }
     }
     
-    // Handle password update
     if (updates.newPassword && updates.currentPassword) {
       const user = await User.findById(userId);
       const isMatch = await user.matchPassword(updates.currentPassword);
@@ -295,43 +240,35 @@ const updateSingleAttribute = async (req, res) => {
       user.password = updates.newPassword;
       await user.save(); // This will trigger the pre-save hook to hash the password
     } else if (Object.keys(userUpdates).length > 0) {
-      // Update User model for other fields
       await User.findByIdAndUpdate(userId, userUpdates);
     }
     
-    // Update User's profilePicture if uploaded
     if (profilePictureUrl) {
       await User.findByIdAndUpdate(userId, { profilePicture: profilePictureUrl });
     }
 
-    // Find the user profile by userId
     let userProfile = await UserProfile.findOne({ userId });
 
     if (!userProfile) {
-      // If no profile exists, create a new one
       userProfile = new UserProfile({
         userId,
         ...profileUpdates,
         ...(profilePictureUrl && { profilePicture: profilePictureUrl }),
       });
     } else {
-      // Update profile fields
       for (let key in profileUpdates) {
         if (profileUpdates[key] !== undefined) {
           userProfile[key] = profileUpdates[key];
         }
       }
 
-      // Update the profile picture if uploaded
       if (profilePictureUrl) {
         userProfile.profilePicture = profilePictureUrl;
       }
     }
 
-    // Save the new or updated profile
     await userProfile.save();
     
-    // Get updated user data
     const updatedUser = await User.findById(userId).select('-password');
 
     res.status(200).json({
@@ -356,7 +293,6 @@ const getSellerData = async (req, res) => {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    // Initialize the response object
     let responseData = {
       fullName: null,
       username: null,
@@ -380,7 +316,6 @@ const getSellerData = async (req, res) => {
       },
     };
 
-    // Fetch user and profile data
     const user = await User.findById(userId).select('fullName username createdAt revenue');
     if (user) {
       responseData.fullName = user.fullName;
@@ -407,12 +342,10 @@ const getSellerData = async (req, res) => {
       responseData.skills = userProfile.skills;
     }
 
-    // Fetch reviews for the seller - MATCH ADMIN LOGIC EXACTLY (no isApproved filter)
     const sellerIdStr = userId.toString();
     const mongoose = require('mongoose');
     const sellerIdObj = mongoose.Types.ObjectId.isValid(sellerIdStr) ? new mongoose.Types.ObjectId(sellerIdStr) : null;
     
-    // Get average rating and total reviews using same logic as admin getUserDetails
     try {
       const ratingResult = await Reviews.aggregate([
         { $match: { $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])] } },
@@ -424,7 +357,6 @@ const getSellerData = async (req, res) => {
       console.error('Error fetching average rating:', e);
     }
 
-    // Get completed orders count - MATCH ADMIN LOGIC
     try {
       responseData.completedOrders = await Order.countDocuments({
         $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])],
@@ -434,7 +366,6 @@ const getSellerData = async (req, res) => {
       console.error('Error fetching completed orders:', e);
     }
 
-    // Fetch actual review documents for display
     const sellerReviews = await Reviews.find({ 
       $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])] 
     })
@@ -449,7 +380,6 @@ const getSellerData = async (req, res) => {
         gigTitleMap[g._id.toString()] = g.title;
       });
 
-      // Populate reviewer details manually since we used .lean() earlier and want combined data
       const reviewerIds = [...new Set(sellerReviews.map(r => r.userId).filter(Boolean))];
       const reviewers = await User.find({ _id: { $in: reviewerIds } }).select('fullName username').lean();
       const reviewerProfiles = await UserProfile.find({ userId: { $in: reviewerIds } }).select('userId profilePicture').lean();
@@ -483,9 +413,7 @@ const getSellerData = async (req, res) => {
       });
     }
 
-    // Calculate earnings - MATCH ADMIN LOGIC EXACTLY
     try {
-      // Matching Admin Logic: { sellerId: userId, status: 'completed' }, $sum: '$price'
       const earningsAgg = await Order.aggregate([
         { $match: { $or: [{ sellerId: sellerIdStr }, ...(sellerIdObj ? [{ sellerId: sellerIdObj }] : [])], status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$price' } } }
@@ -493,7 +421,6 @@ const getSellerData = async (req, res) => {
 
       const computedTotal = earningsAgg[0]?.total || 0;
 
-      // Always set computed total as the source of truth
       responseData.revenue = {
         total: computedTotal,
         available: responseData.revenue?.available || 0,
@@ -621,32 +548,25 @@ const updateDocumentStatus = async (req, res) => {
   }
 };
 
-// ============ FAVORITES FUNCTIONS ============
 
-// Get user's favorites
 const getFavorites = async (req, res) => {
   try {
     const { userId } = req;
     
-    // Get user's favorites without deep population that might fail due to schema inconsistency
     const user = await User.findById(userId).populate('favorites');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Get additional data for each favorite gig
     const favoritesWithDetails = await Promise.all(
       (user.favorites || []).map(async (gig) => {
         if (!gig) return null;
         
-        // Manual lookup for seller since Job schema uses String for sellerId
         const seller = await User.findById(gig.sellerId).select('username fullName').lean();
         
-        // Get seller profile picture
         const sellerProfile = await UserProfile.findOne({ userId: gig.sellerId }).lean();
         
-        // Get reviews count and average
         const reviews = await Reviews.find({ gigId: gig._id });
         const averageRating = reviews.length > 0 
           ? reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length 
@@ -683,7 +603,6 @@ const getFavorites = async (req, res) => {
   }
 };
 
-// Add to favorites
 const addToFavorites = async (req, res) => {
   try {
     const { userId } = req;
@@ -693,7 +612,6 @@ const addToFavorites = async (req, res) => {
       return res.status(400).json({ message: 'Gig ID is required.' });
     }
 
-    // Verify gig exists
     const gig = await Job.findById(gigId);
     if (!gig) {
       return res.status(404).json({ message: 'Gig not found.' });
@@ -704,12 +622,10 @@ const addToFavorites = async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Check if already in favorites
     if (user.favorites && user.favorites.includes(gigId)) {
       return res.status(400).json({ message: 'Gig already in favorites.' });
     }
 
-    // Add to favorites
     user.favorites = user.favorites || [];
     user.favorites.push(gigId);
     await user.save();
@@ -724,7 +640,6 @@ const addToFavorites = async (req, res) => {
   }
 };
 
-// Remove from favorites
 const removeFromFavorites = async (req, res) => {
   try {
     const { userId } = req;
@@ -739,7 +654,6 @@ const removeFromFavorites = async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Remove from favorites
     user.favorites = (user.favorites || []).filter(
       (favId) => favId.toString() !== gigId
     );
@@ -755,7 +669,6 @@ const removeFromFavorites = async (req, res) => {
   }
 };
 
-// Toggle favorite (add if not exists, remove if exists)
 const toggleFavorite = async (req, res) => {
   try {
     const { userId } = req;
@@ -765,7 +678,6 @@ const toggleFavorite = async (req, res) => {
       return res.status(400).json({ message: 'Gig ID is required.' });
     }
 
-    // Verify gig exists
     const gig = await Job.findById(gigId);
     if (!gig) {
       return res.status(404).json({ message: 'Gig not found.' });
@@ -782,7 +694,6 @@ const toggleFavorite = async (req, res) => {
     );
 
     if (isCurrentlyFavorite) {
-      // Remove from favorites
       user.favorites = user.favorites.filter(
         (favId) => favId.toString() !== gigId
       );
@@ -793,7 +704,6 @@ const toggleFavorite = async (req, res) => {
         favorites: user.favorites
       });
     } else {
-      // Add to favorites
       user.favorites.push(gigId);
       await user.save();
       return res.status(200).json({ 
@@ -808,7 +718,6 @@ const toggleFavorite = async (req, res) => {
   }
 };
 
-// Check if gig is in favorites
 const checkFavorite = async (req, res) => {
   try {
     const { userId } = req;
@@ -830,7 +739,6 @@ const checkFavorite = async (req, res) => {
   }
 };
 
-// Search freelancers by name/username
 const searchFreelancers = async (req, res) => {
   try {
     const { q, limit = 10, skill } = req.query;
@@ -841,7 +749,6 @@ const searchFreelancers = async (req, res) => {
 
     const searchRegex = new RegExp(q?.trim() || "", 'i');
     
-    // Match condition
     const matchQuery = {
       isSeller: true,
       $or: [
@@ -853,7 +760,6 @@ const searchFreelancers = async (req, res) => {
     const results = await User.aggregate([
       { $match: matchQuery },
       { $limit: parseInt(limit) },
-      // Join with Profile
       {
         $lookup: {
           from: 'userprofiles',
@@ -863,11 +769,9 @@ const searchFreelancers = async (req, res) => {
         }
       },
       { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
-      // Optional skill filter if provided
       ...(skill ? [{
         $match: { 'profile.skills': { $regex: new RegExp(skill, 'i') } }
       }] : []),
-      // Lookup completed orders
       {
         $lookup: {
           from: 'orders',
@@ -887,7 +791,6 @@ const searchFreelancers = async (req, res) => {
           as: 'completedOrders'
         }
       },
-      // Lookup reviews
       {
         $lookup: {
           from: 'reviews',
@@ -899,7 +802,6 @@ const searchFreelancers = async (req, res) => {
           as: 'allReviews'
         }
       },
-      // Lookup gigs count
       {
         $lookup: {
           from: 'jobs',
@@ -910,7 +812,6 @@ const searchFreelancers = async (req, res) => {
           as: 'allGigs'
         }
       },
-      // Add calculated fields
       {
         $addFields: {
           completedOrdersCount: { $size: '$completedOrders' },
@@ -920,7 +821,6 @@ const searchFreelancers = async (req, res) => {
           totalGigsCount: { $size: '$allGigs' }
         }
       },
-      // Final projection
       {
         $project: {
           _id: 1,
@@ -946,16 +846,13 @@ const searchFreelancers = async (req, res) => {
   }
 };
 
-// Get complete freelancer profile by username
 const getFreelancerProfile = async (req, res) => {
   try {
     const { username } = req.params;
 
-    // Find the user - first try with isSeller: true, otherwise just by username
     let user = await User.findOne({ username, isSeller: true })
       .select('_id fullName username email createdAt isSeller isCompany');
 
-    // If not found as seller, try finding by username only (user might have gigs but not be marked as seller)
     if (!user) {
       user = await User.findOne({ username })
         .select('_id fullName username email createdAt isSeller isCompany');
@@ -967,31 +864,25 @@ const getFreelancerProfile = async (req, res) => {
 
     const userId = user._id;
 
-    // Get user profile
     const userProfile = await UserProfile.findOne({ userId })
       .select('profilePicture profileHeadline description skills location country countryCode languages education certifications');
 
-    // Get all gigs by this freelancer
     let gigs = await Job.find({ sellerId: userId.toString() })
       .select('_id title cat subCat description pricingPlan photos sales totalStars starNumber createdAt');
 
-    // Apply promotion priorities
     const { applyPromotionPriorities } = require('../utils/gigVisibility');
     gigs = await applyPromotionPriorities(gigs);
 
-    // Get all reviews for this freelancer's gigs
     const gigIds = gigs.map(g => g._id);
     const reviews = await Reviews.find({ gigId: { $in: gigIds } })
       .populate('userId', 'fullName username profilePicture')
       .sort({ createdAt: -1 });
 
-    // Calculate statistics
     const totalReviews = reviews.length;
     const averageRating = totalReviews > 0
       ? reviews.reduce((acc, r) => acc + r.star, 0) / totalReviews
       : 0;
 
-    // Calculate average price from gigs
     let avgPrice = 0;
     if (gigs.length > 0) {
       const prices = gigs.map(g => g.pricingPlan?.basic?.price || 0).filter(p => p > 0);
@@ -1000,7 +891,6 @@ const getFreelancerProfile = async (req, res) => {
         : 0;
     }
 
-    // Get all orders by this freelancer for metrics
     const Order = require('../models/Order');
     const allSellerOrders = await Order.find({
       sellerId: userId.toString()
@@ -1009,12 +899,9 @@ const getFreelancerProfile = async (req, res) => {
     const completedOrdersList = allSellerOrders.filter(o => o.status === 'completed');
     const completedOrdersCount = completedOrdersList.length;
     
-    // 1) TOTAL EARNINGS (from completed orders only)
     const totalEarnings = completedOrdersList.reduce((acc, o) => acc + (o.price || 0), 0);
     
-    // 2) PERFORMANCE METRICS
     
-    // A) Average Delivery Time
     let totalDeliveryHours = 0;
     let countedDeliveries = 0;
     
@@ -1042,7 +929,6 @@ const getFreelancerProfile = async (req, res) => {
       }
     }
 
-    // B) Completion Rate (%)
     const acceptedAtLeastOnce = allSellerOrders.filter(o => 
       o.statusHistory?.some(h => ['accepted', 'started'].includes(h.status))
     );
@@ -1050,13 +936,11 @@ const getFreelancerProfile = async (req, res) => {
       ? (completedOrdersCount / acceptedAtLeastOnce.length) * 100
       : 100;
 
-    // C) Success Rate (%)
     const successReviews = reviews.filter(r => r.star >= 4).length;
     const successRate = totalReviews > 0
       ? (successReviews / totalReviews) * 100
       : 100;
 
-    // D) Accurate Sales Count for Gigs
     const salesMapAgg = await Order.aggregate([
       { $match: { gigId: { $in: gigIds.map(id => id.toString()) }, status: 'completed' } },
       { $group: { _id: '$gigId', count: { $sum: 1 } } }
@@ -1066,7 +950,6 @@ const getFreelancerProfile = async (req, res) => {
       salesCountObj[item._id] = item.count;
     });
 
-    // Format gigs with ratings
     const formattedGigs = gigs.map(gig => {
       const gigReviews = reviews.filter(r => r.gigId.toString() === gig._id.toString());
       const gigRating = gigReviews.length > 0
@@ -1090,7 +973,6 @@ const getFreelancerProfile = async (req, res) => {
       };
     });
 
-    // Format reviews
     const formattedReviews = reviews.slice(0, 10).map(r => ({
       _id: r._id,
       gigId: r.gigId,
@@ -1150,7 +1032,6 @@ const getFreelancerProfile = async (req, res) => {
   }
 };
 
-// Get client profile by ID
 const getClientProfile = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -1163,7 +1044,6 @@ const getClientProfile = async (req, res) => {
     
     const userProfile = await UserProfile.findOne({ userId: user._id });
     
-    // Get order stats
     const Order = require('../models/Order');
     const orders = await Order.find({ buyerId: userId });
     

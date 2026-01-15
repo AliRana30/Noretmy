@@ -1,4 +1,3 @@
-// utils/currencyConversion.js
 const axios = require('axios');
 
 const getUsdToEurRate = async () => {

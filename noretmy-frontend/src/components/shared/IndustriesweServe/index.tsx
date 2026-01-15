@@ -20,7 +20,6 @@ const IndustriesWeServe: React.FC<IndustriesWeServeProps> = ({ id }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { t } = useTranslations();
 
-  // Using the same gradients as the reference design
   const gradients = [
     ['#064153', '#186b89', '#12647f'],
     ['#45a4b6', '#93d9e5', '#45a6b7'],

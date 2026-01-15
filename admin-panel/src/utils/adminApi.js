@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG, getApiUrl, getAuthHeaders, replaceUrlParams, FAQ_ENDPOINTS, FAQ_CATEGORIES } from '../config/api';
 
-// Create a dedicated axios instance for admin panel
 const adminAxios = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
@@ -11,13 +10,10 @@ const adminAxios = axios.create({
   }
 });
 
-// Request interceptor to ensure credentials are sent
 adminAxios.interceptors.request.use(
   (config) => {
-    // Ensure withCredentials is set for all requests
     config.withCredentials = true;
     
-    // Add headers
     const headers = getAuthHeaders();
     if (headers) {
       Object.keys(headers).forEach(key => {
@@ -32,7 +28,6 @@ adminAxios.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle common errors
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -53,15 +48,12 @@ adminAxios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Don't retry on 403 (forbidden) - let it fail
     if (error.response?.status === 403) {
       return Promise.reject(error);
     }
 
-    // If error is 401 and we haven't already tried to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // If already refreshing, queue this request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(() => {
@@ -75,7 +67,6 @@ adminAxios.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Try to refresh the session
         await adminAxios.get('/api/auth/check-session');
         
         processQueue(null, null);
@@ -84,7 +75,6 @@ adminAxios.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        // Session truly expired, redirect to login if not already there
         localStorage.removeItem('userData');
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
@@ -97,7 +87,6 @@ adminAxios.interceptors.response.use(
   }
 );
 
-// Helper function to make authenticated requests
 const makeRequest = async (method, endpoint, data = null, params = {}) => {
   try {
     const url = replaceUrlParams(getApiUrl(endpoint), params);
@@ -114,24 +103,20 @@ const makeRequest = async (method, endpoint, data = null, params = {}) => {
   } catch (error) {
     console.error(`API Error (${method} ${endpoint}):`, error);
     
-    // Enhanced error handling with user-friendly messages
     if (error.response) {
       const status = error.response.status;
       const serverMessage = error.response.data?.message;
       const serverError = error.response.data?.error;
       
-      // Map status codes to user-friendly messages
       if (status === 401) {
         throw new Error('Your session has expired. Please log in again.');
       } else if (status === 402) {
-        // Payment required - typically PayPal insufficient funds
         throw new Error(serverMessage || 'Payment provider has insufficient funds. Please add funds and try again.');
       } else if (status === 403) {
         throw new Error('Access denied. You don\'t have permission to perform this action.');
       } else if (status === 404) {
         throw new Error('The requested resource was not found.');
       } else if (status === 422) {
-        // Use server message for validation errors (including PayPal errors)
         throw new Error(serverMessage || serverError || 'Invalid data provided. Please check your input.');
       } else if (status >= 500) {
         throw new Error(serverMessage || 'Server error. Please try again later.');
@@ -146,7 +131,6 @@ const makeRequest = async (method, endpoint, data = null, params = {}) => {
   }
 };
 
-// ===== DASHBOARD & ANALYTICS =====
 
 export const getAdminDashboardStats = async () => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_DASHBOARD_STATS);
@@ -164,7 +148,6 @@ export const getAdminAnalyticsPerformance = async (period = '30d') => {
   return makeRequest('GET', `${API_CONFIG.ENDPOINTS.ADMIN_ANALYTICS_PERFORMANCE}?period=${period}`);
 };
 
-// ===== USER MANAGEMENT =====
 
 export const getAdminUsers = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -204,7 +187,6 @@ export const bulkUserAction = async (userIds, action, data = {}) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_USERS_BULK, { userIds, action, data });
 };
 
-// ===== JOB/GIG MANAGEMENT =====
 
 export const getAdminJobs = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -220,7 +202,6 @@ export const deleteJob = async (jobId, reason) => {
   return makeRequest('DELETE', API_CONFIG.ENDPOINTS.ADMIN_JOB_DELETE, { reason }, { jobId });
 };
 
-// ===== ORDER MANAGEMENT =====
 
 export const getAdminOrders = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -240,7 +221,6 @@ export const deleteAdminOrder = async (orderId, reason = 'Deleted by admin') => 
   return makeRequest('DELETE', API_CONFIG.ENDPOINTS.ADMIN_ORDER_DELETE, { reason }, { orderId });
 };
 
-// ===== FINANCIAL MANAGEMENT =====
 
 export const getAdminFinancialOverview = async (period = '30d') => {
   return makeRequest('GET', `${API_CONFIG.ENDPOINTS.ADMIN_FINANCIAL_OVERVIEW}?period=${period}`);
@@ -268,7 +248,6 @@ export const rejectWithdrawal = async (withdrawalId, reason) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_WITHDRAWAL_REJECT, { requestId: withdrawalId, reason });
 };
 
-// ===== CONTENT MANAGEMENT =====
 
 export const getAdminReviews = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -286,7 +265,6 @@ export const getAdminSensitiveMessages = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
-// ===== COMMUNICATION MANAGEMENT =====
 
 export const getAdminContacts = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -304,7 +282,6 @@ export const getAdminConversations = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
-// ===== MARKETING MANAGEMENT =====
 
 export const getAdminNewsletter = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -322,7 +299,6 @@ export const updatePromotionStatus = async (promotionId, status) => {
   return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_PROMOTION_STATUS, { status }, { promotionId });
 };
 
-// ===== NOTIFICATION MANAGEMENT =====
 
 export const getAdminNotifications = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -354,7 +330,6 @@ export const markAllNotificationsAsRead = async () => {
   return makeRequest('PUT', '/api/notification/mark-all-read');
 };
 
-// ===== PROJECT MANAGEMENT =====
 
 export const getAdminProjects = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
@@ -366,7 +341,6 @@ export const updateProjectStatus = async (projectId, status, reason) => {
   return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_PROJECT_STATUS, { status, reason }, { projectId });
 };
 
-// ===== SYSTEM MANAGEMENT =====
 
 export const getSystemHealth = async () => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_SYSTEM_HEALTH);
@@ -384,19 +358,16 @@ export const getSystemAudit = async (filters = {}) => {
   return makeRequest('GET', endpoint);
 };
 
-// ===== SETTINGS =====
 
 export const getVatSettings = async () => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_SETTINGS_VAT);
 };
 
-// ===== ADMIN MANAGEMENT =====
 
 export const createAdmin = async (userData) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.ADMIN_CREATE_ADMIN, userData);
 };
 
-// FAQ Management API Functions
 export const getFaqCategories = async () => {
   try {
     const response = await adminAxios.get(`${FAQ_ENDPOINTS.GET_CATEGORIES}`);
@@ -512,15 +483,12 @@ export const bulkDeleteFaqs = async (faqIds) => {
   }
 };
 
-// Helper function to get category display name
 export const getCategoryDisplayName = (categoryValue) => {
   const category = FAQ_CATEGORIES.find(cat => cat.value === categoryValue);
   return category ? category.display : categoryValue;
 };
 
-// ===== UTILITY FUNCTIONS =====
 
-// Format currency
 export const formatCurrency = (amount, currency = 'USD') => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -528,7 +496,6 @@ export const formatCurrency = (amount, currency = 'USD') => {
   }).format(amount);
 };
 
-// Format date
 export const formatDate = (date, options = {}) => {
   const defaultOptions = {
     year: 'numeric',
@@ -538,7 +505,6 @@ export const formatDate = (date, options = {}) => {
   return new Date(date).toLocaleDateString('en-US', { ...defaultOptions, ...options });
 };
 
-// Format datetime
 export const formatDateTime = (date) => {
   return new Date(date).toLocaleString('en-US', {
     year: 'numeric',
@@ -549,7 +515,6 @@ export const formatDateTime = (date) => {
   });
 };
 
-// Status color helper
 export const getStatusColor = (status) => {
   const statusColors = {
     active: '#28a745',
@@ -564,9 +529,7 @@ export const getStatusColor = (status) => {
   return statusColors[status?.toLowerCase()] || '#6c757d';
 };
 
-// ==================== BADGE MANAGEMENT ====================
 
-// Get all seller badges with filtering
 export const getAdminBadges = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append('page', params.page);
@@ -582,12 +545,10 @@ export const getAdminBadges = async (params = {}) => {
   return makeRequest('GET', url);
 };
 
-// Get badge statistics
 export const getAdminBadgeStats = async () => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.BADGE_STATS);
 };
 
-// Get badge audit log
 export const getAdminBadgeAuditLog = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append('page', params.page);
@@ -598,53 +559,42 @@ export const getAdminBadgeAuditLog = async (params = {}) => {
   return makeRequest('GET', url);
 };
 
-// Get detailed badge info for a seller
 export const getAdminSellerBadgeDetail = async (sellerId) => {
   return makeRequest('GET', API_CONFIG.ENDPOINTS.BADGE_SELLER_DETAIL, null, { sellerId });
 };
 
-// Override seller badge level
 export const overrideSellerBadge = async (sellerId, level, reason) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.BADGE_OVERRIDE, { level, reason }, { sellerId });
 };
 
-// Remove badge override
 export const removeSellerBadgeOverride = async (sellerId) => {
   return makeRequest('DELETE', API_CONFIG.ENDPOINTS.BADGE_OVERRIDE, null, { sellerId });
 };
 
-// Freeze seller badge
 export const freezeSellerBadge = async (sellerId, reason) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.BADGE_FREEZE, { reason }, { sellerId });
 };
 
-// Unfreeze seller badge
 export const unfreezeSellerBadge = async (sellerId) => {
   return makeRequest('DELETE', API_CONFIG.ENDPOINTS.BADGE_FREEZE, null, { sellerId });
 };
 
-// Re-evaluate seller badge
 export const reEvaluateSellerBadge = async (sellerId) => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.BADGE_RE_EVALUATE, null, { sellerId });
 };
 
-// Batch re-evaluate all badges
 export const batchReEvaluateBadges = async () => {
   return makeRequest('POST', API_CONFIG.ENDPOINTS.BADGE_BATCH_RE_EVALUATE);
 };
 
-// Export axios instance for direct use if needed
 export { adminAxios };
 
-// Export all admin API functions as default
 export default {
-  // Dashboard & Analytics
   getAdminDashboardStats,
   getAdminAnalyticsUsers,
   getAdminAnalyticsRevenue,
   getAdminAnalyticsPerformance,
   
-  // User Management
   getAdminUsers,
   getAdminUserDetail,
   updateUserRole,
@@ -653,17 +603,14 @@ export default {
   unblockUser,
   bulkUserAction,
   
-  // Job Management
   getAdminJobs,
   updateJobStatus,
   deleteJob,
   
-  // Order Management
   getAdminOrders,
   getAdminOrderDetail,
   updateOrderStatus,
   
-  // Financial Management
   getAdminFinancialOverview,
   getAdminWithdrawals,
   getAdminWithdrawalDetail,
@@ -671,44 +618,34 @@ export default {
   approveWithdrawal,
   rejectWithdrawal,
   
-  // Content Management
   getAdminReviews,
   moderateReview,
   getAdminSensitiveMessages,
   
-  // Communication Management
   getAdminContacts,
   markContactAsRead,
   getAdminConversations,
   
-  // Marketing Management
   getAdminNewsletter,
   getAdminPromotions,
   updatePromotionStatus,
   
-  // Notification Management
   getAdminNotifications,
   sendBroadcastNotification,
   
-  // Project Management
   getAdminProjects,
   updateProjectStatus,
   
-  // System Management
   getSystemHealth,
   getSystemLogs,
   getSystemAudit,
   
-  // Settings
   getVatSettings,
   
-  // Admin Management
   createAdmin,
   
-  // Notification Management
   deleteNotification,
   
-  // Badge Management
   getAdminBadges,
   getAdminBadgeStats,
   getAdminBadgeAuditLog,
@@ -720,7 +657,6 @@ export default {
   reEvaluateSellerBadge,
   batchReEvaluateBadges,
   
-  // FAQ Management
   getFaqCategories,
   getFaqsByCategory,
   getAllFaqs,
@@ -733,7 +669,6 @@ export default {
   bulkDeleteFaqs,
   getCategoryDisplayName,
   
-  // Utilities
   formatCurrency,
   formatDate,
   formatDateTime,

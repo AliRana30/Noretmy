@@ -21,9 +21,7 @@ interface FAQ {
   category: string;
 }
 
-// Dummy FAQs data
 const faqs: FAQ[] = [
-  // Promotional Plans
   {
     category: 'Promotional Plans',
     question: 'What are the promotional plans in Noretmy?',
@@ -83,7 +81,6 @@ const faqs: FAQ[] = [
       'No, promotional plans cannot be stopped or canceled once activated.',
   },
 
-  // Service Management
   {
     category: 'Service Management',
     question: 'How can I list my services on Noretmy?',
@@ -107,7 +104,6 @@ const faqs: FAQ[] = [
     answer: 'You can request more details through chat before starting work.',
   },
 
-  // Buying Services (For Clients)
   {
     category: 'Buying Services',
     question: 'How do I hire a professional?',
@@ -163,7 +159,6 @@ const faqs: FAQ[] = [
       'Yes, both freelancers and clients can leave reviews (star ratings) and comments after completing an order.',
   },
 
-  // Withdrawals & Fees
   {
     category: 'Withdrawals & Fees',
     question: 'What is the minimum withdrawal amount?',
@@ -195,7 +190,6 @@ const faqs: FAQ[] = [
       "You can view all commission deductions, withdrawal fees, and conversion charges in the 'Transaction History' section of your account.",
   },
 
-  // Commission & Fees
   {
     category: 'Commission & Fees',
     question: 'What is the commission fee for freelancers?',
@@ -243,7 +237,6 @@ const faqs: FAQ[] = [
       'If an order is canceled and refunded, commissions may also be refunded depending on the case.',
   },
 
-  // VAT & Taxes
   {
     category: 'VAT & Taxes',
     question: 'Do clients have to pay VAT?',
@@ -282,7 +275,6 @@ const faqs: FAQ[] = [
       'Yes, both VAT and the 5% service fee apply to all purchases on the platform, whether made by clients or freelancers.',
   },
 
-  // General
   {
     category: 'General',
     question: 'How does Noretmy work?',
@@ -296,7 +288,6 @@ const faqs: FAQ[] = [
       'Anyone 18 years or older can join as a freelancer or client, as long as they comply with our Terms of Service.',
   },
 
-  // Privacy & Security
   {
     category: 'Privacy & Security',
     question: 'Does Noretmy share my data with third parties?',
@@ -322,7 +313,6 @@ const faqs: FAQ[] = [
       'Yes, all transactions are processed through encrypted and secure payment gateways to protect your financial information.',
   },
 
-  // Disputes & Conflict Resolution
   {
     category: 'Disputes & Conflict Resolution',
     question:
@@ -633,27 +623,12 @@ const faqs: FAQ[] = [
     answer:
       'Clearly communicate your expectations. If they are not met, provide feedback so the freelancer can make the necessary changes.',
   },
-  // {
-  //   "category": "Quality Standards",
-  //   "question": "How are freelancers rated on Noretmy?",
-  //   "answer": "Freelancers are rated by clients based on their performance in projects. Clients can leave reviews and comments once a freelancer marks a job as completed."
-  // },
   {
     category: 'Project Management',
     question: 'Can I hire a freelancer by the hour?',
     answer:
       'Yes, you can hire a freelancer on an hourly basis, as well as for short-term or long-term projects. You can also communicate via video call through Noretmy.',
   },
-  // {
-  //   "category": "Payments & Withdrawals",
-  //   "question": "What payment methods are accepted on Noretmy?",
-  //   "answer": "We accept payments via Stripe (debit/credit card) and PayPal. Available payment options depend on the client's country."
-  // },
-  // {
-  //   "category": "Project Management",
-  //   "question": "Can I cancel a project?",
-  //   "answer": "Once the freelancer has sent you the offer and payment has been made, you will no longer be able to cancel the order."
-  // },
   {
     category: 'Refund Policy',
     question: 'Where will my money be deposited if I receive a refund?',
@@ -895,21 +870,6 @@ const faqs: FAQ[] = [
     answer:
       'Once your service is approved, it will be published. The approval process takes between 24 and 72 hours.',
   },
-  // {
-  //   "category": "Clients - Taxes",
-  //   "question": "How can I obtain an invoice for the service I hired?",
-  //   "answer": "ANSWER"
-  // },
-  // {
-  //   "category": "Clients - Taxes",
-  //   "question": "How can I view my invoices?",
-  //   "answer": "ANSWER"
-  // },
-  // {
-  //   "category": "Clients - Basic Information",
-  //   "question": "How do I hire a service?",
-  //   "answer": "Once you choose the service you want, you can send a message or an offer to the freelancer. You can also view their profile and project history."
-  // },
   {
     category: 'Pricing & Fees',
     question: 'What is the currency conversion fee?',
@@ -928,7 +888,6 @@ const faqs: FAQ[] = [
   },
 ];
 
-// Group FAQs by category
 const groupedFAQs = faqs.reduce(
   (acc, faq) => {
     if (!acc[faq.category]) acc[faq.category] = [];
@@ -947,7 +906,6 @@ const FAQScreen: React.FC = () => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Detect scroll position for showing scroll-to-top button
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
@@ -956,7 +914,6 @@ const FAQScreen: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Function to scroll to the selected category
   const scrollToCategory = (category: string) => {
     setActiveCategory(category);
     if (sectionRefs.current[category]) {
@@ -967,12 +924,10 @@ const FAQScreen: React.FC = () => {
     }
   };
 
-  // Scroll to top function
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle accordion state
   const handleAccordionChange = (value: string) => {
     if (expandedItems.includes(value)) {
       setExpandedItems(expandedItems.filter((item) => item !== value));
@@ -981,7 +936,6 @@ const FAQScreen: React.FC = () => {
     }
   };
 
-  // Expand all FAQs in a category
   const expandCategory = (category: string) => {
     const categoryItems = filteredFAQs[category].map(
       (_, index) => `faq-${category}-${index}`,
@@ -989,7 +943,6 @@ const FAQScreen: React.FC = () => {
     setExpandedItems([...expandedItems, ...categoryItems]);
   };
 
-  // Collapse all FAQs in a category
   const collapseCategory = (category: string) => {
     const categoryItems = filteredFAQs[category].map(
       (_, index) => `faq-${category}-${index}`,
@@ -999,7 +952,6 @@ const FAQScreen: React.FC = () => {
     );
   };
 
-  // Filter FAQs based on search query
   const filteredFAQs =
     searchQuery.trim() === ''
       ? groupedFAQs
@@ -1020,7 +972,6 @@ const FAQScreen: React.FC = () => {
         {} as Record<string, FAQ[]>,
       );
 
-  // Count total FAQs
   const totalFAQs = Object.values(filteredFAQs).reduce(
     (sum, items) => sum + items.length,
     0,

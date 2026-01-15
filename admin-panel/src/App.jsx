@@ -28,10 +28,8 @@ import ViewWithdrawalRequest from "./pages/single/SingleViewWithdrawlRequest";
 import Layout from "./components/common/Layout";
 import { Toaster } from "react-hot-toast";
 
-// Admin Components
 import AdminUsersList from "./pages/admin/AdminUsersList";
 
-// New Pages
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/settings/Settings";
 import SystemHealth from "./pages/system/SystemHealth";

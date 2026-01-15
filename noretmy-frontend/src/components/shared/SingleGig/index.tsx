@@ -40,7 +40,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
 
         setGig(gig);
 
-        // Setup GigTop props
         setGigTopProps({
           seller: seller?.userName || 'N/A',
           avatar: seller?.profilePicture || '/images/placeholder-avatar.png',
@@ -57,7 +56,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
           completionRate: seller?.completionRate ?? null,
         });
 
-        // Setup Pricing Plans
         setPricingPlans([
           {
             title: gig.pricingPlan?.basic?.title || t('gigs:create.form.pricing.basic'),
@@ -79,7 +77,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
           },
         ]);
 
-        // Setup FAQs
         setFaqs(
           gig.faqs?.map((faq: any) => ({
             question: faq.question || 'N/A',
@@ -87,7 +84,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
           })) || []
         );
 
-        // Setup Reviews
         setReviewsProps(
           reviews?.map((review: any) => ({
             sellerImage: review.user?.profilePicture || '/images/placeholder-avatar.png',
@@ -138,7 +134,6 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         }
       }
     } catch (error) {
-      // Silently handle conversation errors
     }
   };
 

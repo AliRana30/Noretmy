@@ -40,7 +40,6 @@ const WithdrawalPage = () => {
   const apiRoot = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
   useEffect(() => {
-    // Fetch user balance
     const fetchBalance = async () => {
       try {
         if (!apiBase) {
@@ -57,7 +56,6 @@ const WithdrawalPage = () => {
             withCredentials: true,
           },
         );
-        // setBalance(response.data.availableBalance);
         setRecentWithdrawals(response.data.withdrawRequests); // Directly setting the API response
         setBalance(response.data.accountDetails.availableBalance)
         setAccount(response.data.accountDetails)
@@ -72,7 +70,6 @@ const WithdrawalPage = () => {
     };
 
     fetchBalance();
-    // In a real implementation, you would also fetch recent withdrawals here
   }, [apiBase, apiRoot]);
 
   const handleWithdrawalMethodChange = (e: any) => {
@@ -98,8 +95,6 @@ const WithdrawalPage = () => {
         withCredentials: true
       });
 
-      // Stripe onboarding can return { success:false, link, message }
-      // Successful updates return { success:true, freelancer }
       if (response.data?.freelancer) {
         setAccount({
           id: response.data.freelancer._id,
@@ -125,7 +120,6 @@ const WithdrawalPage = () => {
 
   const handleEditAccount = async (accountData: PayoutAccount): Promise<void> => {
     try {
-      // Backend does not expose a PUT route; reuse the POST handler to update.
       const response = await axios.post(
         `${apiRoot}/withdraw/account`,
         {
@@ -173,7 +167,6 @@ const WithdrawalPage = () => {
 
     const amount = parseFloat(withdrawalAmount);
 
-    // Validate amount
     if (isNaN(amount) || amount <= 0) {
       toast.error('Please enter a valid amount.');
       return;
@@ -205,9 +198,7 @@ const WithdrawalPage = () => {
       );
       setWithdrawalAmount('');
 
-      // Do not deduct funds client-side; balance updates on admin approval.
 
-      // Add to recent withdrawals (in a real app this would come from the API)
       const newWithdrawal = {
         id: `w${Date.now()}`,
         date: new Date().toISOString().split('T')[0],

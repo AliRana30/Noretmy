@@ -34,11 +34,9 @@ const FallbackAvatar: React.FC<FallbackAvatarProps> = ({
     xl: 'w-12 h-12',
   };
 
-  // Show fallback if no src, imageError, or src is explicitly null/empty
   const shouldShowFallback = !src || imageError || src === 'null' || src === '';
 
   if (shouldShowFallback) {
-    // Get first letter of name for initial
     const initial = name?.charAt(0).toUpperCase() || alt?.charAt(0).toUpperCase() || 'U';
 
     return (

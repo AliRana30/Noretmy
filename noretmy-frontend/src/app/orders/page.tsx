@@ -20,14 +20,11 @@ const OrdersPage: React.FC = () => {
   const router = useRouter();
   const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // Auth check
   const user = useSelector((state: any) => state?.auth?.user);
   const isLoggedIn = !!user;
 
-  // Get current language
   const currentLanguage = getCurrentLanguage();
 
-  // Auth protection
   useEffect(() => {
     if (!isLoggedIn) {
       toast('Please sign in to view your orders', {
@@ -138,7 +135,6 @@ const OrdersPage: React.FC = () => {
       });
   }, [currentLanguage, backendUrl, isLoggedIn, router]);
 
-  // Show skeleton while checking auth
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">

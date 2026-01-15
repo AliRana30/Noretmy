@@ -21,7 +21,6 @@ const RegisterPage = () => {
   const router = useRouter();
   const { user, loading } = useAppSelector((state) => state.auth);
 
-  // Role selection state: 'client' or 'seller'
   const [selectedRole, setSelectedRole] = useState<'client' | 'seller' | null>(null);
 
   const {
@@ -41,10 +40,8 @@ const RegisterPage = () => {
     mode: 'onChange',
   });
 
-  // Watch form values for validation
   const watchedValues = watch();
 
-  // Check if form is valid for button state
   const isFormValid = () => {
     const { fullName, email, password, confirmPassword } = watchedValues;
     return fullName && email && password && confirmPassword && password === confirmPassword && selectedRole !== null;
@@ -65,7 +62,6 @@ const RegisterPage = () => {
         sellerType: selectedRole === 'seller' ? 'individual' : undefined,
       })).unwrap();
 
-      // Use backend message if available, otherwise use fallback
       const successMessage = result?.message || 'Registration successful! Please check your email to verify your account.';
       toast.success(successMessage);
       router.push('/login');

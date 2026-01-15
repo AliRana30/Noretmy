@@ -1,6 +1,4 @@
 import React from 'react';
-// import Linkedinicon from '../svg/Linkedinicon';
-// import Link from 'next/link';
 import Image from 'next/image';
 
 interface TestimonialCardProps {

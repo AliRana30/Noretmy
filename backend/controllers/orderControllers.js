@@ -13,7 +13,6 @@ const { getVatRate } = require("./vatController");
 const Review = require("../models/Review");
 const { getAmountWithFeeAndTax, getSellerPayout } = require("../services/priceUtil");
 
-// VAT Service for EU-compliant VAT calculations
 const { getVATForUser, calculateVATBreakdown, PLATFORM_FEE_RATE } = require("../services/vatService");
 
 const PAYPAL_API = process.env.PAYPAL_API || "https://api-m.sandbox.paypal.com";
@@ -25,66 +24,20 @@ const { uploadFiles } = require("../utils/uploadFiles");
 const { sendOrderRequestEmail, sendOnboardingEmail, sendOrderDeliveredEmail, sendOrderCompletedEmail, sendOrderAcceptedEmail, sendOrderRejectedEmail } = require("../services/emailService");
 const { calculateDeliveryDate } = require("../utils/dateCalculate");
 
-// Badge service for seller level updates
 const badgeService = require("../services/badgeService");
 
-// Notification service for user notifications
 const notificationService = require("../services/notificationService");
 const paymentMilestoneService = require('../services/paymentMilestoneService');
 
-// Controller to create a new order
-// const createOrder = async (req, res) => {
-//   try {
-//     // Extract data from the request body
-//     const { userId } = req;
-//     const { gigId, price, status, email } = req.body;
 
-//     // Find the gig in the database
-//     const gig = await Job.findById(gigId);
 
-//     const orderPrice = price/100;
-//     const feeAndTax = (orderPrice * 0.02) +0.35;
 
-//     // Validate required fields
-//     if (!gigId || !price || !userId || !status || !email) {
-//       return res.status(400).json({ message: "All required fields must be provided." });
-//     }
 
-//     // Create a new order in the database
-//     const newOrder = new Order({
-//       gigId: gigId,
-//       price: orderPrice,
-//       feeAndTax :feeAndTax,
-//       sellerId: gig.sellerId, // Use the sellerId from the gig
-//       buyerId: userId, // Use the buyerId from the request
-//       status: status, // Initial order status
-//       payment_intent: "Temp", // Temporary placeholder for payment intent
-//     });
 
-//     // Save the order to the database
-//     const savedOrder = await newOrder.save();
 
-//     // Create a payment intent using the helper utility
-//     const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(price, email);
 
-//     // Extract the client_secret from the payment intent response
-//     const { client_secret, payment_intent } = paymentIntentResponse;
 
-//     // Update the saved order with the actual payment intent ID
-//     savedOrder.payment_intent = payment_intent;
-//     await savedOrder.save();
 
-//     // Send the response to the frontend
-//     res.status(201).json({
-//       message: "Order created successfully",
-//       order: savedOrder,
-//       client_secret: client_secret, // This is used on the frontend to confirm payment
-//     });
-//   } catch (error) {
-//     console.error("Error creating order:", error);
-//     res.status(500).json({ message: "Server error. Please try again later." });
-//   }
-// };
 
 const createOrder = async (req, res) => {
   try {
@@ -98,7 +51,6 @@ const createOrder = async (req, res) => {
     }
 
     let user = null;
-    // Validate milestones if it's a milestone order
 
     let updatedMilestones = null;
     if (isMilestone) {
@@ -142,7 +94,6 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // Calculate VAT and Fees using the single source of truth
     const vatBreakdown = await getVATForUser(userId, orderPrice);
     
     let selectedPlan = null;
@@ -160,7 +111,6 @@ const createOrder = async (req, res) => {
       deliveryDate.setDate(deliveryDate.getDate() + selectedPlan.deliveryTime);
     }
     
-    // Extract calculated values
     const { 
       platformFee, 
       vatAmount, 
@@ -201,12 +151,10 @@ const createOrder = async (req, res) => {
       const rate = vatRate; // Use the one from breakdown
       const additionalData = { orderId: savedOrder._id.toString(), userId, vatRate: rate, discount: gig.discount };
 
-      // Clear any old payment_intent to avoid conflicts
       savedOrder.payment_intent = "Temp";
       savedOrder.paymentStatus = 'pending';
       await savedOrder.save();
 
-      // Use the calculated totalAmount from VAT service
       const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(newOrder.totalAmount, buyerEmail, "order_payment", additionalData);
       const { client_secret: secret, payment_intent } = paymentIntentResponse;
 
@@ -229,13 +177,11 @@ const createOrder = async (req, res) => {
       await sendOrderRequestEmail(buyerEmail, requestDetails);
     }
 
-    // Send order confirmation emails to buyer and seller
     try {
       const buyer = await User.findById(buyerId);
       const seller = await User.findById(gig.sellerId);
       const gigDetails = await Job.findById(order.gigId);
 
-      // Email to buyer with order confirmation
       if (buyer && buyer.email) {
         const orderDetailsForBuyer = {
           _id: savedOrder._id,
@@ -252,7 +198,6 @@ const createOrder = async (req, res) => {
         console.log('✅ Order confirmation email sent to buyer:', buyer.email);
       }
 
-      // Email to seller about new order
       if (seller && seller.email) {
         const orderDetailsForSeller = {
           orderId: savedOrder._id,
@@ -270,7 +215,6 @@ const createOrder = async (req, res) => {
       console.error('Error sending order creation emails:', emailError.message);
     }
 
-    // Auto-create conversation between buyer and seller when order is created
     try {
       const conversationId = gig.sellerId + buyerId;
       const existingConversation = await Conversation.findOne({ id: conversationId });
@@ -305,19 +249,16 @@ const createOrder = async (req, res) => {
   }
 };
 
-// Order Requiremnts submission by buyer
 const addOrderRequirement = async (req, res) => {
   try {
     const { userId } = req;
     const { orderId, requirements } = req.body;
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Check if the logged-in user is the buyer
     if (order.buyerId !== userId) {
       return res.status(403).json({ message: 'Unauthorized to update this order' });
     }
@@ -326,10 +267,8 @@ const addOrderRequirement = async (req, res) => {
       return res.status(400).json({ message: "Order is not in a valid state to be started" });
     }
 
-    // Handle file uploads
     let uploadedFiles = [];
     if (req.files && req.files.length > 0) {
-      // const uploadResult = await uploadFiles(req);
       if (uploadResult.success) {
         uploadedFiles = uploadResult.urls; // Store uploaded file URLs
       } else {
@@ -337,12 +276,10 @@ const addOrderRequirement = async (req, res) => {
       }
     }
 
-    // Update the order requirements & attachments
     order.orderRequirements = requirements;  // Save text requirements
     order.attachments = uploadedFiles.map(file => file.url);
     order.status = "requirementsSubmitted";
 
-    // Track status change
     const statusUpdate = {
       status: "requirementsSubmitted",
       changedAt: new Date(),
@@ -351,7 +288,6 @@ const addOrderRequirement = async (req, res) => {
 
     await order.save();
 
-    // Send notification to seller
     try {
       const gig = await Job.findById(order.gigId);
       await notificationService.notifyRequirementsSubmitted(
@@ -381,18 +317,15 @@ const startOrder = async (req, res) => {
       return res.status(400).json({ error: "OrderId is missing" });
 
     }
-    // Find the order by ID
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Check if the user is the seller of the order
     if (order.sellerId.toString() !== userId) {
       return res.status(403).json({ error: "You are not authorized to start this order" });
     }
 
-    // Check if the order status allows starting
     if (order.status !== "requirementsSubmitted" && order.status !== "accepted") {
       return res.status(400).json({ error: "Order is not in a valid state to be started" });
     }
@@ -409,7 +342,6 @@ const startOrder = async (req, res) => {
     };
     order.statusHistory.push(statusUpdate);
     
-    // Add timeline event
     order.timeline.push({
       event: 'Work Started',
       description: `${seller?.fullName || seller?.username} started working on the project`,
@@ -417,7 +349,6 @@ const startOrder = async (req, res) => {
       actor: 'seller'
     });
 
-    // Capture 50% escrow payment
     if (order.paymentBreakdown && order.paymentBreakdown.escrowAmount > 0) {
       try {
         const PaymentMilestone = require('../models/PaymentMilestone');
@@ -437,7 +368,6 @@ const startOrder = async (req, res) => {
         });
         await escrowMilestone.save();
         
-        // Update order breakdown
         order.paymentBreakdown.pendingReleaseAmount += order.paymentBreakdown.escrowAmount;
         order.escrowStatus = 'full';
         order.escrowLockedAt = new Date();
@@ -457,7 +387,6 @@ const startOrder = async (req, res) => {
 
     await order.save();
 
-    // Send notification to buyer
     try {
       const gig = await Job.findById(order.gigId);
       await notificationService.notifyOrderStarted(
@@ -466,7 +395,6 @@ const startOrder = async (req, res) => {
         gig?.title || 'Order'
       );
 
-      // Send email notification to buyer that work has started
       const buyer = await User.findById(order.buyerId);
       if (buyer && buyer.email) {
         await sendUserNotificationEmail(
@@ -504,14 +432,12 @@ const deliverOrder = async (req, res) => {
       return res.status(400).json({ message: "orderId or delivery description is missing!" });
     }
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Check if the user is the seller of the order
     if (order.sellerId.toString() !== userId) {
       return res.status(403).json({ error: "You are not authorized to complete this order" });
     }
@@ -522,7 +448,6 @@ const deliverOrder = async (req, res) => {
 
     let uploadedFiles = [];
     if (req.files && req.files.length > 0) {
-      // const uploadResult = await uploadFiles(req);
       if (uploadResult.success) {
         uploadedFiles = uploadResult.urls.map(file => file.url);
       } else {
@@ -547,7 +472,6 @@ const deliverOrder = async (req, res) => {
 
     order.statusHistory.push(statusUpdate);
     
-    // Add timeline event
     order.timeline.push({
       event: 'Work Delivered',
       description: `${seller?.fullName || seller?.username} delivered the completed work`,
@@ -555,7 +479,6 @@ const deliverOrder = async (req, res) => {
       actor: 'seller'
     });
     
-    // Capture 20% delivery payment
     if (order.paymentBreakdown && order.paymentBreakdown.deliveryAmount > 0) {
       try {
         const PaymentMilestone = require('../models/PaymentMilestone');
@@ -592,14 +515,12 @@ const deliverOrder = async (req, res) => {
     
     await order.save();
     
-    // Process delivery milestone for payment tracking
     try {
       const paymentMilestoneService = require('../services/paymentMilestoneService');
       await paymentMilestoneService.processDeliveryMilestone(orderId, userId);
     } catch (milestoneError) {
       }
 
-    // Send notification to buyer
     try {
       const gig = await Job.findById(order.gigId);
       await notificationService.notifyOrderDelivered(
@@ -608,7 +529,6 @@ const deliverOrder = async (req, res) => {
         gig?.title || 'Order'
       );
       
-      // Send email notification
       const buyer = await User.findById(order.buyerId);
       if (buyer && buyer.email) {
         await sendOrderDeliveredEmail(buyer.email, {
@@ -636,26 +556,22 @@ const requestRevision = async (req, res) => {
     const { userId } = req;
     const { orderId, reason } = req.body;
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Check if the user is the seller of the order
     if (order.buyerId.toString() !== userId) {
       return res.status(403).json({ error: "You are not authorized to complete this order" });
     }
 
-    // Check if the order status is 'requirementSubmitted'
     if (order.status !== "delivered") {
       return res.status(400).json({ error: "Order is not in a valid state to be Request revison" });
     }
 
     let uploadedFiles = [];
     if (req.files && req.files.length > 0) {
-      // const uploadResult = await uploadFiles(req);
       if (uploadResult.success) {
         uploadedFiles = uploadResult.urls.map(file => file.url);
       } else {
@@ -675,7 +591,6 @@ const requestRevision = async (req, res) => {
     order.statusHistory.push(statusUpdate);
     await order.save();
 
-    // Send notification to seller
     try {
       const gig = await Job.findById(order.gigId);
       await notificationService.notifyRevisionRequested(
@@ -685,7 +600,6 @@ const requestRevision = async (req, res) => {
         reason
       );
 
-      // Send email to seller about revision request
       const seller = await User.findById(order.sellerId);
       const buyer = await User.findById(userId);
       if (seller && seller.email) {
@@ -721,19 +635,16 @@ const acceptOrder = async (req, res) => {
     const { userId } = req;
     const { orderId } = req.body;
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Check if the user is the seller of the order
     if (order.buyerId.toString() !== userId) {
       return res.status(403).json({ error: "You are not authorized to complete this order" });
     }
 
-    // Check if the order status is 'requirementSubmitted'
     if (order.status !== "delivered" && order.status !== "requestedRevision") {
       return res.status(400).json({ error: "Order is not in a valid state to be accepted " });
     }
@@ -745,7 +656,6 @@ const acceptOrder = async (req, res) => {
     order.progress = 100; // Set to 100% when completed
     order.paymentMilestoneStage = 'reviewed'; // Update milestone stage
     
-    // Calculate completion time and deadline status
     const createdDate = new Date(order.createdAt);
     const diffTime = completionDate - createdDate;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -761,7 +671,6 @@ const acceptOrder = async (req, res) => {
     };
     order.statusHistory.push(statusUpdate);
     
-    // Add timeline event
     const buyer = await User.findById(userId);
     order.timeline.push({
       event: 'Work Approved',
@@ -770,7 +679,6 @@ const acceptOrder = async (req, res) => {
       actor: 'buyer'
     });
 
-    // Capture 20% review payment before releasing funds
     if (order.paymentBreakdown && order.paymentBreakdown.reviewAmount > 0) {
       try {
         const PaymentMilestone = require('../models/PaymentMilestone');
@@ -815,13 +723,11 @@ const acceptOrder = async (req, res) => {
       { new: true } // Return the updated document
     );
 
-    // RELEASE ESCROW FUNDS: Move from pending to available
     try {
       const { getSellerPayout } = require('../services/priceUtil');
       const paymentMilestoneService = require('../services/paymentMilestoneService');
       const Freelancer = require('../models/Freelancer');
       
-      // Release the full amount (100% of captured payments)
       const totalCapturedAmount = order.paymentBreakdown.pendingReleaseAmount || 0;
       const amountToRelease = getSellerPayout(totalCapturedAmount);
       const seller = await User.findById(order.sellerId);
@@ -835,13 +741,11 @@ const acceptOrder = async (req, res) => {
         console.log('💵 Funds released to seller - Available:', seller.revenue.available, 'Pending:', seller.revenue.pending);
         }
       
-      // Also update Freelancer model
       const freelancer = await Freelancer.findOne({ userId: order.sellerId });
       if (freelancer) {
         await freelancer.releaseEarnings(amountToRelease);
       }
       
-      // Update order payment breakdown
       order.paymentMilestoneStage = 'completed';
       order.escrowStatus = 'released';
       order.paymentBreakdown = {
@@ -854,7 +758,6 @@ const acceptOrder = async (req, res) => {
       };
       order.fundsReleasedAt = new Date();
       
-      // Process review milestone
       await paymentMilestoneService.processReviewMilestone(order._id, userId);
       
     } catch (revError) {
@@ -867,14 +770,12 @@ const acceptOrder = async (req, res) => {
         await sellerProfile.save();
       }
       
-      // Update seller badge metrics
       await badgeService.updateSellerMetricsOnOrderComplete(order.sellerId, order);
     } catch (profileError) {
       }
 
     await order.save();
 
-    // Send notification to seller that order is completed
     try {
       const gig = await Job.findById(order.gigId);
       const seller = await User.findById(order.sellerId);
@@ -886,7 +787,6 @@ const acceptOrder = async (req, res) => {
         gig?.title || 'Order'
       );
       
-      // Send email notification to seller
       if (seller && seller.email) {
         const { getSellerPayout } = require('../services/priceUtil');
         const totalCapturedAmount = order.paymentBreakdown.totalReleasedAmount || 0;
@@ -905,7 +805,6 @@ const acceptOrder = async (req, res) => {
         });
         console.log('✅ Order completed email sent to seller:', seller.email);
         
-        // Send payment received notification
         await sendUserNotificationEmail(
           seller.email,
           'payment_received',
@@ -949,7 +848,6 @@ const confirmMilestoneOrCustomOrder = async (req, res) => {
       return res.status(400).json({ message: "Order ID is required." });
     }
 
-    // Query the database for the order
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -966,7 +864,6 @@ const confirmMilestoneOrCustomOrder = async (req, res) => {
       return res.status(400).json({ message: "Invalid order: price not found." });
     }
 
-    // Get userId from the request and query the user for email
     const user = await User.findById(userId);
 
     if (!user || !user.email) {
@@ -975,13 +872,11 @@ const confirmMilestoneOrCustomOrder = async (req, res) => {
 
     const email = user.email;
 
-    // Get Vat from vat Util
     const rate = await getVatRate(userId);
     const totalAmountWithFeesAndTax = getAmountWithFeeAndTax(price, rate);
 
     const orderDetails = { userId, orderId, vatRate: rate }
 
-    // Cancel any old payment_intent to prevent "No such payment_intent" errors
     if (order.payment_intent && order.payment_intent !== "Temp") {
       try {
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -1003,11 +898,9 @@ const confirmMilestoneOrCustomOrder = async (req, res) => {
 
     const { client_secret, payment_intent } = paymentIntentResponse;
 
-    // Update the order with the payment_intent
     order.payment_intent = payment_intent;
     await order.save();
 
-    // Send response to the frontend
     res.status(200).json({
       message: "Payment intent created successfully.",
       client_secret: client_secret,
@@ -1022,10 +915,8 @@ const getCustomerOrderRequests = async (req, res) => {
   try {
     const { userId } = req;
     const now = new Date();
-    // Extend from 24 hours to 30 days to avoid "disappearing" requests
     const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
 
-    // Fetch orders based on the userId and within the last 30 days, filtering by milestone or custom types
     const orders = await Order.find({
       buyerId: userId,
       createdAt: { $gte: thirtyDaysAgo },
@@ -1048,7 +939,6 @@ const getCustomerOrderRequests = async (req, res) => {
         return { error: "Seller not found" };
       }
 
-      // Fetch user profile and provide fallback if not found
       const userProfile = await UserProfile.findOne({ userId: user._id });
       const sellerImage = userProfile && userProfile.profilePicture ? userProfile.profilePicture : 'https://via.placeholder.com/100';
 
@@ -1062,12 +952,10 @@ const getCustomerOrderRequests = async (req, res) => {
         type: order.type,
       };
 
-      // If the order is of type 'custom', just return the baseOrder
       if (order.type === "custom") {
         return baseOrder;
       }
 
-      // If the order is a 'milestone' type, process the milestones array
       if (order.type === "milestone" && Array.isArray(order.milestones)) {
         const milestones = order.milestones.map(milestone => ({
           title: milestone.title,
@@ -1078,11 +966,9 @@ const getCustomerOrderRequests = async (req, res) => {
         return { ...baseOrder, milestones };
       }
 
-      // Fallback if no valid order type is found
       return baseOrder;
     }));
 
-    // Filter out invalid orders with errors
     const validOrders = response.filter(order => !order.error);
 
     res.status(200).json(validOrders);
@@ -1093,7 +979,6 @@ const getCustomerOrderRequests = async (req, res) => {
   }
 };
 
-// Update Milestone Status
 const updateMilestoneStatus = async (req, res) => {
   try {
     const { userId } = req;
@@ -1102,7 +987,6 @@ const updateMilestoneStatus = async (req, res) => {
     if (!userId) {
       res.status(401).json({ message: "User is not authenticated!" })
     }
-    // Validate inputs
     if (!orderId || !milestoneId || !newStatus) {
       return res.status(400).json({ message: 'Order ID, Milestone ID, and new status are required.' });
     }
@@ -1130,7 +1014,6 @@ const updateMilestoneStatus = async (req, res) => {
       });
     }
 
-    // Make sure to start the next milestone after completing the previous one
     const milestoneIndex = order.milestones.findIndex((m) => m._id.toString() === milestoneId);
     if (newStatus === 'started' && milestoneIndex > 0) {
       const previousMilestone = order.milestones[milestoneIndex - 1];
@@ -1143,7 +1026,6 @@ const updateMilestoneStatus = async (req, res) => {
 
     let uploadedFiles = [];
     if (req.files && req.files.length > 0) {
-      // const uploadResult = await uploadFiles(req);
       if (uploadResult.success) {
         uploadedFiles = uploadResult.urls.map(file => file.url);
       } else {
@@ -1190,7 +1072,6 @@ const createOrderPaypal = async (req, res) => {
   const { amount, currency = 'USD' } = req.body;
 
   try {
-    // Get access token
     const { data: { access_token } } = await axios.post(
       `${PAYPAL_API}/v1/oauth2/token`,
       'grant_type=client_credentials',
@@ -1205,7 +1086,6 @@ const createOrderPaypal = async (req, res) => {
       }
     );
 
-    // Create order
     const orderResponse = await axios.post(
       `${PAYPAL_API}/v2/checkout/orders`,
       {
@@ -1235,7 +1115,6 @@ const captureOrder = async (req, res) => {
   const { orderID } = req.body;
 
   try {
-    // Get access token
     const { data: { access_token } } = await axios.post(
       `${PAYPAL_API}/v1/oauth2/token`,
       'grant_type=client_credentials',
@@ -1250,7 +1129,6 @@ const captureOrder = async (req, res) => {
       }
     );
 
-    // Capture payment
     const captureResponse = await axios.post(
       `${PAYPAL_API}/v2/checkout/orders/${orderID}/capture`,
       {},
@@ -1287,10 +1165,6 @@ const getUserOrders = async (req, res) => {
   try {
     const { userId } = req;
 
-    // Get orders that are either:
-    // 1. Completed (paid) orders
-    // 2. Accepted invitations (where invitationStatus is 'accepted')
-    // 3. Active orders in progress
     const orders = await Order.find({
       $or: [{ sellerId: userId }, { buyerId: userId }],
       $and: [
@@ -1313,7 +1187,6 @@ const getUserOrders = async (req, res) => {
         const buyer = await User.findById(order.buyerId).select('fullName username');
         const seller = await User.findById(order.sellerId).select('fullName username');
         
-        // Fetch profiles safely
         let buyerProfile = null;
         let sellerProfile = null;
         try {
@@ -1358,7 +1231,6 @@ const updateOrderPaymentStatus = async (req, res) => {
   try {
     const { orderId, paymentIntentId } = req.body;
 
-    // Assuming you've already verified the payment success with the payment gateway
     const updatedOrder = await Order.findOneAndUpdate(
       { _id: orderId, payment_intent: paymentIntentId },
       { isCompleted: true },
@@ -1385,20 +1257,16 @@ const getSingleOrderDetail = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Find the gigTitle from the Job model using gigId from the order
     const job = await Job.findOne({ _id: order.gigId }).exec();
     const gigTitle = job ? job.title : null;
 
     let userDetails = null; // Initialize to null
     let otherPartyDetails = null;
 
-    // Check if the user is the buyer or seller
     if (userId == order.buyerId) {
-      // User is the buyer, fetch the seller's details
       userDetails = await User.findById(order.sellerId).exec();
       otherPartyDetails = await UserProfile.findOne({ userId: order.sellerId }).exec();
     } else if (userId == order.sellerId) {
-      // User is the seller, fetch the buyer's details
       userDetails = await User.findById(order.buyerId).exec();
       otherPartyDetails = await UserProfile.findOne({ userId: order.buyerId }).exec();
     }
@@ -1409,7 +1277,6 @@ const getSingleOrderDetail = async (req, res) => {
       reviewDetails = { desc: review.desc, rating: review.star };
     }
 
-    // Prepare the order details
     const orderDetails = {
       orderId: order._id,
       gigTitle: gigTitle || 'Gig title unavailable', // Fallback if gigTitle is null
@@ -1431,13 +1298,11 @@ const getSingleOrderDetail = async (req, res) => {
       progress: order.progress
     };
 
-    // include milestone with milestone orders
     let milestones = [];
     if (order.isMilestone) {
       milestones = order.milestones || [];
     }
 
-    // Prepare user details if available
 
     const userDetailsResponse = userDetails
       ? {
@@ -1447,7 +1312,6 @@ const getSingleOrderDetail = async (req, res) => {
       }
       : null;
 
-    // Build the response object
     const response = {
       ...(userDetailsResponse && { userDetails: userDetailsResponse }),
       orderDetails,
@@ -1455,7 +1319,6 @@ const getSingleOrderDetail = async (req, res) => {
       ...(reviewDetails && { reviewDetails }),
     };
 
-    // Return the response
     return res.status(200).json(response);
   } catch (error) {
     console.error(error);
@@ -1467,7 +1330,6 @@ const getPaymentsSummary = async (req, res) => {
   try {
     const completedOrders = await Order.find({ isCompleted: true });
 
-    // Initialize an array for the last 6 months
     const currentDate = dayjs();
     const paymentsSummary = Array.from({ length: 6 }, (_, i) => {
       const month = currentDate.subtract(i, 'month');
@@ -1477,7 +1339,6 @@ const getPaymentsSummary = async (req, res) => {
       };
     });
 
-    // Accumulate payments into the corresponding month
     completedOrders.forEach(order => {
       const orderMonth = dayjs(order.createdAt).format('MMMM');
       const foundMonth = paymentsSummary.find(item => item.name === orderMonth);
@@ -1486,7 +1347,6 @@ const getPaymentsSummary = async (req, res) => {
       }
     });
 
-    // Reverse the array to show from oldest to newest
     paymentsSummary.reverse();
 
     res.status(200).json(paymentsSummary);
@@ -1520,7 +1380,6 @@ const updateOrders = async (req, res) => {
       }
 
       if (Object.keys(updateFields).length > 0) {
-        // Debugging
 
         await Order.updateOne(
           { _id: order._id },
@@ -1537,7 +1396,6 @@ const updateOrders = async (req, res) => {
   }
 };
 
-// Create order invitation (client sends invitation to seller)
 const createOrderInvitation = async (req, res) => {
   try {
     const { userId } = req;
@@ -1552,9 +1410,6 @@ const createOrderInvitation = async (req, res) => {
       return res.status(404).json({ message: "Gig not found." });
     }
 
-    // Debug logging for own gig check
-    // Check if user is trying to order their own gig
-    // Use toString() to handle both ObjectId and string comparisons
     if (gig.sellerId?.toString() === userId?.toString()) {
       return res.status(400).json({ message: "You cannot order your own gig." });
     }
@@ -1569,7 +1424,6 @@ const createOrderInvitation = async (req, res) => {
       orderPrice -= orderPrice * (gig.discount / 100);
     }
 
-    // Calculate VAT using VAT service (EU-compliant)
     const vatResult = await getVATForUser(userId, orderPrice, 'EUR');
     const vatBreakdown = vatResult.breakdown || {
       baseAmount: orderPrice,
@@ -1582,14 +1436,12 @@ const createOrderInvitation = async (req, res) => {
       reverseChargeApplied: false
     };
 
-    // Calculate delivery date based on delivery time
     let deliveryDate = null;
     if (deliveryTime) {
       deliveryDate = new Date();
       deliveryDate.setDate(deliveryDate.getDate() + parseInt(deliveryTime));
     }
 
-    // Create invitation order with VAT data
     const newInvitation = new Order({
       gigId: gigId,
       price: orderPrice,
@@ -1606,7 +1458,6 @@ const createOrderInvitation = async (req, res) => {
       type: 'simple',
       progress: 0,
       
-      // VAT fields - calculated by backend
       baseAmount: vatBreakdown.baseAmount,
       vatRate: vatBreakdown.vatRate,
       vatAmount: vatBreakdown.vatAmount,
@@ -1630,7 +1481,6 @@ const createOrderInvitation = async (req, res) => {
 
     const savedInvitation = await newInvitation.save();
     
-    // Auto-create conversation between buyer and seller
     try {
       const conversationId = gig.sellerId + userId;
       const existingConversation = await Conversation.findOne({ id: conversationId });
@@ -1646,13 +1496,11 @@ const createOrderInvitation = async (req, res) => {
         });
         await newConversation.save();
       } else {
-        // Update conversation with invitation message
         existingConversation.lastMessage = `New order invitation for: ${gig.title} - ${planTitle}`;
         existingConversation.readBySeller = false;
         await existingConversation.save();
       }
       
-      // Create a message for the order invitation so it shows in chat
       const Message = require('../models/Message');
       const orderMessage = new Message({
         conversationId: conversationId,
@@ -1675,7 +1523,6 @@ const createOrderInvitation = async (req, res) => {
     } catch (convError) {
       }
 
-    // Send notification to seller about new order invitation
     try {
       await notificationService.createNotification({
         userId: gig.sellerId,
@@ -1702,7 +1549,6 @@ const createOrderInvitation = async (req, res) => {
   }
 };
 
-// Get pending invitations for seller
 const getSellerInvitations = async (req, res) => {
   try {
     const { userId } = req;
@@ -1713,7 +1559,6 @@ const getSellerInvitations = async (req, res) => {
       invitationStatus: 'pending'
     }).sort({ createdAt: -1 });
 
-    // Populate buyer and gig info
     const populatedInvitations = await Promise.all(
       invitations.map(async (inv) => {
         const buyer = await User.findById(inv.buyerId).select('name email');
@@ -1738,7 +1583,6 @@ const getSellerInvitations = async (req, res) => {
   }
 };
 
-// Accept invitation (seller accepts)
 const acceptInvitation = async (req, res) => {
   try {
     const { userId } = req;
@@ -1754,12 +1598,10 @@ const acceptInvitation = async (req, res) => {
       return res.status(404).json({ message: "Invitation not found." });
     }
 
-    // Use robust ID comparison with cleanup
     const invitationSellerId = invitation.sellerId?.toString().trim();
     const currentUserId = userId?.toString().trim();
     const isSeller = invitationSellerId === currentUserId;
     
-    // Check for admin role
     const isAdmin = req.isAdmin === true || req.userRole === 'admin' || req.user?.role === 'admin';
 
     if (!isSeller && !isAdmin) {
@@ -1777,7 +1619,6 @@ const acceptInvitation = async (req, res) => {
     invitation.invitationStatus = 'accepted';
     invitation.status = 'accepted'; // Order accepted by seller
     
-    // Add timeline event
     const seller = await User.findById(userId);
     invitation.timeline.push({
       event: 'Order Accepted',
@@ -1793,7 +1634,6 @@ const acceptInvitation = async (req, res) => {
     
     await invitation.save();
 
-    // Notify buyer that invitation was accepted
     const gig = await Job.findById(invitation.gigId);
     const conversationId = userId + invitation.buyerId;
     
@@ -1805,7 +1645,6 @@ const acceptInvitation = async (req, res) => {
         await conversation.save();
       }
       
-      // Create message for accepted invitation
       const Message = require('../models/Message');
       const acceptedMessage = new Message({
         conversationId: conversationId,
@@ -1825,12 +1664,10 @@ const acceptInvitation = async (req, res) => {
       });
       await acceptedMessage.save();
       
-      // Update the original invitation message status
       await Message.updateMany(
         { orderId: invitation._id, messageType: 'order_invitation' },
         { 'orderData.invitationStatus': 'accepted', 'orderData.status': 'accepted' }
       );
-      // Notify buyer via email
       try {
         const buyerUser = await User.findById(invitation.buyerId);
         if (buyerUser && buyerUser.email) {
@@ -1848,7 +1685,6 @@ const acceptInvitation = async (req, res) => {
     } catch (err) {
       }
 
-    // Notify admins about order acceptance
     try {
       await notificationService.notifyAdminOrderAccepted(
         invitation._id.toString(),
@@ -1871,7 +1707,6 @@ const acceptInvitation = async (req, res) => {
   }
 };
 
-// Reject invitation (seller rejects)
 const rejectInvitation = async (req, res) => {
   try {
     const { userId } = req;
@@ -1883,8 +1718,6 @@ const rejectInvitation = async (req, res) => {
       return res.status(404).json({ message: "Invitation not found." });
     }
 
-    // Allow both seller and buyer to reject/cancel the invitation
-    // Use robust ID comparison
     const invitationSellerId = invitation.sellerId?.toString().trim();
     const invitationBuyerId = invitation.buyerId?.toString().trim();
     const currentUserId = userId?.toString().trim();
@@ -1892,7 +1725,6 @@ const rejectInvitation = async (req, res) => {
     const isSeller = invitationSellerId === currentUserId;
     const isBuyer = invitationBuyerId === currentUserId;
     
-    // Check for admin role
     const isAdmin = req.isAdmin === true || req.userRole === 'admin' || req.user?.role === 'admin';
     
     if (!isSeller && !isBuyer && !isAdmin) {
@@ -1908,7 +1740,6 @@ const rejectInvitation = async (req, res) => {
     invitation.status = 'cancelled';
     await invitation.save();
 
-    // Notify buyer
     const gig = await Job.findById(invitation.gigId);
     const conversationId = userId + invitation.buyerId;
     
@@ -1920,7 +1751,6 @@ const rejectInvitation = async (req, res) => {
         await conversation.save();
       }
       
-      // Create message for rejected invitation
       const Message = require('../models/Message');
       const rejectedMessage = new Message({
         conversationId: conversationId,
@@ -1939,12 +1769,10 @@ const rejectInvitation = async (req, res) => {
       });
       await rejectedMessage.save();
       
-      // Update the original invitation message status
       await Message.updateMany(
         { orderId: invitation._id, messageType: 'order_invitation' },
         { 'orderData.invitationStatus': 'rejected', 'orderData.status': 'cancelled' }
       );
-      // Notify buyer via email
       try {
         const buyerUser = await User.findById(invitation.buyerId);
         if (buyerUser && buyerUser.email) {
@@ -1962,7 +1790,6 @@ const rejectInvitation = async (req, res) => {
     } catch (err) {
       }
 
-    // Notify admins about order rejection
     try {
       const seller = await User.findById(userId);
       await notificationService.notifyAdminOrderRejected(
@@ -1986,7 +1813,6 @@ const rejectInvitation = async (req, res) => {
   }
 };
 
-// Get buyer's invitations (to see status)
 const getBuyerInvitations = async (req, res) => {
   try {
     const { userId } = req;
@@ -2020,7 +1846,6 @@ const getBuyerInvitations = async (req, res) => {
   }
 };
 
-// Update order progress (0-100%)
 const updateOrderProgress = async (req, res) => {
   try {
     const { userId } = req;
@@ -2031,16 +1856,13 @@ const updateOrderProgress = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only seller can update progress
     if (order.sellerId !== userId) {
       return res.status(403).json({ message: "Only the seller can update progress." });
     }
 
-    // Validate progress
     const progressValue = Math.min(100, Math.max(0, parseInt(progress)));
     order.progress = progressValue;
 
-    // Add timeline event
     let eventName = 'Progress Update';
     if (progressValue === 50) {
       eventName = 'Halfway Complete';
@@ -2056,7 +1878,6 @@ const updateOrderProgress = async (req, res) => {
       actor: 'seller'
     });
 
-    // Update status history
     if (progressValue === 50 || progressValue === 100) {
       order.statusHistory.push({
         status: progressValue === 50 ? 'halfwayDone' : 'delivered',
@@ -2076,7 +1897,6 @@ const updateOrderProgress = async (req, res) => {
   }
 };
 
-// Get order timeline
 const getOrderTimeline = async (req, res) => {
   try {
     const { userId } = req;
@@ -2087,21 +1907,17 @@ const getOrderTimeline = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Check if user is buyer or seller
     if (order.buyerId !== userId && order.sellerId !== userId) {
       return res.status(403).json({ message: "Not authorized to view this order." });
     }
 
-    // Get gig info
     const gig = await Job.findById(order.gigId).select('title photos');
     
-    // Get buyer and seller info
     const buyer = await User.findById(order.buyerId).select('fullName username');
     const seller = await User.findById(order.sellerId).select('fullName username');
     const buyerProfile = await UserProfile.findOne({ userId: order.buyerId });
     const sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
 
-    // Calculate deadline info
     let deadlineInfo = null;
     if (order.deliveryDate) {
       const now = new Date();
@@ -2148,7 +1964,6 @@ const getOrderTimeline = async (req, res) => {
   }
 };
 
-// Complete order with payment (after work is accepted)
 const completeOrderWithPayment = async (req, res) => {
   try {
     const { userId } = req;
@@ -2159,12 +1974,10 @@ const completeOrderWithPayment = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only buyer can pay
     if (order.buyerId !== userId) {
       return res.status(403).json({ message: "Only the buyer can make payment." });
     }
 
-    // Check if order is in correct state
     if (order.status !== 'waitingReview' && order.status !== 'readyForPayment') {
       return res.status(400).json({ 
         message: "Order must be approved before payment.",
@@ -2172,17 +1985,14 @@ const completeOrderWithPayment = async (req, res) => {
       });
     }
 
-    // Get buyer email for payment
     const buyer = await User.findById(userId);
     if (!buyer) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Get VAT rate and calculate total
     const rate = await getVatRate(userId);
     const totalAmountWithFeesAndTax = getAmountWithFeeAndTax(order.price, rate);
 
-    // Create payment intent
     const additionalData = { 
       orderId: order._id.toString(), 
       userId, 
@@ -2203,7 +2013,6 @@ const completeOrderWithPayment = async (req, res) => {
 
     const { client_secret, payment_intent } = paymentIntentResponse;
 
-    // Update order with payment intent
     order.payment_intent = payment_intent;
     order.status = 'readyForPayment';
     
@@ -2227,7 +2036,6 @@ const completeOrderWithPayment = async (req, res) => {
   }
 };
 
-// Submit review after order completion
 const submitReview = async (req, res) => {
   try {
     const { userId } = req;
@@ -2238,26 +2046,21 @@ const submitReview = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only buyer can review
     if (order.buyerId !== userId) {
       return res.status(403).json({ message: "Only the buyer can submit a review." });
     }
 
-    // Check if order is completed
     if (!order.isCompleted) {
       return res.status(400).json({ message: "Order must be completed before reviewing." });
     }
 
-    // Check if already reviewed
     if (order.isReviewed) {
       return res.status(400).json({ message: "You have already reviewed this order." });
     }
 
-    // Get reviewer info
     const reviewer = await User.findById(userId);
     const reviewerProfile = await UserProfile.findOne({ userId });
 
-    // Create review
     const newReview = new Review({
       gigId: order.gigId,
       orderId: order._id.toString(),
@@ -2276,7 +2079,6 @@ const submitReview = async (req, res) => {
 
     const savedReview = await newReview.save();
 
-    // Update order with review
     order.isReviewed = true;
     order.reviewId = savedReview._id;
     
@@ -2289,11 +2091,9 @@ const submitReview = async (req, res) => {
 
     await order.save();
 
-    // Update freelancer's profile with review stats
     try {
       const sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
       if (sellerProfile) {
-        // Calculate average rating
         const allSellerReviews = await Review.find({ sellerId: order.sellerId });
         const totalRatings = allSellerReviews.reduce((sum, r) => sum + r.star, 0);
         const avgRating = totalRatings / allSellerReviews.length;
@@ -2301,7 +2101,6 @@ const submitReview = async (req, res) => {
         sellerProfile.averageRating = Math.round(avgRating * 10) / 10;
         sellerProfile.totalReviews = allSellerReviews.length;
         
-        // Track completion stats
         const completedOnTime = await Order.countDocuments({ 
           sellerId: order.sellerId, 
           deadlineMet: true 
@@ -2323,7 +2122,6 @@ const submitReview = async (req, res) => {
   }
 };
 
-// Get active orders (for timeline display)
 const getActiveOrders = async (req, res) => {
   try {
     const { userId } = req;
@@ -2343,7 +2141,6 @@ const getActiveOrders = async (req, res) => {
         const buyerProfile = await UserProfile.findOne({ userId: order.buyerId });
         const sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
 
-        // Calculate deadline info
         let deadlineInfo = null;
         if (order.deliveryDate) {
           const now = new Date();
@@ -2390,7 +2187,6 @@ const getActiveOrders = async (req, res) => {
   }
 };
 
-// Buyer approves delivery and completes order
 const approveDelivery = async (req, res) => {
   try {
     const { userId } = req;
@@ -2401,12 +2197,10 @@ const approveDelivery = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only buyer can approve
     if (order.buyerId !== userId) {
       return res.status(403).json({ message: "Only the buyer can approve delivery." });
     }
 
-    // Check if order is in delivered state
     if (order.status !== 'delivered' && order.status !== 'waitingReview') {
       return res.status(400).json({ 
         message: "Order must be in delivered state to approve.",
@@ -2416,16 +2210,13 @@ const approveDelivery = async (req, res) => {
 
     const buyer = await User.findById(userId);
 
-    // Update order status
     order.status = 'completed';
     order.isCompleted = true;
     order.orderCompletionDate = new Date();
     order.progress = 100;
     
-    // Calculate completion time
     order.calculateCompletionStats();
 
-    // Add timeline event
     order.timeline.push({
       event: 'Order Completed',
       description: `${buyer?.fullName || buyer?.username} approved the delivery and marked the order as complete`,
@@ -2440,11 +2231,9 @@ const approveDelivery = async (req, res) => {
 
     await order.save();
     
-    // Credit money to freelancer's revenue
     try {
       const baseEarnings = getSellerPayout(order.price);
       
-      // Move any pending extension revenue to available
       const extensions = await TimelineExtension.find({ orderId: order._id, status: 'completed' });
       const extensionRevenueSum = extensions.reduce((acc, ext) => acc + (ext.freelancerRevenue || 0), 0);
       
@@ -2461,7 +2250,6 @@ const approveDelivery = async (req, res) => {
       console.error('Error updating seller revenue in approveDelivery:', revError);
     }
 
-    // Create a message in the conversation
     try {
       const Message = require('../models/Message');
       const conversationId = order.sellerId + order.buyerId;
@@ -2480,7 +2268,6 @@ const approveDelivery = async (req, res) => {
       });
       await completedMessage.save();
 
-      // Update conversation
       const Conversation = require('../models/Conversation');
       await Conversation.findOneAndUpdate(
         { id: conversationId },
@@ -2492,7 +2279,6 @@ const approveDelivery = async (req, res) => {
     } catch (msgError) {
       }
 
-    // Update freelancer stats
     try {
       const sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
       if (sellerProfile) {
@@ -2503,7 +2289,6 @@ const approveDelivery = async (req, res) => {
     } catch (profileError) {
       }
 
-    // Update seller badge metrics
     try {
       await badgeService.updateSellerMetricsOnOrderComplete(order.sellerId, order);
     } catch (badgeError) {
@@ -2525,7 +2310,6 @@ const approveDelivery = async (req, res) => {
   }
 };
 
-// Buyer approves progress milestone (e.g., 50% complete)
 const approveProgress = async (req, res) => {
   try {
     const { userId } = req;
@@ -2536,7 +2320,6 @@ const approveProgress = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only buyer can approve
     if (order.buyerId !== userId) {
       return res.status(403).json({ message: "Only the buyer can approve progress." });
     }
@@ -2544,7 +2327,6 @@ const approveProgress = async (req, res) => {
     const buyer = await User.findById(userId);
     const milestoneLabel = milestone === 'halfway' ? '50% Progress' : milestone;
 
-    // Add timeline event
     order.timeline.push({
       event: `${milestoneLabel} Approved`,
       description: `${buyer?.fullName || buyer?.username} approved the ${milestoneLabel} milestone`,
@@ -2552,7 +2334,6 @@ const approveProgress = async (req, res) => {
       actor: 'buyer'
     });
 
-    // Update status based on milestone
     if (milestone === 'halfway') {
       order.statusHistory.push({
         status: 'halfwayApproved',
@@ -2572,7 +2353,6 @@ const approveProgress = async (req, res) => {
   }
 };
 
-// Client advances order to next stage
 const advanceOrderStatus = async (req, res) => {
   try {
     const { userId } = req;
@@ -2597,8 +2377,6 @@ const advanceOrderStatus = async (req, res) => {
     const user = await User.findById(userId);
     const userRole = isBuyer ? 'buyer' : 'seller';
 
-    // Define allowed status transitions
-    // Status flow: created -> accepted -> requirementsSubmitted -> started -> delivered -> waitingReview -> completed
     const statusFlow = [
       'created',           // 0 - Order placed
       'accepted',          // 1 - Freelancer accepts
@@ -2618,20 +2396,16 @@ const advanceOrderStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status transition." });
     }
 
-    // Cannot go backwards
     if (targetIndex <= currentIndex) {
       return res.status(400).json({ message: "Cannot move to a previous or same status." });
     }
 
-    // Define who can advance to which status
     const statusPermissions = {
-      // Seller can do these
       'accepted': { role: 'seller', description: 'Order accepted by freelancer' },
       'started': { role: 'seller', description: 'Work started by freelancer' },
       'halfwayDone': { role: 'seller', description: 'Halfway progress reached' },
       'delivered': { role: 'seller', description: 'Work delivered by freelancer' },
       
-      // Buyer can do these
       'requirementsSubmitted': { role: 'buyer', description: 'Requirements submitted by client' },
       'waitingReview': { role: 'buyer', description: 'Work approved by client, awaiting review' },
       'readyForPayment': { role: 'buyer', description: 'Client approved work, ready for payment' },
@@ -2640,7 +2414,6 @@ const advanceOrderStatus = async (req, res) => {
 
     const permission = statusPermissions[targetStatus];
     
-    // Check if the current user can advance to this status
     if (permission) {
       if (permission.role !== userRole) {
         const requiredRole = permission.role === 'seller' ? 'freelancer' : 'client';
@@ -2650,24 +2423,19 @@ const advanceOrderStatus = async (req, res) => {
       }
     }
 
-    // SPECIAL HANDLING FOR COMPLETED STATUS
     if (targetStatus === 'completed') {
-      // Mark order as completed
       order.status = 'completed';
       order.isCompleted = true;
       order.orderCompletionDate = new Date();
       order.progress = 100;
 
-      // Calculate completion stats
       order.calculateCompletionStats();
 
-      // Add to status history
       order.statusHistory.push({
         status: 'completed',
         changedAt: new Date()
       });
 
-      // Add timeline event
       order.timeline.push({
         event: 'Payment Completed',
         description: `${user?.fullName || user?.username} completed the payment`,
@@ -2677,11 +2445,9 @@ const advanceOrderStatus = async (req, res) => {
 
       await order.save();
 
-      // Add money to freelancer's revenue using standard payout calculation
       try {
         const baseEarnings = getSellerPayout(order.price);
         
-        // Move any pending extension revenue to available
         const extensions = await TimelineExtension.find({ orderId: order._id, status: 'completed' });
         const extensionRevenueSum = extensions.reduce((acc, ext) => acc + (ext.freelancerRevenue || 0), 0);
         
@@ -2699,7 +2465,6 @@ const advanceOrderStatus = async (req, res) => {
         console.error('Error updating seller revenue in advanceOrderStatus:', revError);
       }
 
-      // Send notifications to both parties and admin
       const { notifyPaymentCompleted } = require('../services/notificationService');
       const adminUsers = await User.find({ role: 'admin' }).select('_id');
       
@@ -2712,7 +2477,6 @@ const advanceOrderStatus = async (req, res) => {
         );
       }
 
-      // Also send regular notification to seller
       const Notification = require('../models/Notification');
       const gig = await Job.findById(order.gigId);
       
@@ -2724,7 +2488,6 @@ const advanceOrderStatus = async (req, res) => {
         isRead: false
       });
 
-      // Update seller badge metrics
       try {
         await badgeService.updateSellerMetricsOnOrderComplete(order.sellerId, order);
       } catch (badgeError) {
@@ -2742,17 +2505,14 @@ const advanceOrderStatus = async (req, res) => {
       });
     }
 
-    // NORMAL STATUS ADVANCEMENT (not completed)
     const previousStatus = order.status;
     order.status = targetStatus;
     
-    // Add to status history
     order.statusHistory.push({
       status: targetStatus,
       changedAt: new Date()
    });
 
-    // Add timeline event
     const eventDescription = permission?.description || `Order status changed to ${targetStatus}`;
     order.timeline.push({
       event: eventDescription,
@@ -2763,7 +2523,6 @@ const advanceOrderStatus = async (req, res) => {
 
     await order.save();
 
-    // Send notification to the other party
     const Notification = require('../models/Notification');
     const recipientId = isBuyer ? order.sellerId : order.buyerId;
     const gig = await Job.findById(order.gigId);
@@ -2790,7 +2549,6 @@ const advanceOrderStatus = async (req, res) => {
   }
 };
 
-// Request timeline extension (buyer can extend deadline)
 const requestTimelineExtension = async (req, res) => {
   try {
     const { userId } = req;
@@ -2809,21 +2567,17 @@ const requestTimelineExtension = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Only buyer can extend the timeline
     if (order.buyerId?.toString() !== userId?.toString()) {
       return res.status(403).json({ message: "Only the buyer can extend the timeline." });
     }
 
-    // Calculate new delivery date
     const currentDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate) : new Date();
     const newDeliveryDate = new Date(currentDeliveryDate);
     newDeliveryDate.setDate(newDeliveryDate.getDate() + parseInt(additionalDays));
 
-    // Update order
     const oldDeliveryDate = order.deliveryDate;
     order.deliveryDate = newDeliveryDate;
     
-    // Add to timeline
     order.timeline.push({
       event: 'Timeline Extended',
       description: `Buyer extended the deadline by ${additionalDays} day(s). ${reason ? `Reason: ${reason}` : ''}`,
@@ -2833,11 +2587,9 @@ const requestTimelineExtension = async (req, res) => {
 
     await order.save();
 
-    // Get gig and user info for notifications
     const gig = await Job.findById(order.gigId);
     const buyer = await User.findById(userId);
 
-    // Create notification for seller
     const Notification = require('../models/Notification');
     await Notification.create({
       userId: order.sellerId,
@@ -2847,7 +2599,6 @@ const requestTimelineExtension = async (req, res) => {
       isRead: false
     });
 
-    // Create notification for admin
     await Notification.create({
       userId: null, // Admin notification (global)
       type: 'system',
@@ -2857,7 +2608,6 @@ const requestTimelineExtension = async (req, res) => {
       isGlobal: true
     });
 
-    // Update conversation if exists
     try {
       const conversationId = order.sellerId + order.buyerId;
       const conversation = await Conversation.findOne({ id: conversationId });
@@ -2884,7 +2634,6 @@ const requestTimelineExtension = async (req, res) => {
   }
 };
 
-// Complete order after payment verification (LMS-style)
 const completeOrderAfterPayment = async (req, res) => {
   try {
     const { orderId, payment_intent_id } = req.body;
@@ -2894,13 +2643,11 @@ const completeOrderAfterPayment = async (req, res) => {
       return res.status(400).json({ message: "Payment intent ID is required" });
     }
 
-    // Verify payment with Stripe
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
     
     console.log('Payment Intent Status:', paymentIntent.status);
     
-    // Accept both succeeded and requires_capture (which will be captured by frontend)
     if (paymentIntent.status !== "succeeded" && paymentIntent.status !== "requires_capture") {
       return res.status(400).json({ 
         success: false,
@@ -2909,20 +2656,17 @@ const completeOrderAfterPayment = async (req, res) => {
       });
     }
     
-    // If requires_capture, capture it now
     if (paymentIntent.status === "requires_capture") {
       console.log('Capturing payment intent...');
       await stripe.paymentIntents.capture(payment_intent_id);
       console.log('Payment captured successfully');
     }
 
-    // Update order
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Update order status (LMS-style direct update)
     order.isPaid = true;
     order.paymentStatus = 'completed';
     order.status = 'started';
@@ -2938,20 +2682,17 @@ const completeOrderAfterPayment = async (req, res) => {
 
     await order.save();
 
-    // Update seller revenue
     const { getSellerPayout } = require('../services/priceUtil');
     const seller = await User.findById(order.sellerId);
     if (seller) {
       const netEarnings = getSellerPayout(order.price);
       seller.revenue = seller.revenue || { total: 0, available: 0, pending: 0, withdrawn: 0 };
       seller.revenue.total = (seller.revenue.total || 0) + netEarnings;
-      // For this non-milestone flow, treat payment as immediately available to withdraw
       seller.revenue.available = (seller.revenue.available || 0) + netEarnings;
       seller.markModified('revenue');
       await seller.save();
       console.log('💰 Seller revenue updated - Total:', seller.revenue.total, 'Available:', seller.revenue.available);
 
-      // Keep Freelancer model in sync (seller dashboard stats read from Freelancer)
       try {
         const Freelancer = require('../models/Freelancer');
         const freelancer = await Freelancer.findOne({ userId: order.sellerId });
@@ -2967,7 +2708,6 @@ const completeOrderAfterPayment = async (req, res) => {
       }
     }
 
-    // Send notification to all admins about order payment
     const notificationService = require('../services/notificationService');
     const gig = await Job.findById(order.gigId);
     const buyer = await User.findById(order.buyerId);
@@ -3012,12 +2752,10 @@ const cancelOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Verify user is the buyer
     if (order.buyerId?.toString() !== userId?.toString()) {
       return res.status(403).json({ message: "Only the buyer can initiate cancellation." });
     }
 
-    // Check if order can be cancelled
     if (['completed', 'delivered', 'cancelled', 'disputed'].includes(order.status)) {
       return res.status(400).json({ 
         message: `Order cannot be cancelled in its current status: ${order.status}`,
@@ -3025,7 +2763,6 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Check if deadline has passed
     const now = new Date();
     const canCancel = order.deliveryDate && new Date(order.deliveryDate) < now;
 
@@ -3035,12 +2772,9 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Process cancellation using milestone service if applicable
     if (order.isMilestone || order.payment_intent) {
-      // paymentMilestoneService.processCancellation returns { success, refundedAmount }
       await paymentMilestoneService.processCancellation(order._id, reason || 'Deadline expired', userId);
     } else {
-      // Basic cancellation for other cases
       order.status = 'cancelled';
       order.timeline.push({
         event: 'Order Cancelled',
@@ -3051,7 +2785,6 @@ const cancelOrder = async (req, res) => {
       await order.save();
     }
 
-    // Notify seller
     const seller = await User.findById(order.sellerId);
     const gig = await Job.findById(order.gigId);
 

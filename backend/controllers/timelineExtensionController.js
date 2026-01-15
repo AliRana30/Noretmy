@@ -28,7 +28,6 @@ const createTimelineExtensionPayment = async (req, res) => {
     const { orderId, extensionDays } = req.body;
     const userId = req.userId;
 
-    // Validate input
     if (!orderId || !extensionDays) {
       return res.status(400).json({
         success: false,
@@ -43,7 +42,6 @@ const createTimelineExtensionPayment = async (req, res) => {
       });
     }
 
-    // Get order
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({
@@ -52,7 +50,6 @@ const createTimelineExtensionPayment = async (req, res) => {
       });
     }
 
-    // Check if user is the buyer
     if (order.buyerId.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -60,7 +57,6 @@ const createTimelineExtensionPayment = async (req, res) => {
       });
     }
 
-    // Get user for VAT calculation
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -69,15 +65,12 @@ const createTimelineExtensionPayment = async (req, res) => {
       });
     }
 
-    // Calculate pricing
     const baseAmount = getTimelineExtensionPricing(extensionDays);
     const vatRate = await getVatRate(userId);
     const totalAmount = getAmountWithFeeAndTax(baseAmount, vatRate);
 
-    // Calculate freelancer revenue (95% of base amount)
     const freelancerRevenue = getSellerPayout(baseAmount);
 
-    // Calculate new deadline
     const currentDeadline = new Date(order.deliveryTime);
     const newDeadline = new Date(currentDeadline);
     newDeadline.setDate(newDeadline.getDate() + extensionDays);
@@ -92,7 +85,6 @@ const createTimelineExtensionPayment = async (req, res) => {
       vatRate
     };
 
-    // Create payment intent
     const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(
       totalAmount,
       user.email,
@@ -134,14 +126,12 @@ const processTimelineExtension = async (paymentIntent) => {
   try {
     const { orderId, extensionDays, previousDeadline, newDeadline, freelancerRevenue, userId } = paymentIntent.metadata;
 
-    // Get order
     const order = await Order.findById(orderId);
     if (!order) {
       console.error('Order not found for timeline extension:', orderId);
       return false;
     }
 
-    // Create timeline extension record
     const timelineExtension = await TimelineExtension.create({
       orderId,
       requestedBy: userId,
@@ -155,11 +145,9 @@ const processTimelineExtension = async (paymentIntent) => {
       completedAt: new Date()
     });
 
-    // Update order delivery time
     order.deliveryTime = new Date(newDeadline);
     await order.save();
 
-    // Add to freelancer's pending revenue
     const freelancer = await User.findById(order.sellerId);
     if (freelancer) {
       if (!freelancer.revenue) {
@@ -175,7 +163,6 @@ const processTimelineExtension = async (paymentIntent) => {
       await freelancer.save();
     }
 
-    // Send notifications to both parties
     await notifyTimelineExtended(
       order.buyerId,
       order.sellerId,

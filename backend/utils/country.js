@@ -13,7 +13,6 @@ const europeanCountryCodes = [
     "AR", "BO", "BR", "CL", "CO", "EC", "GY", "PY", "PE", "SR", "UY", "VE" 
   ];
   
-  // Export both lists
   module.exports = {
     europeanCountryCodes,
     americanCountryCodes

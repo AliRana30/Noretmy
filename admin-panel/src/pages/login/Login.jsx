@@ -23,7 +23,6 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  // Clear any previous errors when component mounts
   useEffect(() => {
     clearError();
   }, [clearError]);
@@ -52,14 +51,11 @@ const Login = () => {
       if (result.success) {
         setLoginSuccess(true);
         toast.success(getTranslation(loginTranslations, "loginSuccess") || "Login successful!");
-        // Show success message briefly before redirecting
         setTimeout(() => {
-          // Redirect to the page they were trying to access, or dashboard
           const from = location.state?.from?.pathname || "/";
           navigate(from, { replace: true });
         }, 1500);
       } else {
-        // If success is false, show the error from the result
         toast.error(result.error || getTranslation(loginTranslations, "loginFailed") || "Login failed");
       }
     } catch (error) {

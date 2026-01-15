@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const emailLogSchema = new mongoose.Schema({
-  // Recipient information
   recipient: {
     type: String,
     required: true,
@@ -17,7 +16,6 @@ const emailLogSchema = new mongoose.Schema({
     default: 'unknown'
   },
 
-  // Email content
   subject: {
     type: String,
     required: true
@@ -56,7 +54,6 @@ const emailLogSchema = new mongoose.Schema({
     index: true
   },
   
-  // Status tracking
   status: {
     type: String,
     enum: ['pending', 'sent', 'failed', 'bounced', 'delivered'],
@@ -64,14 +61,12 @@ const emailLogSchema = new mongoose.Schema({
     index: true
   },
   
-  // Error handling
   error: {
     message: String,
     code: String,
     stack: String
   },
   
-  // Related entities
   orderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',
@@ -83,7 +78,6 @@ const emailLogSchema = new mongoose.Schema({
     index: true
   },
   
-  // Email provider response
   providerResponse: {
     messageId: String,
     response: String,
@@ -91,13 +85,11 @@ const emailLogSchema = new mongoose.Schema({
     rejected: [String]
   },
   
-  // Metadata
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {}
   },
   
-  // Retry information
   retryCount: {
     type: Number,
     default: 0
@@ -109,7 +101,6 @@ const emailLogSchema = new mongoose.Schema({
   lastRetryAt: Date,
   nextRetryAt: Date,
   
-  // Timestamps
   sentAt: Date,
   deliveredAt: Date
 
@@ -117,13 +108,11 @@ const emailLogSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for efficient querying
 emailLogSchema.index({ createdAt: -1 });
 emailLogSchema.index({ status: 1, createdAt: -1 });
 emailLogSchema.index({ emailType: 1, createdAt: -1 });
 emailLogSchema.index({ recipient: 1, createdAt: -1 });
 
-// Static methods
 emailLogSchema.statics.getRecentLogs = function(limit = 100) {
   return this.find()
     .sort({ createdAt: -1 })
@@ -182,7 +171,6 @@ emailLogSchema.statics.getRetryableEmails = function() {
   }).limit(50);
 };
 
-// Instance methods
 emailLogSchema.methods.markAsSent = function(providerResponse) {
   this.status = 'sent';
   this.sentAt = new Date();
@@ -202,7 +190,6 @@ emailLogSchema.methods.markAsFailed = function(error) {
     stack: error.stack
   };
   
-  // Calculate next retry time with exponential backoff
   if (this.retryCount < this.maxRetries) {
     const backoffMinutes = Math.pow(2, this.retryCount) * 5; // 5, 10, 20 minutes
     this.nextRetryAt = new Date(Date.now() + backoffMinutes * 60 * 1000);

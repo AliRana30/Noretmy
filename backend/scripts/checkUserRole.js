@@ -6,7 +6,6 @@ const User = require('../models/User');
 async function checkAndFixUserRole(email) {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    // Find the user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -14,7 +13,6 @@ async function checkAndFixUserRole(email) {
       process.exit(1);
     }
 
-    // Check if user needs to be fixed
     if (user.role !== 'freelancer' && user.isSeller !== true) {
       user.role = 'freelancer';
       user.isSeller = true;
@@ -30,7 +28,6 @@ async function checkAndFixUserRole(email) {
   }
 }
 
-// Get email from command line argument
 const email = process.argv[2];
 
 if (!email) {

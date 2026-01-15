@@ -74,7 +74,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   const timeLeft = useCountdown(orderDetails.deliveryDate);
 
   const user = useSelector((state: any) => state.auth?.user);
-  // Check if current user is the seller OF THIS SPECIFIC ORDER (not just any seller)
   const isOrderSeller = user?._id === orderDetails?.sellerId || user?.id === orderDetails?.sellerId;
   const isOrderBuyer = user?._id === orderDetails?.buyerId || user?.id === orderDetails?.buyerId;
 
@@ -156,7 +155,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     'waitingReview',
   ];
 
-  // Calculate progress percentage for progress bar
   const progressPercentage = useMemo(() => {
     const numericProgress = Number(orderDetails?.progress);
     if (Number.isFinite(numericProgress) && numericProgress >= 0) {
@@ -186,7 +184,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
       .reverse();
   }, [statusHistory]);
 
-  // Order Metrics data 
 
   const handleApiRequest = async (endpoint: string, data?: any) => {
 
@@ -202,7 +199,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         },
       );
 
-      // onOperationComplete();
 
       if (res.status === 200) {
         onOperationComplete();
@@ -229,7 +225,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     formData.append('orderId', orderDetails.orderId);
     formData.append('requirements', requirements);
 
-    // Append each file
     files.forEach((file) => {
       formData.append('files', file);
     });
@@ -238,8 +233,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   };
 
   const handleOrderStarted = () => {
-    // const formData = new FormData();
-    // formData.append('orderId', orderDetails.orderId);
     handleApiRequest('start', { orderId: orderDetails.orderId, status: "start" });
   };
 
@@ -378,11 +371,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     document.body.removeChild(link);
   };
 
-  // Calculate key metrics
   const metrics = useMemo(() => {
     let daysPassed = 0;
 
-    // Safely parse the start date
     if (orderDetails.createdAt || orderDetails.orderDate) {
       try {
         const startDate = new Date(orderDetails.createdAt || orderDetails.orderDate);
@@ -397,7 +388,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
       }
     }
 
-    // Calculate time left
     let timeLeftDays: number | string = 0;
     if (orderDetails.deliveryDate || orderDetails.deadline) {
       try {

@@ -12,8 +12,6 @@ const User = require('../models/User');
  * Initialize all badge-related cron jobs
  */
 const initBadgeCronJobs = () => {
-  // Daily badge re-evaluation at 3 AM
-  // Runs for badges that haven't been evaluated in 7 days
   cron.schedule('0 3 * * *', async () => {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -58,7 +56,6 @@ const initBadgeCronJobs = () => {
     }
   });
 
-  // Weekly full re-evaluation on Sundays at 4 AM
   cron.schedule('0 4 * * 0', async () => {
     try {
       const updated = await badgeService.reEvaluateAllSellers();
@@ -67,8 +64,6 @@ const initBadgeCronJobs = () => {
     }
   });
 
-  // Check for inactive sellers daily at 5 AM
-  // Mark sellers as inactive if no activity in 60 days
   cron.schedule('0 5 * * *', async () => {
     try {
       const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
@@ -101,10 +96,8 @@ const initBadgeCronJobs = () => {
     }
   });
 
-  // Initialize badges for new sellers (hourly)
   cron.schedule('0 * * * *', async () => {
     try {
-      // Find freelancers without badges
       const freelancersWithoutBadges = await User.find({
         role: 'freelancer'
       }).select('_id');
@@ -131,14 +124,12 @@ const initBadgeCronJobs = () => {
         await SellerBadge.insertMany(badgesToCreate, { ordered: false });
         }
     } catch (error) {
-      // Ignore duplicate key errors
       if (error.code !== 11000) {
         console.error('❌ Error creating badges for new sellers:', error);
       }
     }
   });
 
-  // Achievement check (daily at 6 AM)
   cron.schedule('0 6 * * *', async () => {
     try {
       await checkAndAwardAchievements();
@@ -159,7 +150,6 @@ const checkAndAwardAchievements = async () => {
     for (const badge of badges) {
       const achievements = badge.achievements.map(a => a.type);
       
-      // Fast responder (< 60 min average with 10+ responses)
       if (!achievements.includes('fast_responder') && 
           badge.metrics.averageResponseTime > 0 &&
           badge.metrics.averageResponseTime < 60 &&
@@ -167,32 +157,27 @@ const checkAndAwardAchievements = async () => {
         await badgeService.addAchievement(badge.userId, 'fast_responder');
       }
       
-      // Perfect rating (5.0 with 10+ reviews)
       if (!achievements.includes('perfect_rating') &&
           badge.metrics.averageRating >= 5.0 &&
           badge.metrics.totalReviews >= 10) {
         await badgeService.addAchievement(badge.userId, 'perfect_rating');
       }
       
-      // 100 orders
       if (!achievements.includes('100_orders') &&
           badge.metrics.completedOrders >= 100) {
         await badgeService.addAchievement(badge.userId, '100_orders');
       }
       
-      // Super seller (500+ orders)
       if (!achievements.includes('super_seller') &&
           badge.metrics.completedOrders >= 500) {
         await badgeService.addAchievement(badge.userId, 'super_seller');
       }
       
-      // Top earner ($50k+ total earnings)
       if (!achievements.includes('top_earner') &&
           badge.metrics.totalEarnings >= 50000) {
         await badgeService.addAchievement(badge.userId, 'top_earner');
       }
       
-      // Veteran (2+ years on platform)
       if (!achievements.includes('veteran')) {
         const user = await User.findById(badge.userId);
         if (user) {

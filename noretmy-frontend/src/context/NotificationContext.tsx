@@ -60,7 +60,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, [BACKEND_URL]);
 
     const markAsRead = async (id: string) => {
-        // Optimistic update
         const previousNotifications = [...notifications];
         const previousUnreadCount = unreadCount;
 
@@ -68,7 +67,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
         );
 
-        // Check if it was unread before updating count
         const wasUnread = notifications.find(n => n._id === id && !n.isRead);
         if (wasUnread || notifications.length === 0) { // If not in list yet, still decrement count
             setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -132,10 +130,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     useEffect(() => {
         fetchUnreadCount();
-        // Silent polling for count
         const interval = setInterval(fetchUnreadCount, 30000);
 
-        // Listen for sync events (optional but good for multi-tab)
         const handleSync = () => {
             fetchUnreadCount();
             fetchFullNotifications();

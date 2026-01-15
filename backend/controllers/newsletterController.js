@@ -10,7 +10,6 @@ const subscribe = async (req, res) => {
   if (!email) return res.status(400).json({ message: 'Email is required' });
 
   try {
-    // Prevent duplicate subscriptions
     const existing = await Subscriber.findOne({ email });
     if (existing) return res.status(409).json({ message: 'Email already subscribed' });
 
@@ -44,7 +43,6 @@ const subscribeOrUpdate = async (req, res) => {
       return res.status(404).json({ message: 'Subscriber not found' });
     }
 
-    // Update fields
     existing.email = email
     existing.frequency = frequency;
     existing.topics = topics;

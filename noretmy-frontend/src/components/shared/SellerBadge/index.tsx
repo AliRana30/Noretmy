@@ -81,7 +81,6 @@ const SellerBadge: React.FC<SellerBadgeProps> = ({
     const IconComponent = config.icon;
     const displayLabel = label || config.label;
 
-    // Don't show badge for new sellers unless explicitly requested
     if (level === 'new' && !showLabel) {
         return null;
     }
@@ -118,7 +117,6 @@ export const TrustScore: React.FC<TrustScoreProps> = ({
     showLabel = true,
     size = 'md',
 }) => {
-    // Determine color based on score
     const getColor = (score: number) => {
         if (score >= 90) return 'bg-orange-500';
         if (score >= 70) return 'bg-yellow-500';

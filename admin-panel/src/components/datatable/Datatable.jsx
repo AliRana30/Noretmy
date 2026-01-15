@@ -93,7 +93,6 @@ const Datatable = ({ data, columns, title = "allUsers", showAddButton = true, ad
               '& .MuiDataGrid-cellWithStatus': {
                 padding: '0.5rem',
               },
-              // Custom status cell styles
               '& .cellWithStatus': {
                 padding: '0.25rem 0.75rem',
                 borderRadius: '9999px',

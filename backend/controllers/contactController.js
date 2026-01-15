@@ -8,12 +8,10 @@ const submitContactForm = async (req, res) => {
         const { email,subject, message } = req.body;
         const {userId} = req;
 
-        // Validate the email and message
         if (!email || !message || !subject) {
             return res.status(400).json({ error: 'Email and message are required.' });
         }
 
-        // Create a new contact entry
         const newContact = new Contact({
             userId,
             email,
@@ -21,7 +19,6 @@ const submitContactForm = async (req, res) => {
             message
         });
 
-        // Save the contact entry to the database
         await newContact.save();
 
         return res.status(201).json({ message: 'Contact form submitted successfully.' });
@@ -52,7 +49,6 @@ const replyMessage = async (req, res) => {
       })
     
       if(!response) return res.status(400).send("Could not reply!");
-      // Send warning email
       await sendUserNotificationEmail(email, 'emailReply',message);
   
       res.status(200).json({ message: "User has been replied" });

@@ -30,7 +30,6 @@ const Gigs: React.FC = () => {
       });
       setGigs(response.data);
     } catch (error) {
-      // Silently handle errors - user is notified via empty state
     } finally {
       setLoading(false);
     }
@@ -55,12 +54,10 @@ const Gigs: React.FC = () => {
   };
 
   const handleEdit = (id: string) => {
-    // Implement navigation to edit page
     window.location.href = `/edit-gig/${id}`;
   };
 
   const handleShare = (id: string) => {
-    // Copy shareable link to clipboard
     const shareUrl = `${window.location.origin}/gig/${id}`;
     navigator.clipboard.writeText(shareUrl)
       .then(() => toast.success('Gig link copied to clipboard!'))

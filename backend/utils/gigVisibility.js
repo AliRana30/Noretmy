@@ -70,7 +70,6 @@ const applyPromotionPriorities = async (gigs) => {
     const gigIdStr = gig._id.toString();
     const sellerIdStr = (gig.sellerId || gig.userId)?.toString();
     
-    // Check gig-specific priority first, then user-wide, take the higher one
     const gigPriority = gigPriorityMap[gigIdStr] || 0;
     const userPriority = userPriorityMap[sellerIdStr] || 0;
     
@@ -88,19 +87,16 @@ const sortGigsByPromotion = async (gigs) => {
   await applyPromotionPriorities(gigs);
   
   return gigs.sort((a, b) => {
-    // Primary sort: promotion priority (descending)
     if (b.promotionPriority !== a.promotionPriority) {
       return b.promotionPriority - a.promotionPriority;
     }
     
-    // Secondary sort: average rating (descending)
     const aRating = a.averageRating || a.starNumber || 0;
     const bRating = b.averageRating || b.starNumber || 0;
     if (bRating !== aRating) {
       return bRating - aRating;
     }
     
-    // Tertiary sort: recency (newest first)
     const aDate = new Date(a.createdAt || 0);
     const bDate = new Date(b.createdAt || 0);
     return bDate - aDate;
@@ -122,7 +118,6 @@ const hasActivePromotion = async (gigId, sellerId) => {
 const getHomepageFeaturedGigs = async (gigModel, limit = 12) => {
   const { gigPriorityMap, userPriorityMap } = await buildPromotionPriorityMap();
   
-  // Get all gig IDs with priority >= 70 (Premium or Ultimate)
   const featuredGigIds = Object.entries(gigPriorityMap)
     .filter(([_, priority]) => priority >= 70)
     .map(([gigId]) => gigId);

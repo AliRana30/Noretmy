@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -16,20 +15,17 @@ const userSchema = new mongoose.Schema({
   city: { type: String, required: false },
   phone: { type: String, required: false },
   
-  // Seller type: individual freelancer or company/agency
   sellerType: {
     type: String,
     enum: ['individual', 'company'],
     default: 'individual'
   },
   
-  // Favorites - array of gig IDs
   favorites: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Job'
   }],
   
-  // Enhanced role-based system
   role: {
     type: String,
     enum: ['admin', 'client', 'freelancer'],
@@ -37,7 +33,6 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   
-  // Administrative fields
   permissions: [{
     type: String,
     enum: [
@@ -57,7 +52,6 @@ const userSchema = new mongoose.Schema({
 
   documentImages: [{ type: String, required: false }],
 
-  // Revenue tracking for freelancers
   revenue: {
     total: { type: Number, default: 0 },        // Total earned
     available: { type: Number, default: 0 },    // Available for withdrawal
@@ -69,35 +63,29 @@ const userSchema = new mongoose.Schema({
   timestamps: true // Add createdAt and updatedAt
 });
 
-// Pre-save hook to sync role with isSeller for backward compatibility
 userSchema.pre('save', async function (next) {
-  // Handle password hashing
   if (this.isModified('password')) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   }
   
-  // Sync role with isSeller for backward compatibility
   if (this.isModified('role') || this.isModified('isSeller')) {
     if (this.role === 'freelancer') {
       this.isSeller = true;
     } else if (this.role === 'client') {
       this.isSeller = false;
     }
-    // For admin, keep isSeller as is or set to false by default
     if (this.role === 'admin' && !this.isModified('isSeller')) {
       this.isSeller = false;
     }
   }
   
-  // Sync sellerType with isCompany for backward compatibility
   if (this.isModified('sellerType') || this.isModified('isCompany')) {
     if (this.sellerType === 'company') {
       this.isCompany = true;
     } else {
       this.isCompany = false;
     }
-    // If isCompany was set directly, sync sellerType
     if (this.isModified('isCompany') && !this.isModified('sellerType')) {
       this.sellerType = this.isCompany ? 'company' : 'individual';
     }
@@ -106,7 +94,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Virtual to get user type for API responses
 userSchema.virtual('userType').get(function() {
   return this.role;
 });
@@ -155,7 +142,6 @@ userSchema.methods.isCompanyAccount = function() {
   return this.role === 'freelancer' && this.sellerType === 'company';
 };
 
-// Method to check if user has specific permission
 userSchema.methods.hasPermission = function(permission) {
   if (this.role === 'admin') {
     return true; // Admins have all permissions
@@ -163,7 +149,6 @@ userSchema.methods.hasPermission = function(permission) {
   return this.permissions.includes(permission);
 };
 
-// Method to check if user has any of the specified roles
 userSchema.methods.hasRole = function(roles) {
   if (!Array.isArray(roles)) {
     roles = [roles];
@@ -175,7 +160,6 @@ userSchema.methods.matchPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// Ensure virtuals are included in JSON
 userSchema.set('toJSON', { virtuals: true });
 
 module.exports = mongoose.model('User', userSchema);

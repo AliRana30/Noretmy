@@ -27,7 +27,6 @@ const freelancerSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    // Enhanced revenue tracking
     revenue: {
         total: { type: Number, default: 0 },           // Total lifetime earnings
         pending: { type: Number, default: 0 },         // In escrow, not yet released
@@ -35,13 +34,11 @@ const freelancerSchema = new mongoose.Schema({
         withdrawn: { type: Number, default: 0 },       // Already withdrawn
         inTransit: { type: Number, default: 0 }        // Withdrawal in progress
     },
-    // Monthly earnings history
     monthlyEarnings: [{
         month: { type: String },  // Format: "2025-01"
         amount: { type: Number, default: 0 },
         ordersCompleted: { type: Number, default: 0 }
     }],
-    // Payout history
     payouts: [{
         amount: { type: Number },
         stripePayoutId: { type: String },
@@ -51,23 +48,19 @@ const freelancerSchema = new mongoose.Schema({
         completedAt: { type: Date },
         failureReason: { type: String }
     }],
-    // Bank/payout account info
     payoutAccountVerified: { type: Boolean, default: false },
     payoutAccountLast4: { type: String },
     payoutAccountType: { type: String } // 'bank_account', 'card', 'paypal'
 });
 
-// Index for quick lookups
 freelancerSchema.index({ userId: 1 });
 freelancerSchema.index({ email: 1 });
 freelancerSchema.index({ stripeAccountId: 1 });
 
-// Method to add earnings
 freelancerSchema.methods.addEarnings = async function(amount, orderId) {
     this.revenue.pending += amount;
     this.revenue.total += amount;
     
-    // Update monthly earnings
     const currentMonth = new Date().toISOString().slice(0, 7); // "2025-01"
     const monthEntry = this.monthlyEarnings.find(e => e.month === currentMonth);
     if (monthEntry) {
@@ -84,7 +77,6 @@ freelancerSchema.methods.addEarnings = async function(amount, orderId) {
     return this.save();
 };
 
-// Method to release earnings (move from pending to available)
 freelancerSchema.methods.releaseEarnings = async function(amount) {
     if (this.revenue.pending < amount) {
         throw new Error('Insufficient pending balance');
@@ -95,7 +87,6 @@ freelancerSchema.methods.releaseEarnings = async function(amount) {
     return this.save();
 };
 
-// Method to process withdrawal
 freelancerSchema.methods.processWithdrawal = async function(amount, payoutId, method) {
     if (this.revenue.available < amount) {
         throw new Error('Insufficient available balance');

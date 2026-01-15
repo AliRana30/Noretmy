@@ -21,7 +21,6 @@ import { HelpCircle, Shield, Plus, RefreshCw, Edit, Trash2, X, Check, Save } fro
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
 
-// Zod validation schema
 const faqSchema = z.object({
   category: z.string().min(1, "Category is required"),
   question: z.string().min(10, "Question must be at least 10 characters").max(500, "Question must be less than 500 characters"),
@@ -35,7 +34,6 @@ const ManageContent = () => {
   const { getTranslation } = useLocalization();
   const { isAdmin, hasPermission } = useAuth();
   
-  // Form setup with React Hook Form and Zod
   const { control, handleSubmit, reset, register, formState: { errors } } = useForm({
     resolver: zodResolver(faqSchema),
     defaultValues: {
@@ -47,12 +45,10 @@ const ManageContent = () => {
     }
   });
 
-  // Privacy Policy state
   const [privacyPolicy, setPrivacyPolicy] = useState('');
   const [privacyLoading, setPrivacyLoading] = useState(false);
   const [privacySaving, setPrivacySaving] = useState(false);
 
-  // Load Privacy Policy
   const loadPrivacyPolicy = useCallback(async () => {
     try {
       setPrivacyLoading(true);
@@ -68,7 +64,6 @@ const ManageContent = () => {
     }
   }, []);
 
-  // Save Privacy Policy
   const savePrivacyPolicy = async () => {
     try {
       setPrivacySaving(true);
@@ -86,7 +81,6 @@ const ManageContent = () => {
     }
   };
 
-  // State management
   const [activeTab, setActiveTab] = useState('faqs');
   const [faqs, setFaqs] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -98,7 +92,6 @@ const ManageContent = () => {
   const [selectedFaq, setSelectedFaq] = useState(null);
   const [notification, setNotification] = useState(null);
 
-  // Load data
   const loadCategories = useCallback(async () => {
     try {
       const response = await getFaqCategories();
@@ -133,7 +126,6 @@ const ManageContent = () => {
     loadFaqs();
   }, [loadCategories, loadFaqs]);
 
-  // Load privacy policy when tab changes
   useEffect(() => {
     if (activeTab === 'privacy') {
       loadPrivacyPolicy();

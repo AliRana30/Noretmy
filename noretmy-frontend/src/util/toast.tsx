@@ -1,4 +1,3 @@
-// toast-notifications.tsx
 import React from 'react';
 import { toast, ToastOptions } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -8,7 +7,6 @@ import 'react-toastify/dist/ReactToastify.css';
  * Provides sleek, consistent notifications that can be customized to match your website.
  */
 
-// Theme configuration types
 interface ThemeColors {
   background: string;
   textColor: string;
@@ -26,10 +24,8 @@ interface ThemeConfig {
   dark: ThemeColors;
 }
 
-// Toast types
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
-// Core theme configuration - adjust these values to match your website
 const themeConfig: ThemeConfig = {
   light: {
     background: '#ffffff',
@@ -55,11 +51,9 @@ const themeConfig: ThemeConfig = {
   }
 };
 
-// Use your preferred theme
 const activeTheme: 'light' | 'dark' = 'light'; // or 'dark'
 const theme = themeConfig[activeTheme];
 
-// Base toast style
 const baseToastStyle: React.CSSProperties = {
   borderRadius: theme.borderRadius,
   padding: '12px 16px',
@@ -72,7 +66,6 @@ const baseToastStyle: React.CSSProperties = {
   letterSpacing: '0.2px',
 };
 
-// Type-specific styles
 const toastStyles: Record<ToastType, React.CSSProperties> = {
   success: {
     ...baseToastStyle,
@@ -100,7 +93,6 @@ const toastStyles: Record<ToastType, React.CSSProperties> = {
   },
 };
 
-// Toast configuration options
 const toastConfig: ToastOptions = {
   position: "top-right",
   autoClose: 5000,
@@ -111,7 +103,6 @@ const toastConfig: ToastOptions = {
   progress: undefined,
 };
 
-// Type for showToast options
 interface ToastCustomOptions extends ToastOptions {
   style?: React.CSSProperties;
 }
@@ -130,7 +121,6 @@ export const showToast = (
   const style = toastStyles[type] || toastStyles.info;
   const iconColor = theme[`${type}Color` as keyof ThemeColors];
   
-  // Icons for different notification types
   const icons: Record<ToastType, string> = {
     success: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
     error: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
@@ -154,7 +144,6 @@ export const showToast = (
   );
 };
 
-// Convenience methods with proper TypeScript typing
 export const showSuccess = (message: string, options: ToastCustomOptions = {}): void => 
   showToast(message, 'success', options);
 
@@ -166,16 +155,3 @@ export const showInfo = (message: string, options: ToastCustomOptions = {}): voi
 
 export const showWarning = (message: string, options: ToastCustomOptions = {}): void => 
   showToast(message, 'warning', options);
-
-// Example usage:
-// import { showSuccess, showError } from './toast-notifications';
-// 
-// // In your component:
-// const handleSubmit = async (): Promise<void> => {
-//   try {
-//     await submitMilestone();
-//     showSuccess('Milestone request submitted successfully');
-//   } catch (error) {
-//     showError('Failed to submit milestone request');
-//   }
-// };

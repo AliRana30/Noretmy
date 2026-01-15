@@ -1,4 +1,3 @@
-// controllers/chatAttachmentController.js
 const ChatAttachment = require('../models/ChatAttachment');
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
@@ -7,10 +6,8 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const { sendChatAttachmentEmail } = require('../services/emailService');
 
-// Cloudinary setup (primary storage)
 const cloudinary = require('../config/cloudinaryConfig');
 
-// AWS S3 setup (optional, for larger files)
 let s3;
 try {
   const { s3Client } = require('../config/s3Config');
@@ -68,7 +65,6 @@ const getFileType = (mimeType) => {
  * Validate file
  */
 const validateFile = (file) => {
-  // Check size
   if (file.size > FILE_CONFIG.maxFileSize) {
     return {
       valid: false,
@@ -76,7 +72,6 @@ const validateFile = (file) => {
     };
   }
 
-  // Check extension
   const extension = path.extname(file.originalname).toLowerCase().replace('.', '');
   if (FILE_CONFIG.blockedExtensions.includes(extension)) {
     return {
@@ -85,11 +80,9 @@ const validateFile = (file) => {
     };
   }
 
-  // Check MIME type is in any allowed category
   const fileType = getFileType(file.mimetype);
   const allAllowedMimes = Object.values(FILE_CONFIG.allowedMimeTypes).flat();
   
-  // Allow 'other' type but verify it's not blocked
   if (fileType === 'other') {
     const blockedMimes = [
       'application/x-msdownload',
@@ -131,11 +124,9 @@ const uploadToCloudinary = async (file, conversationId) => {
       }
     );
 
-    // If file is a buffer
     if (file.buffer) {
       uploadStream.end(file.buffer);
     } else {
-      // If file has a path
       const fs = require('fs');
       fs.createReadStream(file.path).pipe(uploadStream);
     }
@@ -172,7 +163,6 @@ const uploadChatFiles = async (req, res) => {
       });
     }
 
-    // Validate conversation exists and user has access
     const conversation = await Conversation.findOne({ id: conversationId });
     if (!conversation) {
       return res.status(404).json({ 
@@ -181,7 +171,6 @@ const uploadChatFiles = async (req, res) => {
       });
     }
 
-    // Verify user is part of the conversation
     if (conversation.sellerId !== userId && conversation.buyerId !== userId) {
       return res.status(403).json({ 
         success: false, 
@@ -189,7 +178,6 @@ const uploadChatFiles = async (req, res) => {
       });
     }
 
-    // Validate all files first
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
@@ -201,7 +189,6 @@ const uploadChatFiles = async (req, res) => {
       }
     }
 
-    // Upload files
     const uploadedFiles = [];
     const attachmentsForMessage = [];
 
@@ -210,7 +197,6 @@ const uploadChatFiles = async (req, res) => {
         const result = await uploadToCloudinary(file, conversationId);
         const fileType = getFileType(file.mimetype);
 
-        // Create attachment record
         const attachment = new ChatAttachment({
           messageId: null, // Will be updated after message creation
           conversationId,
@@ -241,7 +227,6 @@ const uploadChatFiles = async (req, res) => {
         await attachment.save();
         uploadedFiles.push(attachment);
 
-        // Prepare attachment data for message
         attachmentsForMessage.push({
           _id: attachment._id,
           url: result.secure_url,
@@ -257,7 +242,6 @@ const uploadChatFiles = async (req, res) => {
 
       } catch (uploadError) {
         console.error('[ChatAttachment] Upload error:', uploadError);
-        // Continue with other files but track the failure
         uploadedFiles.push({
           error: true,
           fileName: file.originalname,
@@ -266,7 +250,6 @@ const uploadChatFiles = async (req, res) => {
       }
     }
 
-    // Create message with attachments
     const message = new Message({
       conversationId,
       userId,
@@ -279,7 +262,6 @@ const uploadChatFiles = async (req, res) => {
 
     await message.save();
 
-    // Update attachments with message ID
     for (const attachment of uploadedFiles) {
       if (attachment._id) {
         await ChatAttachment.findByIdAndUpdate(attachment._id, { 
@@ -288,7 +270,6 @@ const uploadChatFiles = async (req, res) => {
       }
     }
 
-    // Update conversation
     await Conversation.findOneAndUpdate(
       { id: conversationId },
       {
@@ -298,7 +279,6 @@ const uploadChatFiles = async (req, res) => {
       }
     );
 
-    // Send email notification to the other party (non-blocking)
     try {
       const recipientId = userId === conversation.sellerId ? 
         conversation.buyerId : conversation.sellerId;
@@ -332,7 +312,6 @@ const uploadChatFiles = async (req, res) => {
         attachmentCount: message.attachmentCount,
         createdAt: message.createdAt
       },
-      // Also include attachments at root level for frontend compatibility
       attachments: attachmentsForMessage,
       uploadedFiles: uploadedFiles.filter(f => !f.error).length,
       failedFiles: uploadedFiles.filter(f => f.error)
@@ -356,7 +335,6 @@ const getConversationAttachments = async (req, res) => {
     const userId = req.userId;
     const { page = 1, limit = 20, type } = req.query;
 
-    // Verify access to conversation
     const conversation = await Conversation.findOne({ id: conversationId });
     if (!conversation) {
       return res.status(404).json({ success: false, error: 'Conversation not found' });
@@ -366,7 +344,6 @@ const getConversationAttachments = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
-    // Build query
     const query = { 
       conversationId, 
       isDeleted: false,
@@ -425,7 +402,6 @@ const getAttachment = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Attachment not found' });
     }
 
-    // Verify access
     const conversation = await Conversation.findOne({ id: attachment.conversationId });
     if (!conversation) {
       return res.status(404).json({ success: false, error: 'Conversation not found' });
@@ -435,7 +411,6 @@ const getAttachment = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
-    // Record download
     await attachment.recordDownload();
 
     res.status(200).json({
@@ -473,14 +448,12 @@ const deleteAttachment = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Attachment not found' });
     }
 
-    // Only uploader can delete
     if (attachment.uploaderId.toString() !== userId) {
       return res.status(403).json({ success: false, error: 'Only uploader can delete' });
     }
 
     await attachment.softDelete(userId);
 
-    // Update message attachment count
     if (attachment.messageId) {
       await Message.findByIdAndUpdate(attachment.messageId, {
         $inc: { attachmentCount: -1 }
@@ -503,7 +476,6 @@ const getOrderAttachments = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.userId;
 
-    // Get all attachments related to this order
     const attachments = await ChatAttachment.find({
       orderId,
       isDeleted: false,
@@ -566,7 +538,6 @@ const uploadFilesOnly = async (req, res) => {
       });
     }
 
-    // Validate conversation exists and user has access
     const conversation = await Conversation.findOne({ id: conversationId });
     if (!conversation) {
       return res.status(404).json({ 
@@ -575,7 +546,6 @@ const uploadFilesOnly = async (req, res) => {
       });
     }
 
-    // Verify user is part of the conversation
     if (conversation.sellerId !== userId && conversation.buyerId !== userId) {
       return res.status(403).json({ 
         success: false, 
@@ -583,7 +553,6 @@ const uploadFilesOnly = async (req, res) => {
       });
     }
 
-    // Validate all files first
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
@@ -595,7 +564,6 @@ const uploadFilesOnly = async (req, res) => {
       }
     }
 
-    // Upload files
     const uploadedAttachments = [];
 
     for (const file of files) {
@@ -603,7 +571,6 @@ const uploadFilesOnly = async (req, res) => {
         const result = await uploadToCloudinary(file, conversationId);
         const fileType = getFileType(file.mimetype);
 
-        // Create attachment data (without saving to DB - message will save it)
         const attachmentData = {
           _id: new (require('mongoose').Types.ObjectId)(),
           url: result.secure_url,

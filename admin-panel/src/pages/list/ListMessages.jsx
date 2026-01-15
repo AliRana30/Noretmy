@@ -43,7 +43,6 @@ import { useState, useEffect, useContext } from "react";
       toast.success(getTranslation(commonTranslations, "deletedSuccess") || 'Notification deleted successfully');
     } catch (err) {
       console.error('Delete notification error:', err);
-      // Show the actual error message from the API
       const errorMessage = err.message || 'Failed to delete notification';
       toast.error(errorMessage);
     }

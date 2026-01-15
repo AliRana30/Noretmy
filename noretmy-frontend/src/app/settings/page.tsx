@@ -29,7 +29,6 @@ type SettingsTab =
   | 'privacy'
   | 'language';
 
-// Enhanced Dummy Data
 const DUMMY_USER = {
   name: 'Alex Rodriguez',
   email: 'alex.rodriguez@freelancemaster.com',

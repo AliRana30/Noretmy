@@ -15,7 +15,6 @@ import React, { useState } from 'react';
 const IndustriesServeCards = () => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Using your original gradients
   const gradients = [
     ['#064153', '#186b89', '#12647f'],
     ['#45a4b6', '#93d9e5', '#45a6b7'],

@@ -33,7 +33,6 @@ interface ProfileSidebarProps {
   onSectionChange: (section: string) => void;
 }
 
-// Navigation items configuration
 const getNavigationItems = (isSeller: boolean, t: any) => {
   const items = [
     { id: 'profile', label: t('profile:sidebar.nav.profile', 'Profile'), icon: User },
@@ -49,7 +48,6 @@ const getNavigationItems = (isSeller: boolean, t: any) => {
   return items.filter(item => !item.sellerOnly || isSeller);
 };
 
-// Quick actions configuration
 const getQuickActions = (isSeller: boolean, t: any) => {
   if (!isSeller) return [];
 
@@ -61,7 +59,6 @@ const getQuickActions = (isSeller: boolean, t: any) => {
   ];
 };
 
-// Calculate member since
 const formatMemberSince = (createdAt: string): string => {
   if (!createdAt) return 'Recently';
   const date = new Date(createdAt);

@@ -1,5 +1,4 @@
 "use client";
-// import CaseStudyLogoRow from '@/components/shared/CaseStudyLogoRow';
 import ResetPasswordScreen from '@/components/shared/ResetPassword';
 import 'material-icons/iconfont/material-icons.css';
 import { Suspense } from 'react';

@@ -25,7 +25,6 @@ export default function AppHeader() {
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
 
-  // Load read notification IDs from localStorage
   const getReadNotificationIds = () => {
     try {
       return JSON.parse(localStorage.getItem('readNotificationIds') || '[]');
@@ -34,12 +33,10 @@ export default function AppHeader() {
     }
   };
 
-  // Save read notification IDs to localStorage
   const saveReadNotificationIds = (ids) => {
     localStorage.setItem('readNotificationIds', JSON.stringify(ids));
   };
 
-  // Fetch notifications from backend or generate dynamic ones
   const fetchNotifications = async () => {
     setLoadingNotifications(true);
     try {
@@ -50,7 +47,6 @@ export default function AppHeader() {
       const readIds = getReadNotificationIds();
       
       if (response?.data?.data && response.data.data.length > 0) {
-        // Use real notifications from backend
         const notificationsWithReadState = response.data.data.map(n => ({
           id: n._id || n.id,
           type: n.type || 'alert',
@@ -61,11 +57,9 @@ export default function AppHeader() {
         }));
         setNotifications(notificationsWithReadState);
       } else {
-        // Fallback: Generate dynamic notifications based on recent platform activity
         await fetchDynamicNotifications(readIds);
       }
     } catch (error) {
-      // Fallback to dynamic notifications based on recent activity
       const readIds = getReadNotificationIds();
       await fetchDynamicNotifications(readIds);
     } finally {
@@ -73,7 +67,6 @@ export default function AppHeader() {
     }
   };
 
-  // Fetch dynamic notifications based on actual platform activity
   const fetchDynamicNotifications = async (readIds = []) => {
     try {
       const [usersRes, ordersRes, jobsRes] = await Promise.allSettled([
@@ -85,7 +78,6 @@ export default function AppHeader() {
       const dynamicNotifs = [];
       const now = new Date();
 
-      // Check for recent users
       if (usersRes.status === 'fulfilled' && usersRes.value?.data?.data?.[0]) {
         const user = usersRes.value.data.data[0];
         const userDate = new Date(user.createdAt);
@@ -101,7 +93,6 @@ export default function AppHeader() {
         }
       }
 
-      // Check for recent orders
       if (ordersRes.status === 'fulfilled' && ordersRes.value?.data?.data?.[0]) {
         const order = ordersRes.value.data.data[0];
         const orderDate = new Date(order.createdAt);
@@ -117,7 +108,6 @@ export default function AppHeader() {
         }
       }
 
-      // Check for recent jobs
       if (jobsRes.status === 'fulfilled' && jobsRes.value?.data?.[0]) {
         const job = jobsRes.value.data[0];
         const jobDate = new Date(job.createdAt);
@@ -133,7 +123,6 @@ export default function AppHeader() {
         }
       }
 
-      // If no recent activity, show system notification
       if (dynamicNotifs.length === 0) {
         dynamicNotifs.push({
           id: 'system-welcome',
@@ -147,7 +136,6 @@ export default function AppHeader() {
 
       setNotifications(dynamicNotifs);
     } catch (err) {
-      // Final fallback
       setNotifications([{
         id: 'system-fallback',
         type: 'alert',
@@ -172,21 +160,17 @@ export default function AppHeader() {
   useEffect(() => {
     fetchNotifications();
     
-    // Connect to socket for real-time notifications
     const socket = io(API_CONFIG.BASE_URL, {
       withCredentials: true,
       transports: ['websocket', 'polling']
     });
 
-    // Register user as online (admin)
     if (user?._id) {
       socket.emit('userOnline', user._id);
     }
 
-    // Listen for new notifications
     socket.on('newNotification', (notification) => {
       console.log('📩 Admin received notification:', notification);
-      // Add new notification to the top
       setNotifications(prev => [{
         id: 'new-' + Date.now(),
         type: notification.type || 'system',
@@ -196,7 +180,6 @@ export default function AppHeader() {
         read: false
       }, ...prev]);
       
-      // Show browser notification
       if (Notification.permission === 'granted') {
         new Notification(notification.title || 'New Notification', {
           body: notification.message,
@@ -205,12 +188,10 @@ export default function AppHeader() {
       }
     });
 
-    // Request notification permission
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
     
-    // Refresh notifications every 5 minutes
     const interval = setInterval(fetchNotifications, 300000);
     
     return () => {
@@ -219,7 +200,6 @@ export default function AppHeader() {
     };
   }, [user]);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
@@ -241,44 +221,35 @@ export default function AppHeader() {
   };
 
   const markAsRead = async (id) => {
-    // Optimistic update - immediately update state
     setNotifications(prev => 
       prev.map(n => n.id === id ? { ...n, read: true } : n)
     );
-    // Persist to localStorage
     const readIds = getReadNotificationIds();
     if (!readIds.includes(id)) {
       saveReadNotificationIds([...readIds, id]);
     }
-    // Call backend API to persist read state
     try {
       await axios.put(`${API_CONFIG.BASE_URL}/api/notification/${id}/read`, {}, {
         withCredentials: true
       });
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      // State already updated optimistically, no rollback needed for better UX
     }
   };
 
   const markAllAsRead = async () => {
-    // Optimistic update - immediately update state
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    // Persist all IDs to localStorage
     const allIds = notifications.map(n => n.id);
     saveReadNotificationIds(allIds);
-    // Call backend API to mark all as read
     try {
       await axios.put(`${API_CONFIG.BASE_URL}/api/notification/mark-all-read`, {}, {
         withCredentials: true
       });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-      // State already updated optimistically, no rollback for better UX
     }
   };
 
-  // Get only unread notifications for display in dropdown
   const unreadNotifications = notifications.filter(n => !n.read);
 
   const getNotificationIcon = (type) => {

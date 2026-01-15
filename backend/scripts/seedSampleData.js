@@ -8,7 +8,6 @@ const UserProfile = require('../models/UserProfile');
 async function seedSampleData() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    // Create sample users
     const hashedPassword = await bcrypt.hash('Test123!', 10);
     
     const sampleUsers = [
@@ -38,11 +37,9 @@ async function seedSampleData() {
       }
     ];
 
-    // Clear existing sample users
     await User.deleteMany({ email: { $in: sampleUsers.map(u => u.email) } });
     
     const createdUsers = await User.insertMany(sampleUsers);
-    // Create user profiles
     const userProfiles = createdUsers.map(user => ({
       userId: user._id,
       profilePicture: 'https://res.cloudinary.com/dqytzakzv/image/upload/v1234567890/sample-avatar.jpg',
@@ -55,7 +52,6 @@ async function seedSampleData() {
 
     await UserProfile.deleteMany({ userId: { $in: createdUsers.map(u => u._id) } });
     await UserProfile.insertMany(userProfiles);
-    // Create sample jobs
     const categories = [
       { cat: 'Programming & Tech', subCat: 'Web Development' },
       { cat: 'Graphics & Design', subCat: 'Logo Design' },

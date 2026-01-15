@@ -21,7 +21,6 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useTranslations } from '@/hooks/useTranslations';
 import moment from 'moment';
 
-// Notification Page Component
 const NotificationsPage: React.FC = () => {
   const { t } = useTranslations('notifications');
   const {
@@ -116,7 +115,6 @@ const NotificationsPage: React.FC = () => {
   );
 };
 
-// Notification Card Component
 interface NotificationCardProps {
   notification: any;
   onDelete: () => void;

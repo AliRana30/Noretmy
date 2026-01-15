@@ -1,4 +1,3 @@
-// controllers/stripeWebhookController.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
 const User = require('../models/User');
@@ -25,14 +24,12 @@ const handleStripeWebhook = async (req, res) => {
   console.log('Endpoint secret configured:', !!endpointSecret);
 
   try {
-    // Verify webhook signature
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     console.log('✅ Webhook signature verified');
     console.log('Event type:', event.type);
     console.log('Event ID:', event.id);
     console.log('Payment Intent ID:', event.data.object.id);
     console.log('Metadata:', JSON.stringify(event.data.object.metadata, null, 2));
-    // Process event based on type
     const result = await processWebhookEvent(event);
     
     if (result.success) {
@@ -61,8 +58,6 @@ const handleStripeWebhook = async (req, res) => {
       return res.status(400).send(`Webhook signature verification failed: ${err.message}`);
     }
     
-    // For other errors, return 200 to prevent Stripe retries
-    // This prevents webhook storms for non-recoverable errors
     console.warn('[Stripe Webhook] Returning 200 to prevent retries for non-critical error');
     res.status(200).json({ received: true, processed: false, error: err.message });
   }
@@ -76,7 +71,6 @@ const processWebhookEvent = async (event) => {
   const object = data.object;
 
   switch (type) {
-    // Payment Intent Events
     case 'payment_intent.amount_capturable_updated':
       return await handlePaymentIntentAmountCapturableUpdated(object);
 
@@ -92,7 +86,6 @@ const processWebhookEvent = async (event) => {
     case 'payment_intent.requires_action':
       return await handlePaymentIntentRequiresAction(object);
 
-    // Charge Events
     case 'charge.succeeded':
       return await handleChargeSucceeded(object);
       
@@ -105,28 +98,24 @@ const processWebhookEvent = async (event) => {
     case 'charge.failed':
       return await handleChargeFailed(object);
 
-    // Checkout Session Events
     case 'checkout.session.completed':
       return await handleCheckoutSessionCompleted(object);
       
     case 'checkout.session.expired':
       return await handleCheckoutSessionExpired(object);
 
-    // Payout Events (for connected accounts)
     case 'payout.paid':
       return await handlePayoutPaid(object);
       
     case 'payout.failed':
       return await handlePayoutFailed(object);
 
-    // Transfer Events
     case 'transfer.created':
       return await handleTransferCreated(object);
       
     case 'transfer.reversed':
       return await handleTransferReversed(object);
 
-    // Account Events (for connected accounts)
     case 'account.updated':
       return await handleAccountUpdated(object);
 
@@ -143,7 +132,6 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
   const { paymentType, orderId, userId, gigId, promotionPlan } = metadata;
 
   try {
-    // Idempotency check
     const existingOrder = await Order.findOne({ payment_intent: id, isPaid: true });
     if (existingOrder && paymentType === 'order_payment') {
       return { success: true, message: 'Already processed' };
@@ -178,7 +166,6 @@ const handlePaymentIntentAmountCapturableUpdated = async (paymentIntent) => {
       return { success: true, message: 'Not an order payment' };
     }
 
-    // Idempotency: if we already created the accepted milestone, skip
     const existingMilestone = await PaymentMilestone.findOne({ stripePaymentIntentId: id, stage: 'accepted' });
     if (existingMilestone) {
       return { success: true, message: 'Already processed capturable event' };
@@ -203,15 +190,12 @@ const processOrderPayment = async (paymentIntent) => {
   console.log('Order ID from metadata:', orderId);
   console.log('Amount:', (amount_received || amount) / 100);
 
-  // IDEMPOTENCY CHECK: If order was already processed by completion endpoint, skip
   const existingOrder = await Order.findOne({ payment_intent: id });
   if (existingOrder && existingOrder.isPaid === true && existingOrder.paymentStatus === 'completed') {
     console.log('⚠️  Order already processed by completion endpoint - skipping webhook processing');
     return { success: true, message: 'Already processed by completion endpoint' };
   }
 
-  // Calculate milestone amounts based on total order amount
-  // With manual capture, amount_received can be 0 at authorization time, so fall back to amount.
   const totalAmountCents = (amount_received && amount_received > 0) ? amount_received : amount;
   const totalAmount = (totalAmountCents || 0) / 100;
   const acceptedAmount = totalAmount * 0.10; // 10% on accept
@@ -251,8 +235,6 @@ const processOrderPayment = async (paymentIntent) => {
 
   console.log('[Webhook] Order updated successfully:', order._id, 'Status:', order.status, 'Progress:', order.progress);
 
-  // IMPORTANT: With manual capture, payment_intent.succeeded means AUTHORIZED, not captured
-  // We must explicitly capture the 10% portion now
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
   try {
     const captureAmount = Math.round(acceptedAmount * 100); // Convert to cents
@@ -262,7 +244,6 @@ const processOrderPayment = async (paymentIntent) => {
     console.log('[Webhook] Successfully captured 10% ($', acceptedAmount.toFixed(2), ') - Capture ID:', capturedPayment.id);
   } catch (captureError) {
     console.error('[Webhook] Failed to capture 10% payment:', captureError.message);
-    // Update order to reflect capture failure
     order.paymentStatus = 'capture_failed';
     order.timeline.push({
       event: 'Capture Failed',
@@ -274,7 +255,6 @@ const processOrderPayment = async (paymentIntent) => {
     return { success: false, message: 'Capture failed' };
   }
 
-  // Create payment milestone record for accepted stage (10%)
   const milestone = new PaymentMilestone({
     orderId: order._id,
     stage: 'accepted',
@@ -291,7 +271,6 @@ const processOrderPayment = async (paymentIntent) => {
   });
   await milestone.save();
 
-  // Update order payment breakdown with proper distribution
   order.paymentBreakdown = {
     authorizedAmount: acceptedAmount,     // 10% captured on accept
     escrowAmount: escrowAmount,           // 50% will be captured when work starts
@@ -302,17 +281,14 @@ const processOrderPayment = async (paymentIntent) => {
   };
   await order.save();
 
-  // Fetch seller and buyer
   const [seller, buyer, gig] = await Promise.all([
     User.findById(order.sellerId),
     User.findById(order.buyerId),
     Job.findById(order.gigId)
   ]);
 
-  // Add only the accepted amount (10%) to seller's pending revenue
   if (seller) {
     const { getSellerPayout } = require('../services/priceUtil');
-    // Calculate seller's net from the 10% accepted amount
     const sellerNetFromAccepted = getSellerPayout(acceptedAmount);
     
     seller.revenue = seller.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0 };
@@ -320,7 +296,6 @@ const processOrderPayment = async (paymentIntent) => {
     seller.revenue.pending += sellerNetFromAccepted;
     await seller.save();
 
-    // Also update Freelancer record
     const freelancer = await Freelancer.findOne({ userId: order.sellerId });
     if (freelancer) {
       freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
@@ -331,7 +306,6 @@ const processOrderPayment = async (paymentIntent) => {
 
     }
 
-  // Send notifications
   if (buyer && seller && gig) {
     const buyerData = {
       _id: order._id,
@@ -363,7 +337,6 @@ const processOrderPayment = async (paymentIntent) => {
       })
     ]);
 
-    // Notify admin about new order
     const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
     if (Admin) {
       await notificationService.createNotification({
@@ -374,7 +347,6 @@ const processOrderPayment = async (paymentIntent) => {
         link: `/admin/orders/${order._id}`
       });
 
-      // Emit real-time notification to admin
       const io = req.app?.get('io');
       if (io) {
         const adminSocketId = io.getUserSocket?.(Admin._id.toString());
@@ -408,7 +380,6 @@ const processPromotionPayment = async (paymentIntent) => {
   console.log('Promotion Plan:', promotionPlan);
   console.log('Amount Received:', amount_received / 100);
 
-  // Idempotency check
   const existingPurchase = await PromotionPurchase.findOne({ stripePaymentIntentId: id });
   if (existingPurchase) {
     console.log('⚠️  Promotion already processed - skipping', {
@@ -468,7 +439,6 @@ const processPromotionPayment = async (paymentIntent) => {
     totalAmount: promotionPurchase.totalAmount
   });
 
-  // Send promotion confirmation email
   const { sendPromotionPlanEmail, sendAllGigsPromotionEmail } = require('../services/emailService');
   try {
     if (paymentType === 'gig_promotion' && gigId) {
@@ -494,7 +464,6 @@ const processPromotionPayment = async (paymentIntent) => {
     console.error('[Webhook] Failed to send promotion email:', emailError);
   }
 
-  // Notify user
   await notificationService.createNotification({
     userId: user._id,
     title: '🚀 Promotion Activated',
@@ -523,7 +492,6 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
   const { orderId, userId } = metadata;
 
   try {
-    // Update order status
     const order = await Order.findOneAndUpdate(
       { payment_intent: id },
       {
@@ -542,7 +510,6 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
     );
 
     if (order) {
-      // Create failed milestone record
       const milestone = new PaymentMilestone({
         orderId: order._id,
         stage: order.paymentMilestoneStage || 'order_placed',
@@ -561,7 +528,6 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
       });
       await milestone.save();
 
-      // Notify buyer
       const buyer = await User.findById(order.buyerId);
       if (buyer) {
         await notificationService.createNotification({
@@ -572,7 +538,6 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
           link: `/orders/${order._id}`
         });
 
-        // Send email
         try {
           await sendPaymentFailedEmail(buyer.email, {
             orderId: order._id,
@@ -622,7 +587,6 @@ const handlePaymentIntentCanceled = async (paymentIntent) => {
 const handlePaymentIntentRequiresAction = async (paymentIntent) => {
   const { id, metadata } = paymentIntent;
   
-  // Notify user that action is required
   if (metadata.userId) {
     await notificationService.createNotification({
       userId: metadata.userId,
@@ -640,7 +604,6 @@ const handlePaymentIntentRequiresAction = async (paymentIntent) => {
  * Handle successful charge
  */
 const handleChargeSucceeded = async (charge) => {
-  // Most logic handled in payment_intent.succeeded
   return { success: true };
 };
 
@@ -650,7 +613,6 @@ const handleChargeSucceeded = async (charge) => {
 const handleChargeCaptured = async (charge) => {
   const { id, payment_intent, amount_captured, metadata } = charge;
   
-  // Update order with capture info
   const order = await Order.findOneAndUpdate(
     { payment_intent },
     {
@@ -693,7 +655,6 @@ const handleChargeRefunded = async (charge) => {
   );
 
   if (order) {
-    // Update freelancer pending balance
     const freelancer = await Freelancer.findOne({ userId: order.sellerId });
     if (freelancer && freelancer.revenue) {
       const refundAmount = amount_refunded / 100;
@@ -702,7 +663,6 @@ const handleChargeRefunded = async (charge) => {
       await freelancer.save();
     }
 
-    // Notify both parties
     await Promise.all([
       notificationService.createNotification({
         userId: order.buyerId,
@@ -728,7 +688,6 @@ const handleChargeRefunded = async (charge) => {
  * Handle failed charge
  */
 const handleChargeFailed = async (charge) => {
-  // Handled in payment_intent.payment_failed
   return { success: true };
 };
 
@@ -738,7 +697,6 @@ const handleChargeFailed = async (charge) => {
 const handleCheckoutSessionCompleted = async (session) => {
   const { id, payment_intent, metadata, customer_email } = session;
   
-  // Most logic handled via payment_intent webhook
   return { success: true };
 };
 
@@ -771,25 +729,21 @@ const handleCheckoutSessionExpired = async (session) => {
 const handlePayoutPaid = async (payout) => {
   const { id, amount, destination, metadata } = payout;
   
-  // Find freelancer by Stripe account
   const freelancer = await Freelancer.findOne({ stripeAccountId: destination });
   
   if (freelancer) {
-    // Update payout status
     const payoutRecord = freelancer.payouts?.find(p => p.stripePayoutId === id);
     if (payoutRecord) {
       payoutRecord.status = 'paid';
       payoutRecord.completedAt = new Date();
     }
     
-    // Move from inTransit to withdrawn
     const payoutAmount = amount / 100;
     freelancer.revenue.inTransit = Math.max(0, freelancer.revenue.inTransit - payoutAmount);
     freelancer.revenue.withdrawn += payoutAmount;
     
     await freelancer.save();
 
-    // Notify freelancer
     await notificationService.createNotification({
       userId: freelancer.userId,
       title: '💰 Payout Received',
@@ -811,14 +765,12 @@ const handlePayoutFailed = async (payout) => {
   const freelancer = await Freelancer.findOne({ stripeAccountId: destination });
   
   if (freelancer) {
-    // Update payout status
     const payoutRecord = freelancer.payouts?.find(p => p.stripePayoutId === id);
     if (payoutRecord) {
       payoutRecord.status = 'failed';
       payoutRecord.failureReason = failure_message;
     }
     
-    // Move back from inTransit to available
     const payoutAmount = amount / 100;
     freelancer.revenue.inTransit = Math.max(0, freelancer.revenue.inTransit - payoutAmount);
     freelancer.revenue.available += payoutAmount;
@@ -826,7 +778,6 @@ const handlePayoutFailed = async (payout) => {
     
     await freelancer.save();
 
-    // Notify freelancer
     await notificationService.createNotification({
       userId: freelancer.userId,
       title: '❌ Payout Failed',
@@ -861,7 +812,6 @@ const handleTransferCreated = async (transfer) => {
 const handleTransferReversed = async (transfer) => {
   const { id, amount_reversed, metadata } = transfer;
   
-  // Handle if needed - typically for disputes
   return { success: true };
 };
 

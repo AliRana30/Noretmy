@@ -12,7 +12,6 @@ const UserProfile = require('../models/UserProfile');
 
 const router = express.Router();
 
-// Route to update VAT rates (admin only)
 router.post('/test-email', ToBeDeleted);
 router.get('/update-vat-rates', fetchAndStoreVATRates);
 
@@ -133,7 +132,6 @@ router.get('/rate', verifyToken, async (req, res) => {
   try {
     const { userId } = req;
     
-    // Get user's country
     const userProfile = await UserProfile.findOne({ userId });
     const countryCode = userProfile?.countryCode || userProfile?.country;
     
@@ -152,7 +150,6 @@ router.get('/rate', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching VAT rate:', error);
-    // Graceful fallback
     res.status(200).json({
       success: true,
       vatRate: 0,

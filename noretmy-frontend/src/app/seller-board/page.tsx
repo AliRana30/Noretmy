@@ -53,7 +53,6 @@ const SellerDashboard = () => {
   const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
 
-  // Auth check
   const user = useSelector((state: any) => state?.auth?.user);
   const isLoggedIn = !!user;
   const userRole = String(user?.role || '').toLowerCase();
@@ -93,7 +92,6 @@ const SellerDashboard = () => {
   const apiBase = (BACKEND_URL || '').replace(/\/$/, '');
   const apiRoot = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-  // Auth protection
   useEffect(() => {
     if (!isLoggedIn) {
       toast.info('Please sign in to access the seller dashboard', {
@@ -175,7 +173,6 @@ const SellerDashboard = () => {
     fetchSellerDetails();
   }, [isLoggedIn, isSeller, BACKEND_URL, router]);
 
-  // Show skeleton while checking auth
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -190,7 +187,6 @@ const SellerDashboard = () => {
     );
   }
 
-  // Check if withdrawal is allowed (amount > $20)
   const withdrawalAllowed = dashboardData.availableForWithdrawal >= 20;
 
   return (

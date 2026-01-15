@@ -178,14 +178,12 @@ const ChatScreen: React.FC = () => {
               {/* Conversation List */}
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
-                  // Skeleton loading state
                   <div>
                     {Array.from({ length: 6 }).map((_, i) => (
                       <SkeletonChatListItem key={i} />
                     ))}
                   </div>
                 ) : error ? (
-                  // Error state
                   <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                     <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                       <AlertCircle className="w-8 h-8 text-red-400" />
@@ -199,7 +197,6 @@ const ChatScreen: React.FC = () => {
                     </button>
                   </div>
                 ) : filteredConversations.length === 0 ? (
-                  // Empty state
                   <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                       <InboxArrowDownIcon className="h-8 w-8 text-gray-400" />
@@ -208,7 +205,6 @@ const ChatScreen: React.FC = () => {
                     <p className="text-sm text-gray-500">{t('chat:empty.noConversations')}</p>
                   </div>
                 ) : (
-                  // Conversations list
                   filteredConversations.map(renderConversationItem)
                 )}
               </div>

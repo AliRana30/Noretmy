@@ -20,7 +20,6 @@ const handleSignup = async (req, res, next) => {
       });
     }
 
-    // Start fetching country information in parallel
     const countryInfoPromise = getCountryInfo(req).catch(err => {
       console.error('Background country info fetch failed:', err.message);
       return { success: true, country: 'United States', countryCode: 'US' };
@@ -76,8 +75,6 @@ const handleLogin = async (req, res) => {
       isSeller:user.isSeller,
     },process.env.JWT_KEY)
 
-    // req.session.user = user;
-    // const {password,...info}=user;
 
     res.cookie("accessToken",token,{
       httpOnly:true,
@@ -170,10 +167,8 @@ const handleForgotPassword = async (req, res) => {
       });
     }
 
-    // Generate reset token valid for 15 minutes
     const resetToken = jwt.sign({ email: user.email }, process.env.JWT_KEY, { expiresIn: "15m" });
 
-    // Send email with reset link
     const resetLink = `https://noretmy.com/reset-password?token=${resetToken}`;
     const emailRes = await sendResetPasswordEmail(user.email, resetLink);
 
@@ -200,34 +195,15 @@ const handleForgotPassword = async (req, res) => {
   }
 };
 
-// const handleResetPassword = async (req, res) => {
-//   const { token, newPassword } = req.body;
-//   try {
-//     // Verify token
-//     const decoded = jwt.verify(token, process.env.JWT_KEY);
-//     //     const user = await User.findOne({ email: decoded.email });
 
-//     if (!user) {
-//       return res.status(400).json({ message: "Invalid token or user does not exist" });
-//     }
 
-//     // Hash and update password
-//     const salt = await bcrypt.genSalt(10);
-//     user.password = await bcrypt.hash(newPassword, salt);
-//     await user.save();
 
-//     res.json({ message: "Password reset successful. You can now log in." });
-//   } catch (error) {
-//     res.status(400).json({ message: "Invalid or expired token", error: error.message });
-//   }
-// };
 
 const { validatePassword, getPasswordRequirements } = require('../utils/passwordValidation');
 
 const handleResetPassword = async (req, res) => {
   const { token, password } = req.body;
   try {
-    // Validate new password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return res.status(400).json({

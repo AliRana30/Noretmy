@@ -25,12 +25,10 @@ const handleApiError = (error) => {
   }
 };
 
-// Helper function to get translated column headers
 const getTranslatedHeader = (getTranslation, key) => {
   return getTranslation(datatableColumnsTranslations, key);
 };
 
-// Function to get user columns with translations
 export const getUserColumns = (getTranslation) => {
   return [
     { field: "id", headerName: getTranslatedHeader(getTranslation, "id"), width: 70 },
@@ -68,10 +66,7 @@ export const getUserColumns = (getTranslation) => {
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const userColumns = getUserColumns();
 
-// Function to get documents columns with translations
 export const getDocumentsColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "id"), width: 120 },
@@ -118,10 +113,7 @@ export const getDocumentsColumns = (getTranslation) => {
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const documentsColumns = getDocumentsColumns();
 
-// Function to get orders columns with translations
 export const getOrdersColumns = (getTranslation) => {
   return [
     { field: "gigId", headerName: getTranslatedHeader(getTranslation, "gigId"), width: 150 },
@@ -166,10 +158,7 @@ export const getOrdersColumns = (getTranslation) => {
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const ordersColumns = getOrdersColumns();
 
-// Function to get jobs columns with translations
 export const getJobsColumns = (getTranslation) => {
   return [
     { field: "id", headerName: getTranslatedHeader(getTranslation, "jobId"), width: 150 },
@@ -193,8 +182,6 @@ export const getJobsColumns = (getTranslation) => {
       headerName: getTranslatedHeader(getTranslation, "status"),
       width: 160,
       renderCell: (params) => {
-        // Log the jobsStatus value to check what's being passed
-        // Ensure the jobsStatus is either "active" or "not active"
         const status = params.row.jobStatus && params.row.jobStatus.toLowerCase() === "active" ? "active" : "not active";
         
         return (
@@ -217,32 +204,15 @@ export const getJobsColumns = (getTranslation) => {
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const jobsColumns = getJobsColumns();
 
-// Function to get sensitive messages columns with translations
 export const getSensitiveColumns = (getTranslation) => {
   return [
     { field: "userId", headerName: getTranslatedHeader(getTranslation, "userId"), width: 200 },
     { field: "desc", headerName: getTranslatedHeader(getTranslation, "message"), width: 600 },
-    // {
-    //   field: "actions",
-    //   headerName: getTranslatedHeader(getTranslation, "actions"),
-    //   width: 200,
-    //   renderCell: (params) => (
-    //     <div className="actionButtons">
-    //       <button onClick={() => handleWarn(params.row.userId)}>Warn</button>
-    //       <button onClick={() => handleBlock(params.row.userId)}>Block</button>
-    //     </div>
-    //   ),
-    // },
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const SensitiveColumns = getSensitiveColumns();
 
-// Function to get withdrawal requests columns with translations
 export const getWithdrawalRequestsColumns = (getTranslation) => {
   return [
     { field:"_id", headerName: getTranslatedHeader(getTranslation, "requestId"), width: 200 },
@@ -275,7 +245,6 @@ export const getWithdrawalRequestsColumns = (getTranslation) => {
       headerName: getTranslatedHeader(getTranslation, "status"),
       width: 160,
       renderCell: (params) => {
-        // Older records may have missing status; default to pending.
         const statusRaw = params.row.status || 'pending';
         const status = String(statusRaw).toLowerCase();
         return (
@@ -298,43 +267,16 @@ export const getWithdrawalRequestsColumns = (getTranslation) => {
           minute: "2-digit",
         }),
     },
-    // {
-    //   field: "actions",
-    //   headerName: getTranslatedHeader(getTranslation, "actions"),
-    //   width: 250,
-    //   renderCell: (params) => (
-    //     <div className="actionButtons">
-    //       <button
-    //         className="approveButton"
-    //         onClick={() => handleApprove(params.row.requestId)}
-    //       >
-    //         Approve
-    //       </button>
-    //       <button
-    //         className="rejectButton"
-    //         onClick={() => handleReject(params.row.requestId)}
-    //       >
-    //         Reject
-    //       </button>
-    //     </div>
-    //   ),
-    // },
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const withdrawalRequestsColumns = getWithdrawalRequestsColumns();
 
-// Handlers for actions
 const handleApprove = (requestId) => {
-  // Add your API call or logic to approve the request
 };
 
 const handleReject = (requestId) => {
-  // Add your API call or logic to reject the request
 };
 
-// Function to get notification columns with translations
 export const getNotificationColumns = (getTranslation) => {
   return [
     { field: "userFullName", headerName: getTranslatedHeader(getTranslation, "user"), width: 150 },
@@ -367,21 +309,14 @@ export const getNotificationColumns = (getTranslation) => {
   ];
 };
 
-// Legacy export for backward compatibility - removed to fix React hooks error
-// export const NotificationColumns = getNotificationColumns();
 
 const handleWarn = (userId) => {
-  // Add your warning logic here
   };
 
-// Function to handle blocking a user
 const handleBlock = (userId) => {
-  // Add your blocking logic here
   };
 
-// ===== ADMIN-SPECIFIC COLUMNS =====
 
-// Function to get admin user columns with enhanced management features
 export const getAdminUserColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "id"), width: 120 },
@@ -444,9 +379,7 @@ export const getAdminUserColumns = (getTranslation) => {
   ];
 };
 
-// ===== ADMIN-SPECIFIC COLUMNS (ALREADY DEFINED ABOVE) =====
 
-// Function to get admin jobs columns with enhanced management features
 export const getAdminJobsColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "jobId"), width: 150 },
@@ -495,7 +428,6 @@ export const getAdminJobsColumns = (getTranslation) => {
   ];
 };
 
-// Function to get admin orders columns with enhanced management features
 export const getAdminOrdersColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "orderId"), width: 150 },
@@ -544,7 +476,6 @@ export const getAdminOrdersColumns = (getTranslation) => {
   ];
 };
 
-// Function to get admin withdrawal columns with enhanced management features
 export const getAdminWithdrawalColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "requestId"), width: 200 },
@@ -584,7 +515,6 @@ export const getAdminWithdrawalColumns = (getTranslation) => {
   ];
 };
 
-// Function to get admin sensitive messages columns with enhanced management features
 export const getAdminSensitiveColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "messageId"), width: 150 },
@@ -618,7 +548,6 @@ export const getAdminSensitiveColumns = (getTranslation) => {
   ];
 };
 
-// Function to get admin contact columns with enhanced management features
 export const getAdminContactColumns = (getTranslation) => {
   return [
     { field: "_id", headerName: getTranslatedHeader(getTranslation, "contactId"), width: 150 },
@@ -651,7 +580,6 @@ export const getAdminContactColumns = (getTranslation) => {
   ];
 };
 
-// Function to get data from the API and format it for the DataGrid
 export const fetchData = async () => {
   try {
     const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.USERS), {
@@ -703,7 +631,6 @@ export const fetchDocumentsData = async () => {
       status: user.isBlocked ? "blocked" : user.isVerified ? "active" : "pending",
     }));
 
-    // Requirement: admin documents should only show users whose isVerified is false
     return mapped.filter((u) => !u.isVerified);
   } catch (error) {
     console.error("Error fetching documents data:", error);
@@ -718,7 +645,6 @@ export const getOrders = async () => {
       headers: getAuthHeaders()
     });
 
-    // Sort orders by date (descending)
     const sortedOrders = response.data.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
@@ -737,13 +663,11 @@ export const getJobs = async () => {
       headers: getAuthHeaders()
     });
 
-    // Sort jobs by date (descending)
     const sortedJobs = response.data.sort(
       (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
     );
 
     return sortedJobs.map((job) => {
-      // Safely format the date
       let formattedDate = 'N/A';
       if (job.createdAt) {
         const dateObj = new Date(job.createdAt);
@@ -758,7 +682,6 @@ export const getJobs = async () => {
 
       let status = job.jobStatus || 'Active';
       if (status.toLowerCase() === 'available') status = 'Active';
-      // Capitalize first letter
       status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
       return {
@@ -767,7 +690,6 @@ export const getJobs = async () => {
         sellerId: job.sellerId,
         buyerId: job.buyerId,
         jobStatus: status,
-        // Use category (cat) or subCat instead of location
         location: job.subCat || job.cat || 'No Category',
         category: job.cat,
         subCategory: job.subCat,
@@ -784,7 +706,6 @@ export const getJobs = async () => {
 
 export const getUserJobs = async (userId) => {
   try {
-    // Log the userId for debugging
     const response = await axios.post(getApiUrl(API_CONFIG.ENDPOINTS.JOBS), {
       userId: userId,
     }, {
@@ -792,13 +713,11 @@ export const getUserJobs = async (userId) => {
       withCredentials: true
     });
 
-    // Check if the response status is 404
     if (response.status === 404) {
       console.error("No jobs found for the provided userId.");
       return []; // Return an empty array or handle it as needed
     }
 
-    // Sort jobs by date (descending)
     const sortedJobs = response.data.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
@@ -830,7 +749,6 @@ export const getSensitiveMessages = async () => {
       headers: getAuthHeaders()
     });
 
-    // Sort orders by date (descending)
     const sortedMessages = response.data.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
@@ -855,7 +773,6 @@ export const getNotifications = async () => {
       headers: getAuthHeaders()
     });
 
-    // Handle different response formats - backend returns { success, data, pagination }
     const notifications = response.data?.data || response.data?.notifications || response.data || [];
 
     return notifications;
@@ -879,7 +796,6 @@ export const getAllWithdrawalRequests = async () => {
   }
 };
 
-// Function to get FAQ columns with translations
 export const getFaqColumns = (getTranslation) => {
   return [
     { field: 'id', headerName: getTranslatedHeader(getTranslation, 'id'), width: 70 },
@@ -889,7 +805,6 @@ export const getFaqColumns = (getTranslation) => {
   ];
 };
 
-// Function to get privacy policy columns with translations
 export const getPrivacyPolicyColumns = (getTranslation) => {
   return [
     { field: 'id', headerName: getTranslatedHeader(getTranslation, 'id'), width: 70 },
@@ -898,13 +813,8 @@ export const getPrivacyPolicyColumns = (getTranslation) => {
   ];
 };
 
-// Legacy exports for backward compatibility - removed to fix React hooks error
-// export const faqColumns = getFaqColumns();
-// export const privacyPolicyColumns = getPrivacyPolicyColumns();
 
-// Dummy functions to simulate fetching data
 export const getFaqs = async () => {
-  // Simulated dummy data
   return [
     { _id: 1, question: 'What is your refund policy?', answer: 'Our refund policy...', category: 'Client' },
     { _id: 2, question: 'How do I update my profile?', answer: 'To update your profile...', category: 'Freelancer' },
@@ -912,7 +822,6 @@ export const getFaqs = async () => {
 };
 
 export const getPrivacyPolicy = async () => {
-  // Simulated dummy data
   return [
     { id: 1, title: 'Data Collection', description: 'We collect data to improve services...' },
     { id: 2, title: 'Data Sharing', description: 'We do not share your data without consent...' },

@@ -30,18 +30,11 @@ const RequestRevision: React.FC<RequestRevisionProps> = ({
       const newAttachments: FileAttachment[] = [];
       
       Array.from(files).forEach((file) => {
-        // Validate file size
         if (file.size > maxFileSize) {
           alert(`File ${file.name} exceeds the maximum file size of ${maxFileSize / 1024 / 1024}MB`);
           return;
         }
 
-        // Validate file type
-        // const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-        // if (!allowedFileTypes.includes(fileExtension)) {
-        //   alert(`File type ${fileExtension} is not allowed. Allowed types: ${allowedFileTypes.join(', ')}`);
-        //   return;
-        // }
 
         newAttachments.push({
           id: Date.now().toString() + Math.random().toString(),
@@ -57,7 +50,6 @@ const RequestRevision: React.FC<RequestRevisionProps> = ({
   const removeAttachment = (id: string) => {
     setAttachments(prev => prev.filter(attachment => attachment.id !== id));
     
-    // Reset file input to allow re-uploading the same file
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -98,7 +90,6 @@ const RequestRevision: React.FC<RequestRevisionProps> = ({
           onChange={handleFileChange}
           multiple
           className="hidden"
-          // accept={allowedFileTypes.join(',')}
         />
         <button
           onClick={triggerFileInput}

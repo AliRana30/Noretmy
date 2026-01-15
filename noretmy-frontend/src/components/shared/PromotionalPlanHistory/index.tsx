@@ -45,7 +45,6 @@ const PromotionPlanHistory = ({ promotionHistory = [], onRefresh }: PromotionPla
   >(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Function to format date
   const formatDate = (dateString: string | null): string => {
     if (!dateString) return 'N/A';
     const options: Intl.DateTimeFormatOptions = {
@@ -56,7 +55,6 @@ const PromotionPlanHistory = ({ promotionHistory = [], onRefresh }: PromotionPla
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Get status badge styling
   const getStatusBadge = (promotion: Promotion) => {
     if (promotion.isActive || promotion.status === 'active') {
       return {
@@ -90,7 +88,6 @@ const PromotionPlanHistory = ({ promotionHistory = [], onRefresh }: PromotionPla
     };
   };
 
-  // Get plan display name
   const getPlanDisplayName = (planId: string): string => {
     const planNames: Record<string, string> = {
       'basic': 'Basic Boost',
@@ -144,17 +141,14 @@ const PromotionPlanHistory = ({ promotionHistory = [], onRefresh }: PromotionPla
     await executeCancel(confirmAction.id);
   };
 
-  // Check if promotion can be deleted
   const canDelete = (promotion: Promotion): boolean => {
     return promotion.status !== 'active' || !promotion.isActive;
   };
 
-  // Check if promotion can be cancelled
   const canCancel = (promotion: Promotion): boolean => {
     return promotion.status === 'active' && promotion.isActive;
   };
 
-  // Separate active and expired promotions
   const activePromotions = promotionHistory.filter(p => p.isActive || p.status === 'active');
   const pastPromotions = promotionHistory.filter(p => !p.isActive && p.status !== 'active');
 

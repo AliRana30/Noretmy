@@ -24,12 +24,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
 }) => {
   const { t } = useTranslations();
 
-  // Format date helper with better error handling
   const formatDate = (date?: string | Date) => {
     if (!date) return null;
     try {
       const d = new Date(date);
-      // Check if date is valid
       if (isNaN(d.getTime())) return null;
       return d.toLocaleDateString('en-US', {
         month: 'short',

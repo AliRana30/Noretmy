@@ -12,7 +12,6 @@ const Profile = () => {
   const { getTranslation } = useLocalization();
   const fileInputRef = useRef(null);
   
-  // Translation helper
   const t = (key) => getTranslation(profileTranslations, key) || key;
   
   const [formData, setFormData] = useState({
@@ -36,25 +35,21 @@ const Profile = () => {
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error(t('selectImage'));
         return;
       }
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error(t('imageTooLarge'));
         return;
       }
       
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
       
-      // Upload immediately
       handleImageUpload(file);
     }
   };
@@ -63,7 +58,6 @@ const Profile = () => {
     setIsUploadingImage(true);
     try {
       const formData = new FormData();
-      // Use 'images' as the field name to match the backend multer configuration
       formData.append('images', file);
       
       const response = await axios.put(
@@ -81,14 +75,12 @@ const Profile = () => {
       const updatedData = response.data?.data || response.data;
       
       if (updatedData?.profilePicture) {
-        // Update the user context with new profile picture
         updateUser({ 
           profilePicture: updatedData.profilePicture,
           img: updatedData.profilePicture 
         });
         toast.success(t('profilePictureUpdated'));
       } else {
-        // Fallback: check if any URL was returned in the response
         toast.success(t('refreshToSee'));
       }
     } catch (error) {
@@ -100,7 +92,6 @@ const Profile = () => {
     }
   };
 
-  // Password validation helper
   const validatePasswordStrength = (password) => {
     const errors = [];
     if (password.length < 8) errors.push('At least 8 characters');
@@ -116,7 +107,6 @@ const Profile = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     
-    // Validate password if changing
     if (formData.newPassword) {
       const pwdErrors = validatePasswordStrength(formData.newPassword);
       if (pwdErrors.length > 0) {
@@ -137,20 +127,17 @@ const Profile = () => {
     
     setIsSaving(true);
     try {
-      // Update profile information - send to backend
       const updateData = {
         fullName: formData.fullName,
         username: formData.username,
         email: formData.email,
       };
       
-      // Add password change if provided
       if (formData.newPassword && formData.currentPassword) {
         updateData.currentPassword = formData.currentPassword;
         updateData.newPassword = formData.newPassword;
       }
       
-      // Make API call to persist changes to backend
       const response = await axios.put(
         `${API_CONFIG.BASE_URL}/api/users/profile`,
         updateData,
@@ -160,7 +147,6 @@ const Profile = () => {
         }
       );
       
-      // Update local user data on success
       const responseData = response.data?.data || response.data;
       if (responseData) {
         updateUser({
@@ -174,7 +160,6 @@ const Profile = () => {
       toast.success(t('profileUpdated'));
       setIsEditing(false);
       
-      // Clear password fields
       setFormData(prev => ({
         ...prev,
         currentPassword: '',

@@ -1,4 +1,3 @@
-// SloganHeader.tsx
 import React from 'react';
 import { ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
 import Link from 'next/link';

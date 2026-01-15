@@ -42,12 +42,10 @@ const expirePromotions = async () => {
 const initPromotionExpirationCron = () => {
   const cron = require('node-cron');
   
-  // Run every hour at minute 0
   cron.schedule('0 * * * *', async () => {
     await expirePromotions();
   });
   
-  // Also run immediately on startup to catch any missed expirations
   expirePromotions();
 };
 

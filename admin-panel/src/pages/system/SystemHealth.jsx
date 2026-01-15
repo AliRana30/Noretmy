@@ -14,7 +14,6 @@ const SystemHealth = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [loading, setLoading] = useState(true);
   
-  // System health data
   const [healthData, setHealthData] = useState({
     api: { status: 'checking', latency: 0, uptime: 0 },
     database: { status: 'checking', connections: 0, queries: 0 },
@@ -32,7 +31,6 @@ const SystemHealth = () => {
     setLoading(true);
     
     try {
-      // Check API health
       const startTime = Date.now();
       const healthResponse = await axios.get(`${API_CONFIG.BASE_URL}/api/health`, {
         timeout: 5000
@@ -41,7 +39,6 @@ const SystemHealth = () => {
       
       const apiStatus = healthResponse?.status === 200 ? 'operational' : 'down';
       
-      // Get system stats if available
       let systemStats = {};
       try {
         const statsResponse = await axios.get(`${API_CONFIG.BASE_URL}/api/admin/system-health`, {
@@ -51,7 +48,6 @@ const SystemHealth = () => {
       } catch (e) {
         }
 
-      // Update health data with real or simulated data
       setHealthData({
         api: { 
           status: apiStatus, 
@@ -103,7 +99,6 @@ const SystemHealth = () => {
   useEffect(() => {
     checkHealth();
     
-    // Auto-refresh every 30 seconds
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, []);

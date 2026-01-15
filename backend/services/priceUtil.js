@@ -70,7 +70,6 @@ const getPriceBreakdown = (orderPrice, vatRate, currency = 'USD') => {
         vatAmount,
         totalPrice,
         currency,
-        // Stripe expects amount in cents
         stripeTotalCents: Math.round(totalPrice * 100)
     };
 };
@@ -86,7 +85,6 @@ const getSellerPayout = (orderPrice) => {
         return 0;
     }
     
-    // Seller receives base price minus platform fee
     const platformFee = basePrice * PLATFORM_FEE_RATE;
     return Math.round((basePrice - platformFee) * 100) / 100;
 };

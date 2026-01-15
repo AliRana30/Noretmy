@@ -1,8 +1,5 @@
-// Load environment variables first
-// Last restart: 2025-12-30T14:15:00
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
-// Server entry point - Restart trigger
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./services/dbService');
@@ -34,7 +31,6 @@ const paymentMilestoneRoutes = require('./routes/paymentMilestoneRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const contentRoutes = require('./routes/contentRoutes');
 
-// Cron jobs
 const { initBadgeCronJobs } = require('./services/badgeCronJobs');
 const { initDeadlineCronJobs } = require('./services/orderDeadlineCron');
 const { initPromotionExpirationCron } = require('./scripts/expirePromotions');
@@ -76,34 +72,13 @@ const corsOptions = {
 
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// app.use(cors());
 
-// // Handle preflight requests (important!)
-// app.options('*', (req, res) => {
-//   res.header('Access-Control-Allow-Origin', req.headers.origin);
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.sendStatus(204);
-// });
 
-// // Ensure CORS headers are set in every response
-// app.use((req, res, next) => {
-//   const allowedOrigin = allowedOrigins.includes(req.headers.origin) ? req.headers.origin : allowedOrigins[0];
-//   res.header('Access-Control-Allow-Origin', allowedOrigin);
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   next();
-// });
-// u
 
 app.use('/api/webhook', webhookRoutes);
 
-// Payment routes MUST come before express.json() to allow raw body parsing for Stripe webhooks
 app.use('/api/payment', paymentRoutes);
 
 app.use(express.json());
@@ -120,7 +95,6 @@ app.get('/', (req, res) => {
   } 
 });
 
-// Public health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -132,17 +106,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Session middleware (if you need session-based authentication)
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false,
-//     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-//   })
-// );
 
-// Route handlers
 app.use('/api', uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -169,12 +133,10 @@ app.use('/api/payment-milestones', paymentMilestoneRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/content', contentRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   const errorStatus = err.status || err.statusCode || 500;
   const errorMessage = err.message || "Something went wrong!";
   
-  // Structured JSON error response
   return res.status(errorStatus).json({
     success: false,
     status: errorStatus,
@@ -184,7 +146,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Create HTTP server and integrate with Socket.io
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
   cors: {
@@ -194,19 +155,14 @@ const io = require('socket.io')(server, {
   }
 });
 
-// Initialize socket handler with the io instance
 socketHandler(io);
 
-// Attach io instance to app so controllers can access it via req.app.get('io')
 app.set('io', io);
-// Also attach to global for legacy services that use global.io
 global.io = io;
 console.log('🔌 Socket.IO initialized and attached to Express app');
 
-// Start server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, '0.0.0.0', () => {
-  // Initialize cron jobs
   initBadgeCronJobs();
   initDeadlineCronJobs();
   initPromotionExpirationCron();

@@ -7,7 +7,6 @@
 const mongoose = require('mongoose');
 
 const promotionPurchaseSchema = new mongoose.Schema({
-  // Stripe Identity (unique, idempotent key)
   stripePaymentIntentId: { 
     type: String, 
     required: true, 
@@ -15,7 +14,6 @@ const promotionPurchaseSchema = new mongoose.Schema({
     index: true 
   },
   
-  // User who purchased
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
@@ -23,7 +21,6 @@ const promotionPurchaseSchema = new mongoose.Schema({
     index: true 
   },
   
-  // Plan details (from PROMOTION_PLANS constants)
   planKey: { 
     type: String, 
     required: true, 
@@ -33,7 +30,6 @@ const promotionPurchaseSchema = new mongoose.Schema({
   planName: { type: String, required: true },
   planPriority: { type: Number, required: true },
   
-  // Promotion type
   promotionType: { 
     type: String, 
     enum: ['single_gig', 'all_gigs'], 
@@ -46,7 +42,6 @@ const promotionPurchaseSchema = new mongoose.Schema({
     index: true
   },
   
-  // Lifecycle status
   status: { 
     type: String, 
     enum: ['pending', 'active', 'expired', 'cancelled', 'failed', 'deleted'], 
@@ -54,16 +49,13 @@ const promotionPurchaseSchema = new mongoose.Schema({
     index: true 
   },
   
-  // Timestamps
   purchasedAt: { type: Date, default: Date.now },
   activatedAt: { type: Date, default: null },
   expiresAt: { type: Date, required: true, index: true },
   deletedAt: { type: Date, default: null },
   
-  // Duration
   durationDays: { type: Number, default: 30 },
   
-  // Pricing (immutable after payment)
   baseAmount: { type: Number, required: true },
   vatRate: { type: Number, default: 0 },
   vatAmount: { type: Number, default: 0 },
@@ -73,12 +65,10 @@ const promotionPurchaseSchema = new mongoose.Schema({
   
 }, { timestamps: true });
 
-// Compound indexes for efficient queries
 promotionPurchaseSchema.index({ userId: 1, status: 1, createdAt: -1 });
 promotionPurchaseSchema.index({ gigId: 1, status: 1, expiresAt: 1 });
 promotionPurchaseSchema.index({ status: 1, expiresAt: 1 }); // For cron job
 
-// Static: Check if gig has active promotion
 promotionPurchaseSchema.statics.hasActivePromotion = async function(gigId, userId) {
   const now = new Date();
   return this.exists({
@@ -91,7 +81,6 @@ promotionPurchaseSchema.statics.hasActivePromotion = async function(gigId, userI
   });
 };
 
-// Static: Get active promotion for gig
 promotionPurchaseSchema.statics.getActivePromotionForGig = async function(gigId, sellerId) {
   const now = new Date();
   return this.findOne({
@@ -104,7 +93,6 @@ promotionPurchaseSchema.statics.getActivePromotionForGig = async function(gigId,
   }).sort({ planPriority: -1 }).lean();
 };
 
-// Static: Get all active promotions (for visibility logic)
 promotionPurchaseSchema.statics.getAllActivePromotions = async function() {
   const now = new Date();
   return this.find({

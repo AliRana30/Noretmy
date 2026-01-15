@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-// import io from 'socket.io-client';
 import axios from 'axios';
 import MessageComponent from '../MessageComponent';
 import ChatFileUpload from '../ChatFileUpload';
@@ -52,20 +51,17 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
   const receiverId = userId === sellerId ? buyerId : sellerId;
 
-  // Initialize buyerId from searchParams
   useEffect(() => {
     const id = searchParams.get('buyerId');
     setBuyerId(id);
   }, [searchParams]);
 
-  // Set current user avatar from Redux store
   useEffect(() => {
     if (userProfilePicture) {
       setCurrentUserAvatar(userProfilePicture);
     }
   }, [userProfilePicture]);
 
-  // Handle clicks outside the actions menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
@@ -82,22 +78,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
   useEffect(() => {
     setIsLoading(true);
-    // Initialize socket connection
-    // socketRef.current = io('wss://noretmy-backend.vercel.app', {
-    //   withCredentials: true,
-    //   transports: ['websocket'],
-    // });
 
-    // // Join room for real-time updates
-    // socketRef.current.emit('joinRoom', conversationId);
 
-    // // Listen for new messages
-    // socketRef.current.on('receiveMessage', (message: any) => {
-    //   setMessages((prevMessages) => [...prevMessages, message]);
-    //   scrollToBottom();
-    // });
 
-    // Fetch initial messages
     const fetchMessages = async () => {
       try {
         const response = await axios.get(
@@ -114,7 +97,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       }
     };
 
-    // Fetch conversation to get the other user's name and avatar
     const fetchConversation = async () => {
       try {
         const response = await axios.get(
@@ -122,7 +104,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           { withCredentials: true },
         );
         const conversation = response.data;
-        // Determine which user is the "other" party
         if (conversation.seller && conversation.buyer) {
           const isCurrentUserSeller = userId === conversation.sellerId;
           const otherUser = isCurrentUserSeller
@@ -134,10 +115,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
           setOtherUserName(otherUser?.username || otherUser?.name || '');
           setOtherUserAvatar(otherUser?.profilePicture || '');
-          // Track if other user is a seller (freelancer)
           setIsOtherUserSeller(!isCurrentUserSeller);
 
-          // Also update current user avatar if available from conversation
           if (currentUser?.profilePicture && !currentUserAvatar) {
             setCurrentUserAvatar(currentUser.profilePicture);
           }
@@ -150,11 +129,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     fetchMessages();
     fetchConversation();
 
-    // Cleanup on unmount
-    // return () => {
-    //   socketRef.current.disconnect();
-    //   socketRef.current = null;
-    // };
   }, [conversationId]);
 
   const scrollToBottom = () => {
@@ -165,7 +139,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
   const handleSend = async () => {
     if (newMessage.trim() || pendingAttachments.length > 0) {
-      // Optimistically add message to UI immediately
       const optimisticMessage = {
         _id: `temp-${Date.now()}`,
         conversationId,
@@ -176,7 +149,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         createdAt: new Date().toISOString(),
       };
 
-      // Add to local state immediately
       setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
       const messageText = newMessage;
       const attachmentsToSend = [...pendingAttachments];
@@ -185,16 +157,13 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       setTimeout(scrollToBottom, 50);
 
       try {
-        // If this is the first message, ensure conversation exists
         if (messages.length === 0 && sellerId && buyerId) {
           try {
-            // Check if conversation exists
             const checkResponse = await axios.get(
               `${BACKEND_URL}/conversations/user/single/${sellerId}/${buyerId}`,
               { withCredentials: true }
             );
 
-            // If no conversation exists (204), create one
             if (checkResponse.status === 204) {
               await axios.post(
                 `${BACKEND_URL}/conversations`,
@@ -203,7 +172,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
               );
             }
           } catch (convError) {
-            // If check fails, try to create the conversation anyway
             try {
               await axios.post(
                 `${BACKEND_URL}/conversations`,
@@ -211,7 +179,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
                 { withCredentials: true }
               );
             } catch (createError) {
-              // Conversation might already exist, continue with message
             }
           }
         }
@@ -237,7 +204,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           { withCredentials: true },
         );
 
-        // Replace optimistic message with real one from server
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
             msg._id === optimisticMessage._id ? response.data : msg
@@ -245,7 +211,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         );
       } catch (err) {
         console.error('Error sending message to the server:', err);
-        // Remove optimistic message on error
         setMessages((prevMessages) =>
           prevMessages.filter((msg) => msg._id !== optimisticMessage._id)
         );
@@ -253,12 +218,10 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     }
   };
 
-  // Handle uploaded files from ChatFileUpload component
   const handleFilesUploaded = (attachments: AttachmentData[]) => {
     setPendingAttachments(prev => [...prev, ...attachments]);
   };
 
-  // Remove a pending attachment
   const removePendingAttachment = (attachmentId: string) => {
     setPendingAttachments(prev => prev.filter(a => a._id !== attachmentId));
   };
@@ -273,7 +236,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const router = useRouter();
 
   const handleActionClick = (action: string) => {
-    // Handle different actions
     switch (action) {
       case 'orders':
         router.push('/orders');
@@ -320,7 +282,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
             className={`flex items-center gap-2 transition-opacity ${isOtherUserSeller ? 'cursor-pointer hover:opacity-80' : ''}`}
             onClick={() => {
               if (otherUserName && isOtherUserSeller) {
-                // Only navigate to profile if other user is a seller/freelancer
                 router.push(`/freelancer/${otherUserName}`);
               }
             }}

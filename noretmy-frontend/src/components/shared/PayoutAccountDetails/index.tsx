@@ -19,7 +19,6 @@ interface OnboardingData {
   message:  string;
 }
 
-// Component props
 interface PayoutAccountsComponentProps {
   account: PayoutAccount | null;
   loading: boolean;
@@ -105,7 +104,6 @@ const PayoutAccountsComponent: React.FC<PayoutAccountsComponentProps> = ({
   };
 
   const handleEdit = () => {
-    // Pre-fill form fields with existing account data
     if (account) {
       const existing = account.withdrawalMethod;
       setwithdrawalMethod(existing === 'stripe' || existing === 'paypal' ? existing : 'paypal');

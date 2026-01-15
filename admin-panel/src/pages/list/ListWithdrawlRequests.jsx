@@ -32,7 +32,6 @@ const ListWithdrawlRequests = () => {
       setLoading(true);
       setError(null);
       const res = await getAdminWithdrawals({ status: 'all', limit: 100 });
-      // makeRequest returns response.data directly, so res is the array
       setData(Array.isArray(res) ? res : (res?.data || []));
     } catch (err) {
       setError(err.message);

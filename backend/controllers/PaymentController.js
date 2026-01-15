@@ -4,7 +4,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const paypalCheckout = require('@paypal/checkout-server-sdk');
 const paypalRestSdk = require('paypal-rest-sdk');
 
-// Configure PayPal REST SDK for payouts
 paypalRestSdk.configure({
     'mode': process.env.PAYPAL_MODE || 'sandbox', // 'sandbox' or 'live'
     'client_id': process.env.PAYPAL_CLIENT_ID,
@@ -27,7 +26,6 @@ const mongoose = require('mongoose');
 exports.createCustomerAndPaymentIntent = async (req, res) => {
   const { amount, email } = req.body;
 
-  // Validate the inputs
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     return res.status(400).json({ error: 'Invalid amount' });
   }
@@ -37,23 +35,19 @@ exports.createCustomerAndPaymentIntent = async (req, res) => {
   }
 
   try {
-    // Check if the customer already exists (optional step)
     let customer = await stripe.customers.list({
       email: email,
       limit: 1
     });
 
     if (customer.data.length > 0) {
-      // If customer exists, use the existing customer
       customer = customer.data[0];
     } else {
-      // Otherwise, create a new customer
       customer = await stripe.customers.create({
         email,
       });
     }
 
-    // Create a Payment Intent linked to the customer
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: 'usd',
@@ -71,7 +65,6 @@ exports.createCustomerAndPaymentIntent = async (req, res) => {
 };
 
 exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, additionalData) => {
-  // Support both (amount, email, ...) signature and ({ amount, email, ... }) signature
   let orderId = null;
   let isMilestone = false;
   
@@ -86,8 +79,6 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
   if (additionalData && (additionalData.isMilestone || (additionalData.orderId && additionalData.orderId.isMilestone))) {
      isMilestone = true;
   }
-  // Check if orderId implies milestone (if passed as string but we can't check db here easily)
-  // Assuming additionalData passed from controller has the flag
 
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new Error('Invalid amount');
@@ -97,7 +88,6 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
     throw new Error('Invalid email');
   }
 
-  // To get Metadata about payment
   const metadata = setupPaymentMetadata(paymentType, additionalData);
   if (isMilestone) {
     metadata.milestoneEnabled = 'true';
@@ -107,17 +97,14 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
 
     const totalAmountInCents = Math.round(amount * 100);
 
-    // Check if the customer already exists (optional step)
     let customer = await stripe.customers.list({
       email: email,
       limit: 1,
     });
 
     if (customer.data.length > 0) {
-      // If customer exists, use the existing customer
       customer = customer.data[0];
     } else {
-      // Otherwise, create a new customer
       customer = await stripe.customers.create({
         email,
       });
@@ -131,14 +118,11 @@ exports.createCustomerAndPaymentIntentUtil = async (amount, email, paymentType, 
       metadata,
     };
 
-    // Use manual capture for ALL order payments to enable milestone-based captures (10%, 50%, 20%, 20%)
-    // This allows us to authorize the full amount but only capture portions as the order progresses
     if (paymentType === 'order_payment') {
       intentParams.capture_method = 'manual';
       metadata.milestoneEnabled = 'true';
     }
 
-    // Create a Payment Intent linked to the customer
     const paymentIntent = await stripe.paymentIntents.create(intentParams);
 
     console.log('\n========== PAYMENT INTENT CREATED ==========');
@@ -195,66 +179,19 @@ const setupPaymentMetadata = (paymentType, additionalData) => {
   return metadata;
 };
 
-// exports.withdrawFunds = async (req, res) => {
-//     const { email, amount } = req.body; // Freelancer's email and withdrawal amount
 
-//     try {
-//         // Check if the freelancer account exists
-//         let freelancerAccount = await Freelancer.findOne({ email });
 
-//         // If the account doesn't exist, create it
-//         if (!freelancerAccount) {
-//             const account = await stripe.accounts.create({
-//                 type: 'standard', // You can choose 'standard' or 'express'
-//                 country: 'US', // Set the country for the connected account
-//                 email: email, // Freelancer's email
-//                 capabilities: {
-//                     card_payments: { requested: true },
-//                     transfers: { requested: true },
-//                 },
-//             });
 
-//             // Create a new Freelancer record in the database
-//             freelancerAccount = new Freelancer({
-//                 email,
-//                 stripeAccountId: account.id,
-//                 availableBalance: 30, //
-//             });
 
-//             await freelancerAccount.save();
-//         }
 
-//         // Check if the available balance is sufficient
-//         if (freelancerAccount.availableBalance < amount) {
-//             return res.status(400).json({ error: 'Insufficient funds' });
-//         }
 
-//         // Create a payout to the freelancer's connected account
-//         const payout = await stripe.payouts.create(
-//             {
-//                 amount: amount, 
-//                 currency: 'usd', 
-//             },
-//             {
-//                 stripeAccount: freelancerAccount.stripeAccountId, 
-//             }
-//         );
 
-//         freelancerAccount.availableBalance -= amount;
-//         await freelancerAccount.save();
 
-//         res.status(200).json({ success: true, payout });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ success: false, error: error.message });
-//     }
-// };
 
 exports.paypalWithdrawFunds = async (req, res) => {
     const { email, amount } = req.body; // Freelancer's email and withdrawal amount
 
     try {
-        // Get PayPal access token
         const tokenResponse = await axios.post(
             'https://api-m.sandbox.paypal.com/v1/oauth2/token', // Use the live URL for production: 'https://api-m.paypal.com/v1/oauth2/token'
             'grant_type=client_credentials',
@@ -268,18 +205,15 @@ exports.paypalWithdrawFunds = async (req, res) => {
 
         const accessToken = tokenResponse.data.access_token;
 
-        // Check if the freelancer exists in your database
         const freelancer = await Freelancer.findOne({ email });
         if (!freelancer) {
             return res.status(404).json({ error: 'Freelancer account not found' });
         }
 
-        // Check if the freelancer has sufficient balance
         if (freelancer.availableBalance < amount) {
             return res.status(400).json({ error: 'Insufficient funds' });
         }
 
-        // Create a PayPal payout
         const payoutResponse = await axios.post(
             'https://api-m.sandbox.paypal.com/v1/payments/payouts', // Use the live URL for production: 'https://api-m.paypal.com/v1/payments/payouts'
             {
@@ -307,7 +241,6 @@ exports.paypalWithdrawFunds = async (req, res) => {
             }
         );
 
-        // Deduct the amount from the freelancer's balance
         freelancer.availableBalance -= amount;
         await freelancer.save();
 
@@ -331,7 +264,6 @@ exports.withdrawFunds = async (req, res) => {
     try {
         let freelancerAccount = await Freelancer.findOne({ email });
 
-        // If the account doesn't exist, create it
         if (!freelancerAccount) {
             const account = await stripe.accounts.create({
                 type: 'express', // Type of account (can be 'express' or 'custom' based on your needs)
@@ -343,7 +275,6 @@ exports.withdrawFunds = async (req, res) => {
                 },
             });
 
-            // Create a new Freelancer record in the database
             freelancerAccount = new Freelancer({
                 email,
                 stripeAccountId: account.id,
@@ -352,7 +283,6 @@ exports.withdrawFunds = async (req, res) => {
 
             await freelancerAccount.save();
 
-            // Create the onboarding link if the freelancer has not completed onboarding
             const accountLink = await stripe.accountLinks.create({
                 account: account.id,
                 refresh_url: 'https://your-platform.com/onboarding-refresh', // Redirect if freelancer needs to update information
@@ -360,7 +290,6 @@ exports.withdrawFunds = async (req, res) => {
                 type: 'account_onboarding', // Type of onboarding flow
             });
 
-            // Send the onboarding link to the freelancer
             return res.status(200).json({ 
                 success: true,
                 message: 'Freelancer account created. Complete your onboarding.',
@@ -368,11 +297,9 @@ exports.withdrawFunds = async (req, res) => {
             });
         }
 
-        // If the freelancer already exists, check if they have completed onboarding
         const account = await stripe.accounts.retrieve(freelancerAccount.stripeAccountId);
 
         if (account.charges_enabled === false) {
-            // If the freelancer has not completed onboarding, ask them to do so
             const accountLink = await stripe.accountLinks.create({
                 account: freelancerAccount.stripeAccountId,
                 refresh_url: 'https://noretmy.com/onboarding-refresh', // Redirect if freelancer needs to update information
@@ -387,12 +314,10 @@ exports.withdrawFunds = async (req, res) => {
             });
         }
 
-        // Check if the available balance is sufficient
         if (freelancerAccount.availableBalance < amount) {
             return res.status(400).json({ error: 'Insufficient funds' });
         }
 
-        // Create a payout to the freelancer's connected account
         const payout = await stripe.payouts.create(
             {
                 amount: amount * 100, // Amount is in cents
@@ -403,7 +328,6 @@ exports.withdrawFunds = async (req, res) => {
             }
         );
 
-        // Update freelancer's balance after payout
         freelancerAccount.availableBalance -= amount;
         await freelancerAccount.save();
 
@@ -415,7 +339,6 @@ exports.withdrawFunds = async (req, res) => {
 };
 
 exports.processPayPalWithdrawal = async (email, amount) => {
-    // Check if PayPal is configured
     if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_SECRET) {
         console.error('[PayPal Payout] PayPal credentials not configured');
         return {
@@ -430,10 +353,8 @@ exports.processPayPalWithdrawal = async (email, amount) => {
             throw new Error('Invalid email or amount.');
         }
 
-        // Generate a unique sender batch ID
         const senderBatchId = `Payout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // Prepare the payout request using paypal-rest-sdk format
         const payoutRequest = {
             sender_batch_header: {
                 sender_batch_id: senderBatchId,
@@ -456,7 +377,6 @@ exports.processPayPalWithdrawal = async (email, amount) => {
 
         console.log('[PayPal Payout] Initiating payout to:', email, 'Amount:', amount);
 
-        // Execute the payout using paypal-rest-sdk (promisified)
         const response = await new Promise((resolve, reject) => {
             paypalRestSdk.payout.create(payoutRequest, function (error, payout) {
                 if (error) {
@@ -469,7 +389,6 @@ exports.processPayPalWithdrawal = async (email, amount) => {
             });
         });
 
-        // Return success response
         return {
             success: true,
             message: 'Withdrawal successful.',
@@ -478,7 +397,6 @@ exports.processPayPalWithdrawal = async (email, amount) => {
     } catch (error) {
         console.error('[PayPal Payout] Error:', error.message || error);
         
-        // Extract meaningful error message from PayPal response
         let errorMessage = 'Withdrawal failed. Please try again later.';
         if (error.response && error.response.message) {
             errorMessage = error.response.message;
@@ -498,7 +416,6 @@ exports.processRefund = async (req, res) => {
     const { chargeId, amount } = req.body; // Charge ID and refund amount
 
     try {
-        // Create a refund
         const refund = await stripe.refunds.create({
             charge: chargeId,
             amount: amount, // Amount in cents (optional, refund full amount if omitted)
@@ -539,7 +456,6 @@ exports.handleStripeWebhook = async (req, res) => {
   }
 };
 
-// Function to handle authorized payment (Milestones)
 const handlePaymentIntentAuthorized = async (paymentIntent) => {
   const { id, metadata } = paymentIntent;
   
@@ -549,13 +465,8 @@ const handlePaymentIntentAuthorized = async (paymentIntent) => {
       const order = await Order.findById(metadata.orderId);
       
       if (order && order.isMilestone && order.paymentMilestoneStage === 'order_placed') {
-         // Initialize FIRST milestone (Accepted - 10%)
-         // Note: The payment intent is now Authorized for Full Amount.
-         // Calling processAcceptedMilestone will set status to 'accepted'.
-         // It creates the milestone record.
          await processAcceptedMilestone(order._id, order.sellerId);
          
-         // Also update order status to started/accepted if not already
          order.isPaid = false; // Not paid yet, just authorized
          order.paymentStatus = 'authorized'; 
          if (order.status === 'created') {
@@ -569,7 +480,6 @@ const handlePaymentIntentAuthorized = async (paymentIntent) => {
   }
 };
 
-// Function to handle successful payment intent
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
   const { id, amount_received, payment_method, metadata } = paymentIntent;
   const { 
@@ -586,7 +496,6 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 
   try {
     if (paymentType === 'order_payment') {
-      // Handle Order Payment
       const { getSellerPayout } = require('../services/priceUtil');
       const statusHistoryEntry = { status: "started", createdAt: Date.now() };
       const updatedOrder = await Order.findOneAndUpdate(
@@ -616,13 +525,11 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         return;
       }
 
-      // Fetch seller and buyer emails
       const [seller, buyer] = await Promise.all([
         User.findById(updatedOrder.sellerId),
         User.findById(updatedOrder.buyerId),
       ]);
 
-      // Add to escrow (pending balance)
       if (seller) {
         const netEarnings = getSellerPayout(updatedOrder.price);
         seller.revenue.total += netEarnings;
@@ -637,7 +544,6 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       const sellerEmail = seller.email;
       const buyerEmail = buyer.email;
 
-      // Prepare messages
 
       const gig=  await Job.findById(updatedOrder.gigId)
 
@@ -647,37 +553,29 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 
       const sellerData = {_id:updatedOrder._id,price:updatedOrder.price,createdAt:updatedOrder.createdAt ,gigTitle : gig.title, sellerName:seller.username}
 
-      // Send notifications
       await Promise.all([
         sendOrderSuccessEmail(buyerEmail,buyerData),
         sendSellerOrderNotificationEmail(sellerEmail,sellerData)  ]);
 
       } else if (paymentType === 'gig_promotion' || paymentType === 'monthly_promotion') {
-      // ========== UNIFIED PROMOTION HANDLER ==========
-      // Uses PromotionPurchase as single source of truth
-      // Idempotent: checks for existing record before creating
       
-      // 1. Idempotency check - prevent duplicate processing
       const existingPurchase = await PromotionPurchase.findOne({ stripePaymentIntentId: id });
       if (existingPurchase) {
         return;
       }
       
-      // 2. Get plan details from constants
       const plan = getPlan(promotionPlan);
       if (!plan) {
         console.error('[Promotion] Invalid plan key:', promotionPlan);
         return;
       }
       
-      // 3. Validate user exists
       const user = await User.findById(userId);
       if (!user) {
         console.error('[Promotion] User not found:', userId);
         return;
       }
       
-      // 4. For single gig promotions, validate gig exists
       let gig = null;
       if (paymentType === 'gig_promotion' && gigId) {
         gig = await Job.findById(gigId);
@@ -687,11 +585,9 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         }
       }
       
-      // 5. Calculate dates
       const now = new Date();
       const expiresAt = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
       
-      // 6. Create PromotionPurchase record (single source of truth)
       const promotionPurchase = new PromotionPurchase({
         stripePaymentIntentId: id,
         userId: new mongoose.Types.ObjectId(userId),
@@ -716,14 +612,12 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         await promotionPurchase.save();
         } catch (saveError) {
         if (saveError.code === 11000) {
-          // Duplicate key - already processed
           return;
         }
         console.error('[Promotion] Failed to save PromotionPurchase:', saveError);
         return;
       }
       
-      // 7. Send email notification
       try {
         const emailData = {
           promotionPlanId: promotionPurchase._id,
@@ -743,10 +637,8 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         }
         } catch (emailError) {
         console.error('[Promotion] Email failed:', emailError.message);
-        // Don't fail the whole process for email errors
       }
       
-      // 8. Notify admins
       try {
         const admins = await User.find({ role: 'admin' });
         const notificationPromises = admins.map(admin => {
@@ -764,7 +656,6 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       }
       
       } else if (paymentType === 'timeline_extension') {
-      // Handle Timeline Extension Payment
       const { processTimelineExtension } = require('./timelineExtensionController');
       
       const success = await processTimelineExtension(paymentIntent);
@@ -783,8 +674,6 @@ async function handlePaymentIntentFailed(paymentIntent) {
   const { id, last_payment_error } = paymentIntent;
 
   try {
-    // Log the failed payment and update the order accordingly
-    // Optionally, update the order's status to indicate a failed payment
     const updatedOrder = await Order.findOneAndUpdate(
       { payment_intent: id },
       { 

@@ -64,13 +64,10 @@ const PROMOTION_PLANS = {
   }
 };
 
-// Helper to get plan by key
 const getPlan = (planKey) => PROMOTION_PLANS[planKey] || null;
 
-// Get all plan keys
 const PLAN_KEYS = Object.keys(PROMOTION_PLANS);
 
-// Validate plan key
 const isValidPlanKey = (key) => PLAN_KEYS.includes(key);
 
 module.exports = {

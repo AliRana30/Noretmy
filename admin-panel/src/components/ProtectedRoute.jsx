@@ -6,7 +6,6 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <div style={{
@@ -21,12 +20,10 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user is admin (admin panel requires admin role)
   if (!isAdmin()) {
     return (
       <div style={{
@@ -78,7 +75,6 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Render children if authenticated and is admin
   return children;
 };
 

@@ -86,7 +86,6 @@ const AdminUsersList = () => {
       setLoading(true);
       setError(null);
       
-      // Try admin API first, fallback to regular fetch
       try {
         const response = await getAdminUsers({});
         const usersArray = extractUsersArray(response);
@@ -114,7 +113,6 @@ const AdminUsersList = () => {
     setProcessingAction(true);
     const oldData = [...data];
     
-    // Optimistic update
     setData(prevData => 
       prevData.map(user => 
         user._id === userId 
@@ -146,7 +144,6 @@ const AdminUsersList = () => {
     setProcessingAction(true);
     const oldData = [...data];
     
-    // Optimistic update
     setData(prevData => 
       prevData.map(user => 
         user._id === userId 
@@ -194,7 +191,6 @@ const AdminUsersList = () => {
   const handleUnblock = async (userId) => {
     const oldData = [...data];
     
-    // Optimistic update
     setData(prevData => 
       prevData.map(user => 
         user._id === userId 
@@ -214,10 +210,8 @@ const AdminUsersList = () => {
   };
 
   const handleRoleChange = async (userId, newRole) => {
-    // Store old data for rollback
     const oldData = [...data];
     
-    // Optimistic update - immediately update local state
     setData(prevData => 
       prevData.map(user => 
         user._id === userId 
@@ -232,13 +226,11 @@ const AdminUsersList = () => {
       toast.success(`Role updated to ${newRole}`);
     } catch (error) {
       console.error("Error updating role:", error);
-      // Rollback on error
       setData(oldData);
       toast.error(`Error updating role: ${error.message}`);
     }
   };
 
-  // Filter data
   const filteredData = data.filter(user => {
     const matchesSearch = 
       user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -256,7 +248,6 @@ const AdminUsersList = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,

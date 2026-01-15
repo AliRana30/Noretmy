@@ -1,4 +1,3 @@
-// models/ChatAttachment.js
 const mongoose = require('mongoose');
 
 /**
@@ -7,7 +6,6 @@ const mongoose = require('mongoose');
  * Supports images, documents, and other file types
  */
 const chatAttachmentSchema = new mongoose.Schema({
-  // Relationships
   messageId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message',
@@ -31,7 +29,6 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: true
   },
   
-  // File information
   fileName: {
     type: String,
     required: true
@@ -49,14 +46,12 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: true
   },
   
-  // File category
   fileType: {
     type: String,
     required: true,
     enum: ['image', 'document', 'archive', 'video', 'audio', 'other']
   },
   
-  // Storage information
   storageProvider: {
     type: String,
     required: true,
@@ -76,7 +71,6 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: false  // For S3
   },
   
-  // Signed URL for secure access (optional, for S3)
   signedUrl: {
     type: String,
     required: false
@@ -86,7 +80,6 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: false
   },
   
-  // Image-specific fields
   thumbnailUrl: {
     type: String,
     required: false
@@ -96,7 +89,6 @@ const chatAttachmentSchema = new mongoose.Schema({
     height: { type: Number }
   },
   
-  // Security & scanning
   isScanned: {
     type: Boolean,
     default: false
@@ -110,14 +102,12 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: false
   },
   
-  // Status
   status: {
     type: String,
     enum: ['uploading', 'processing', 'ready', 'failed', 'deleted'],
     default: 'uploading'
   },
   
-  // Download tracking
   downloadCount: {
     type: Number,
     default: 0
@@ -127,7 +117,6 @@ const chatAttachmentSchema = new mongoose.Schema({
     required: false
   },
   
-  // Soft delete
   isDeleted: {
     type: Boolean,
     default: false
@@ -146,19 +135,16 @@ const chatAttachmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
 chatAttachmentSchema.index({ conversationId: 1, createdAt: -1 });
 chatAttachmentSchema.index({ orderId: 1 });
 chatAttachmentSchema.index({ uploaderId: 1 });
 chatAttachmentSchema.index({ status: 1 });
 
-// Virtual for file extension
 chatAttachmentSchema.virtual('extension').get(function() {
   const parts = this.originalName.split('.');
   return parts.length > 1 ? parts.pop().toLowerCase() : '';
 });
 
-// Virtual for formatted file size
 chatAttachmentSchema.virtual('formattedSize').get(function() {
   const bytes = this.fileSize;
   if (bytes === 0) return '0 Bytes';
@@ -168,7 +154,6 @@ chatAttachmentSchema.virtual('formattedSize').get(function() {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 });
 
-// Static method to get file type from MIME type
 chatAttachmentSchema.statics.getFileTypeFromMime = function(mimeType) {
   if (mimeType.startsWith('image/')) return 'image';
   if (mimeType.startsWith('video/')) return 'video';
@@ -182,15 +167,12 @@ chatAttachmentSchema.statics.getFileTypeFromMime = function(mimeType) {
   return 'other';
 };
 
-// Static method to check if file type is allowed
 chatAttachmentSchema.statics.isAllowedFileType = function(mimeType, fileName) {
-  // Blocked extensions
   const blockedExtensions = [
     'exe', 'bat', 'cmd', 'com', 'msi', 'scr', 'pif', 'vbs', 
     'js', 'jar', 'sh', 'ps1', 'dll', 'sys', 'drv'
   ];
   
-  // Blocked MIME types
   const blockedMimeTypes = [
     'application/x-msdownload',
     'application/x-executable',
@@ -199,13 +181,11 @@ chatAttachmentSchema.statics.isAllowedFileType = function(mimeType, fileName) {
     'application/x-shellscript'
   ];
   
-  // Check extension
   const extension = fileName.split('.').pop()?.toLowerCase();
   if (blockedExtensions.includes(extension)) {
     return { allowed: false, reason: `File type .${extension} is not allowed for security reasons` };
   }
   
-  // Check MIME type
   if (blockedMimeTypes.some(blocked => mimeType.includes(blocked))) {
     return { allowed: false, reason: 'This file type is not allowed for security reasons' };
   }
@@ -213,13 +193,10 @@ chatAttachmentSchema.statics.isAllowedFileType = function(mimeType, fileName) {
   return { allowed: true };
 };
 
-// Static: max file size in bytes (50MB)
 chatAttachmentSchema.statics.MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-// Static: max files per message
 chatAttachmentSchema.statics.MAX_FILES_PER_MESSAGE = 10;
 
-// Instance method to soft delete
 chatAttachmentSchema.methods.softDelete = async function(userId) {
   this.isDeleted = true;
   this.deletedAt = new Date();
@@ -228,7 +205,6 @@ chatAttachmentSchema.methods.softDelete = async function(userId) {
   return this.save();
 };
 
-// Instance method to increment download count
 chatAttachmentSchema.methods.recordDownload = async function() {
   this.downloadCount += 1;
   this.lastDownloadedAt = new Date();

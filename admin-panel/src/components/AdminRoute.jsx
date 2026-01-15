@@ -6,7 +6,6 @@ const AdminRoute = ({ children, requiredPermissions = [], requireAllPermissions 
   const { isAuthenticated, isAdmin, hasPermission, hasAnyPermission, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <div style={{
@@ -21,14 +20,11 @@ const AdminRoute = ({ children, requiredPermissions = [], requireAllPermissions 
     );
   }
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user is admin
   if (!isAdmin()) {
-    // Show access denied page or redirect to dashboard
     return (
       <div style={{
         display: 'flex',
@@ -60,7 +56,6 @@ const AdminRoute = ({ children, requiredPermissions = [], requireAllPermissions 
     );
   }
 
-  // Check specific permissions if provided
   if (requiredPermissions.length > 0) {
     const hasRequiredPermissions = requireAllPermissions
       ? requiredPermissions.every(permission => hasPermission(permission))
@@ -99,7 +94,6 @@ const AdminRoute = ({ children, requiredPermissions = [], requireAllPermissions 
     }
   }
 
-  // Render children if all checks pass
   return children;
 };
 

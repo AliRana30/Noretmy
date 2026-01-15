@@ -23,7 +23,6 @@ const ViewWithdrawalRequest = () => {
         setError(null);
         const res = await getAdminWithdrawalDetail(resolvedId);
         console.log('[Withdrawal Detail] API Response:', res);
-        // Backend returns the data directly, not wrapped in .data
         setRequestData(res || null);
       } catch (err) {
         setError(err?.message || 'Failed to load withdrawal request');
@@ -46,11 +45,8 @@ const ViewWithdrawalRequest = () => {
     return <ErrorMessage message="Withdrawal request not found" onRetry={() => window.location.reload()} retryText="Retry" />;
   }
 
-  // requestData is the direct API response
-  // Backend returns: { success, ...withdrawRequest, userId, user, username, email, withdrawalMethod, payoutEmail }
   const detail = requestData;
   
-  // User object - backend returns populated user object or flattened fields
   const populatedUser = requestData?.user || {
     _id: requestData?.userId,
     username: requestData?.username,
@@ -63,7 +59,6 @@ const ViewWithdrawalRequest = () => {
     const status = detail?.status || 'pending';
     const createdAt = detail?.createdAt;
     const updatedAt = detail?.updatedAt;
-    // withdrawalMethod and payoutEmail are at root level of response
     const method = detail?.withdrawalMethod || null;
     const payoutEmail = detail?.payoutEmail || null;
 

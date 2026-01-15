@@ -111,7 +111,6 @@ const CreateOrderScreen = ({ buyerId }: { buyerId: string }) => {
         orderData,
         { withCredentials: true },
       );
-      // router.push('/orders');
 
     if(response.status==200 || response.status ==201 || response.status == 204){
       setMilestones([]);

@@ -1,12 +1,10 @@
 const Content = require('../models/Content');
 
-// Get Privacy Policy
 const getPrivacyPolicy = async (req, res) => {
   try {
     let content = await Content.findOne({ type: 'privacy-policy' });
     
     if (!content) {
-      // Create default if not exists
       content = await Content.create({
         type: 'privacy-policy',
         content: 'Privacy Policy content has not been set yet.'
@@ -29,7 +27,6 @@ const getPrivacyPolicy = async (req, res) => {
   }
 };
 
-// Update Privacy Policy
 const updatePrivacyPolicy = async (req, res) => {
   try {
     const { content } = req.body;
@@ -72,7 +69,6 @@ const updatePrivacyPolicy = async (req, res) => {
   }
 };
 
-// Get Terms and Conditions
 const getTermsConditions = async (req, res) => {
   try {
     let content = await Content.findOne({ type: 'terms-conditions' });
@@ -100,7 +96,6 @@ const getTermsConditions = async (req, res) => {
   }
 };
 
-// Update Terms and Conditions
 const updateTermsConditions = async (req, res) => {
   try {
     const { content } = req.body;

@@ -25,7 +25,6 @@ const CheckoutContent = () => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check authentication
     if (!isLoggedIn) {
       toast.error('Please sign in to complete your purchase', {
         position: 'top-center',
@@ -37,7 +36,6 @@ const CheckoutContent = () => {
     setIsChecking(false);
   }, [isLoggedIn, router]);
 
-  // Check for active promotion if this is a promotional purchase
   useEffect(() => {
     const checkActivePromotion = async () => {
       const type = searchParams.get('payment_type');
@@ -77,7 +75,6 @@ const CheckoutContent = () => {
     setOrderId(searchParams.get('orderId'));
   }, [searchParams]);
 
-  // Show loading while checking auth
   if (isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">

@@ -7,7 +7,6 @@ const {
 } = require('../services/emailService');
 const { verifyToken, requireAdmin } = require('../middleware/jwt');
 
-// Test email connection
 router.get('/test-connection', verifyToken, requireAdmin, async (req, res) => {
   try {
     const result = await verifyEmailConnection();
@@ -29,7 +28,6 @@ router.get('/test-connection', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Send test email
 router.post('/send-test', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { email, message } = req.body;
@@ -57,7 +55,6 @@ router.post('/send-test', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Get email logs (admin only)
 router.get('/logs', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { 
@@ -111,7 +108,6 @@ router.get('/logs', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Get email statistics
 router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { days = 7 } = req.query;
@@ -129,7 +125,6 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Get failed emails
 router.get('/failed', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { hours = 24, limit = 50 } = req.query;
@@ -148,7 +143,6 @@ router.get('/failed', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Retry failed email (manual)
 router.post('/retry/:logId', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { logId } = req.params;
@@ -175,8 +169,6 @@ router.post('/retry/:logId', verifyToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // Note: Actual retry logic would need to re-fetch the email content
-    // This is a placeholder for manual investigation
     res.json({
       success: true,
       message: 'Email marked for retry',
@@ -195,7 +187,6 @@ router.post('/retry/:logId', verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Get single email log details
 router.get('/logs/:logId', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { logId } = req.params;

@@ -17,7 +17,6 @@ const PromoteGigs = () => {
     if (!Array.isArray(raw)) return [];
 
     return raw.map((p: any) => {
-      // PromotionPurchase shape
       if (p?.planKey && (p?.expiresAt || p?.activatedAt || p?.purchasedAt)) {
         const expiresAt = p.expiresAt ? new Date(p.expiresAt) : null;
         const activatedAt = p.activatedAt ? new Date(p.activatedAt) : null;
@@ -52,7 +51,6 @@ const PromoteGigs = () => {
         };
       }
 
-      // Legacy Promotion shape (already compatible)
       return p;
     });
   };
@@ -70,7 +68,6 @@ const PromoteGigs = () => {
       }
       setError(null);
     } catch (err: any) {
-      // Only show error if it's not a 403 (which means user isn't a seller)
       if (err.response?.status !== 403) {
         setError(err.message);
         toast.error(err.response?.data?.message || err.message || 'Failed to fetch promotions');

@@ -10,9 +10,7 @@ const Job = require('../models/Job');
 
 async function cleanupGigs() {
   try {
-    // Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI);
-    // Find gigs without photos (empty array or no photos field)
     const gigsWithoutPhotos = await Job.find({
       $or: [
         { photos: { $exists: false } },
@@ -26,7 +24,6 @@ async function cleanupGigs() {
       const deleteResult = await Job.deleteMany({ _id: { $in: idsToDelete } });
       }
 
-    // Update ratings for gigs with less than 5 stars to have at least 5 stars
     const gigsToUpdate = await Job.find({
       $or: [
         { totalStars: { $lt: 5 } },
@@ -35,7 +32,6 @@ async function cleanupGigs() {
     });
 
     for (const gig of gigsToUpdate) {
-      // Generate random rating between 4.5 and 5.0
       const randomStars = Math.floor(Math.random() * (50 - 45 + 1)) + 45; // 45-50 total stars (for 10 reviews average of 4.5-5)
       const numReviews = Math.floor(Math.random() * 10) + 5; // 5-15 reviews
       

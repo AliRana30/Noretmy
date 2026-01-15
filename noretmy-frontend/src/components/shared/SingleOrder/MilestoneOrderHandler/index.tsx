@@ -20,7 +20,6 @@ import {
 } from 'react-icons/fa';
 
 import { useSelector } from 'react-redux';
-// import OrderDetails from '../Actions/OrderCreated';
 import axios from 'axios';
 import OrderDetails from '../../Order-Details-Buyer/Actions/OrderCreated';
 import SubmitRequirements from '../../Order-Details-Buyer/Actions/SubmitRequirements';
@@ -33,7 +32,6 @@ import { Download, Milestone, Paperclip, Truck } from 'lucide-react';
 import { useCountdown } from '@/util/time';
 import { showError, showSuccess } from '@/util/toast';
 import ReviewForm from '../../Order-Details-Buyer/Actions/reviewSeller';
-// import SubmitDelivery from '../Actions/SubmitDelivery';
 
 interface SingleOrderSectionProps {
     sellerName: string;
@@ -164,7 +162,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         'approved'
     ];
 
-    // Calculate progress percentage for progress bar
     const progressPercentage = useMemo(() => {
         const currentIndex = statusOrder.findIndex(
             (status) => status === orderStatus,

@@ -1,7 +1,6 @@
 const FAQ = require('../models/FAQ');
 const createError = require('../utils/createError');
 
-// Get all categories (public endpoint)
 const getCategories = async (req, res) => {
   try {
     const categories = FAQ.getCategories();
@@ -15,7 +14,6 @@ const getCategories = async (req, res) => {
   }
 };
 
-// Get FAQs by category (public endpoint)
 const getFAQsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
@@ -33,7 +31,6 @@ const getFAQsByCategory = async (req, res) => {
   }
 };
 
-// Get all FAQs (admin only)
 const getAllFAQs = async (req, res) => {
   try {
     const { 
@@ -48,26 +45,21 @@ const getAllFAQs = async (req, res) => {
 
     const query = {};
     
-    // Filter by category
     if (category) {
       query.category = category;
     }
     
-    // Filter by active status
     if (isActive !== undefined) {
       query.isActive = isActive === 'true';
     }
     
-    // Search functionality
     if (search) {
       query.$text = { $search: search };
     }
     
-    // Sorting
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
     
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
     const [faqs, total] = await Promise.all([
@@ -96,7 +88,6 @@ const getAllFAQs = async (req, res) => {
   }
 };
 
-// Get single FAQ (admin only)
 const getFAQById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,18 +110,15 @@ const getFAQById = async (req, res) => {
   }
 };
 
-// Create FAQ(s) - handles both single and bulk (admin only)
 const createFAQ = async (req, res) => {
   try {
     const { category, question, answer, isActive = true, order = 0, faqs } = req.body;
     
-    // Check if it's bulk creation
     if (faqs && Array.isArray(faqs)) {
       if (faqs.length === 0) {
         return res.status(400).json(createError('FAQs array must not be empty'));
       }
       
-      // Validate each FAQ
       const validFAQs = faqs.map(faq => ({
         ...faq,
         createdBy: req.user.id,
@@ -146,7 +134,6 @@ const createFAQ = async (req, res) => {
         data: createdFAQs.map(faq => faq.toAPIResponse())
       });
     } else {
-      // Single FAQ creation
       if (!category || !question || !answer) {
         return res.status(400).json(createError('Category, question, and answer are required'));
       }
@@ -177,13 +164,11 @@ const createFAQ = async (req, res) => {
   }
 };
 
-// Update FAQ(s) - handles both single and bulk (admin only)
 const updateFAQ = async (req, res) => {
   try {
     const { id } = req.params;
     const { category, question, answer, isActive, order, faqIds, updates } = req.body;
     
-    // Check if it's bulk update
     if (faqIds && Array.isArray(faqIds)) {
       if (faqIds.length === 0) {
         return res.status(400).json({ success: false, message: 'FAQ IDs array must not be empty' });
@@ -193,7 +178,6 @@ const updateFAQ = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Updates object is required' });
       }
       
-      // Add updatedBy to updates
       updates.updatedBy = req.userId || req.user?._id;
       
       const result = await FAQ.updateMany(
@@ -206,14 +190,12 @@ const updateFAQ = async (req, res) => {
         message: `${result.modifiedCount} FAQs updated successfully`
       });
     } else {
-      // Single FAQ update
       const faq = await FAQ.findById(id);
       
       if (!faq) {
         return res.status(404).json({ success: false, message: 'FAQ not found' });
       }
       
-      // Update fields
       if (category !== undefined) faq.category = category;
       if (question !== undefined) faq.question = question;
       if (answer !== undefined) faq.answer = answer;
@@ -239,13 +221,11 @@ const updateFAQ = async (req, res) => {
   }
 };
 
-// Delete FAQ(s) - handles both single and bulk (admin only)
 const deleteFAQ = async (req, res) => {
   try {
     const { id } = req.params;
     const { faqIds } = req.body;
     
-    // Check if it's bulk delete
     if (faqIds && Array.isArray(faqIds)) {
       if (faqIds.length === 0) {
         return res.status(400).json(createError('FAQ IDs array must not be empty'));
@@ -258,7 +238,6 @@ const deleteFAQ = async (req, res) => {
         message: `${result.deletedCount} FAQs deleted successfully`
       });
     } else {
-      // Single FAQ delete
       const faq = await FAQ.findByIdAndDelete(id);
       
       if (!faq) {
@@ -276,7 +255,6 @@ const deleteFAQ = async (req, res) => {
   }
 };
 
-// Get FAQ statistics (admin only)
 const getFAQStats = async (req, res) => {
   try {
     const [totalFAQs, activeFAQs, categoryStats] = await Promise.all([

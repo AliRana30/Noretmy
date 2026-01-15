@@ -66,16 +66,13 @@ const faqSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better query performance
 faqSchema.index({ category: 1, isActive: 1, order: 1 });
 faqSchema.index({ question: 'text', answer: 'text' });
 
-// Virtual for formatted category display
 faqSchema.virtual('categoryDisplay').get(function() {
   return this.category.replace(/_/g, ' & ');
 });
 
-// Static method to get all categories
 faqSchema.statics.getCategories = function() {
   return this.schema.path('category').enumValues.map(cat => ({
     value: cat,
@@ -83,14 +80,12 @@ faqSchema.statics.getCategories = function() {
   }));
 };
 
-// Static method to get FAQs by category
 faqSchema.statics.getByCategory = function(category, activeOnly = true) {
   const query = { category };
   if (activeOnly) query.isActive = true;
   return this.find(query).sort({ order: 1, createdAt: -1 });
 };
 
-// Instance method to format for API response
 faqSchema.methods.toAPIResponse = function() {
   return {
     id: this._id,

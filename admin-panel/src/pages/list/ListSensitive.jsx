@@ -19,7 +19,6 @@ const ListSensitive = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(null);
-  // Block modal state
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [blockUserId, setBlockUserId] = useState(null);
   const [blockReason, setBlockReason] = useState('');
@@ -71,7 +70,6 @@ const ListSensitive = () => {
       return;
     }
     
-    // Open the block modal instead of using prompt
     setBlockUserId(userId);
     setBlockReason('');
     setBlockModalOpen(true);
@@ -103,7 +101,6 @@ const ListSensitive = () => {
     }
   };
 
-  // Filter data
   const filteredData = data.filter(msg => {
     const matchesSearch = 
       msg.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,7 +108,6 @@ const ListSensitive = () => {
     return matchesSearch;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,

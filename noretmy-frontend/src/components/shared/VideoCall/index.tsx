@@ -23,12 +23,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
   const remoteVideoRefs = useRef<{ [uid: string]: HTMLDivElement | null }>({});
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Helper to update remote refs
   const setRemoteVideoRef = (uid: UID, node: HTMLDivElement | null) => {
     remoteVideoRefs.current[uid as string] = node;
   };
 
-  // Enhanced responsive grid system
   const getGridConfig = (totalUsers: number) => {
     if (totalUsers === 1) return 'grid-cols-1 max-w-4xl';
     if (totalUsers === 2) return 'grid-cols-1 xl:grid-cols-2 max-w-7xl';
@@ -44,35 +42,27 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
         setLoading(true);
         setError(null);
         try {
-          // Request permissions for camera and microphone
           await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
-          // 1. Get token from backend
           const { data } = await axios.post(`${BACKEND_URL}/video/token`, { orderId }, { withCredentials: true });
 
-          // 2. Create Agora client
           const agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
           setClient(agoraClient);
 
-          // 3. Join channel
           await agoraClient.join(data.appId, data.channelName, data.token, data.uid);
 
-          // 4. Create local tracks
           const tracks = await AgoraRTC.createMicrophoneAndCameraTracks();
           setLocalTracks(tracks);
 
-          // 5. Play local video
           if (localVideoRef.current) {
             tracks[1].play(localVideoRef.current);
           }
 
-          // 6. Publish local tracks
           await agoraClient.publish(tracks);
           setJoined(true);
           setLoading(false);
           showSuccess('You joined the video call');
 
-          // 7. Handle remote users
           agoraClient.on("user-published", async (user, mediaType) => {
             await agoraClient.subscribe(user, mediaType);
             setRemoteUsers([...agoraClient.remoteUsers]);
@@ -108,7 +98,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
   }, [orderId]);
 
   useEffect(() => {
-    // Play remote video and audio tracks
     remoteUsers.forEach((user) => {
       if (user.videoTrack && remoteVideoRefs.current[user.uid as string]) {
         user.videoTrack.play(remoteVideoRefs.current[user.uid as string]!);
@@ -121,7 +110,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
 
   const leaveChannel = async () => {
     try {
-      // Stop and close local tracks first
       if (localTracks) {
         localTracks.forEach((track) => {
           track.stop();
@@ -130,7 +118,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
         setLocalTracks(null);
       }
       
-      // Leave the channel
       if (client) {
         await client.leave();
         setClient(null);
@@ -140,13 +127,11 @@ const VideoCall: React.FC<VideoCallProps> = ({ orderId, onLeave }) => {
       setRemoteUsers([]);
       showSuccess('You left the video call');
       
-      // Call onLeave callback to close the modal/navigate away
       if (onLeave) {
         onLeave();
       }
     } catch (err) {
       console.error("Error leaving video call:", err);
-      // Still try to call onLeave even if there was an error
       if (onLeave) {
         onLeave();
       }

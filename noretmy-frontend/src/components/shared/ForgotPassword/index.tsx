@@ -21,7 +21,6 @@ const ForgotPasswordScreen: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    // Basic email validation
     if (!email.includes('@') || !email.includes('.')) {
       setError('Please enter a valid email address');
       return;
@@ -29,9 +28,7 @@ const ForgotPasswordScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
     try {
-      //   await new Promise(resolve => setTimeout(resolve, 1500));
       const response = await axios.post(
         `${BACKEND_URL}/auth/forget-password`,
         { email },
@@ -57,7 +54,6 @@ const ForgotPasswordScreen: React.FC = () => {
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-2xl">
           {isSubmitted ? (
-            /* Success state */
             <div className="p-10 text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 text-orange-600 mb-6 shadow-inner">
                 <CheckCircle size={40} className="animate-pulse" />
@@ -90,7 +86,6 @@ const ForgotPasswordScreen: React.FC = () => {
               </div>
             </div>
           ) : (
-            /* Request form */
             <div>
               <div className="p-10 pb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-3">

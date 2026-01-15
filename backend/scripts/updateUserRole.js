@@ -5,7 +5,6 @@ const User = require('../models/User');
 async function updateUserRole() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    // Get email/username from command line argument
     const userIdentifier = process.argv[2];
     
     if (!userIdentifier) {
@@ -16,7 +15,6 @@ async function updateUserRole() {
       return;
     }
 
-    // Find user by email or username
     const user = await User.findOne({ 
       $or: [
         { email: userIdentifier },
@@ -33,7 +31,6 @@ async function updateUserRole() {
       return;
     }
 
-    // Update role to admin
     user.role = 'admin';
     await user.save();
 

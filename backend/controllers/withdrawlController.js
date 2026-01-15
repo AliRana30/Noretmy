@@ -17,87 +17,20 @@ const computeAvailableForWithdrawal = ({ user, freelancer }) => {
     return Math.max(freelancerAvailable, userAvailable);
 };
 
-// const handleWithdrawalRequest = async (req, res) => {
-//     const { email, amount, withdrawalMethod } = req.body;
-//     const { userId } = req;
 
-//     if (!userId) {
-//         return res.status(400).json({ message: "You are not allowed to do so!" });
-//     }
 
-//     try {
-//         // Fetch user profile and validate country
-//         const userProfile = await UserProfile.findOne({ userId });
 
-//         if (!userProfile) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "User profile not found."
-//             });
-//         }
 
-//         if (!userProfile.countryCode) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Country information is required."
-//             });
-//         }
 
-//         const countryCode = userProfile.countryCode;
 
-//         if (withdrawalMethod === "stripe") {
-//             // Handle Stripe onboarding and validation
-//             const stripeResult = await handleStripeOnboarding(userId, email, countryCode);
 
-//             if (!stripeResult.success) {
-//                 await sendOnboardingEmail(email, userProfile.username, stripeResult.link);
-//                 return res.status(200).json(stripeResult);
-//             }
 
-//             const { freelancerAccount } = stripeResult;
 
-//             // Validate available balance for Stripe
-//             if (!freelancerAccount || freelancerAccount.availableBalance < amount || amount <= 0) {
-//                 return res.status(400).json({
-//                     success: false,
-//                     message: "Invalid or Insufficient funds."
-//                 });
-//             }
-//         } else if (withdrawalMethod === "paypal") {
-//             const freelancer = await Freelancer.findOne({ userId });
 
-//             if (!freelancer) {
-//                 return res.status(404).json({
-//                     success: false,
-//                     message: "Freelancer profile not found."
-//                 });
-//             }
 
-//             freelancer.email = email;
-//             await freelancer.save();
-//         }
 
-//         // Create and save withdrawal request
-//         const withdrawalRequest = new WithdrawRequest({
-//             userId, // Directly use userId instead of user._id
-//             amount,
-//             withdrawalMethod,
-//             status: "pending",
-//             createdAt: new Date(),
-//         });
 
-//         await withdrawalRequest.save();
 
-//         res.status(200).json({
-//             success: true,
-//             message: "Withdrawal request submitted successfully.",
-//             request: withdrawalRequest,
-//         });
-//     } catch (error) {
-//         console.error("Error in withdrawal request:", error);
-//         res.status(500).json({ success: false, error: error.message });
-//     }
-// };
 
 const handleWithdrawalRequest = async (req, res) => {
   try {
@@ -115,8 +48,6 @@ const handleWithdrawalRequest = async (req, res) => {
 
         let freelancer = await Freelancer.findOne({ userId });
 
-        // Some accounts store balances on User.revenue and may not yet have a Freelancer doc.
-        // Create a minimal Freelancer record so withdrawals can proceed.
         if (!freelancer) {
             freelancer = new Freelancer({
                 userId,
@@ -131,7 +62,6 @@ const handleWithdrawalRequest = async (req, res) => {
             await freelancer.save();
         }
 
-        // Only Stripe requires Connect onboarding. PayPal can proceed once the method is set.
         if (freelancer.withdrawalMethod === 'stripe' && freelancer.onboardingStatus !== 'completed') {
             return res.status(403).json({ success: false, message: 'Onboarding not completed' });
         }
@@ -146,7 +76,6 @@ const handleWithdrawalRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Insufficient balance for this amount' });
     }
 
-        // Prevent multiple pending withdrawals (avoids oversubscription)
         const existingPending = await WithdrawRequest.findOne({ userId, status: 'pending' });
         if (existingPending) {
             return res.status(400).json({
@@ -164,7 +93,6 @@ const handleWithdrawalRequest = async (req, res) => {
 
     await withdrawRequest.save();
 
-    // Notify all admins about the new withdrawal request
     try {
     const adminUsers = await User.find({ role: { $regex: /^admin$/i } }).select('_id');
       const adminIds = adminUsers.map(a => a._id.toString());
@@ -173,10 +101,8 @@ const handleWithdrawalRequest = async (req, res) => {
       }
     } catch (notificationError) {
       console.error('Failed to notify admins about withdrawal request:', notificationError);
-      // Don't fail the request if notification fails
     }
 
-    // Do NOT deduct funds on request; deduct on admin approval.
 
     res.status(200).json({
       success: true,
@@ -200,7 +126,6 @@ const setWithdrawalMethod = async (req, res) => {
     }
 
     try {
-        // Fetch user profile and validate country
         const userProfile = await UserProfile.findOne({ userId });
 
         if (!userProfile) {
@@ -223,14 +148,12 @@ const setWithdrawalMethod = async (req, res) => {
         let freelancer = null;
 
         if (withdrawalMethod === "stripe") {
-            // Handle Stripe onboarding and validation
             console.log('[setWithdrawalMethod] Processing Stripe for:', { userId, email, countryCode });
             const stripeResult = await handleStripeOnboarding(userId, email, countryCode);
 
             console.log('[setWithdrawalMethod] Stripe result:', { success: stripeResult.success, hasLink: !!stripeResult.link, message: stripeResult.message });
 
             if (!stripeResult.success) {
-                // Only send onboarding email if Stripe provided an onboarding link
                 if (stripeResult.link) {
                     await sendOnboardingEmail(email, userProfile.username, stripeResult.link);
                 }
@@ -256,7 +179,6 @@ const setWithdrawalMethod = async (req, res) => {
                 console.log('[setWithdrawalMethod] Updated existing Freelancer for PayPal');
             }
 
-            // Sync available from User.revenue if needed
             const user = await User.findById(userId).select('_id revenue');
             const available = computeAvailableForWithdrawal({ user, freelancer });
             freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
@@ -300,7 +222,6 @@ const getAllWithdrawRequests = async (req, res) => {
 
         const withdrawRequests = await withdrawRequestsQuery;
 
-        // Attach withdrawal method (if available) + flatten username for the admin table
         const userIds = withdrawRequests
             .map((wr) => (wr.userId && typeof wr.userId === 'object' ? wr.userId._id : wr.userId))
             .filter(Boolean);
@@ -362,20 +283,17 @@ const getWithdrawRequestDetail = async (req, res) => {
             .select('withdrawalMethod email stripeAccountId onboardingStatus')
             .lean();
 
-        // Prefer values saved on the request (new schema fields), then fall back to Freelancer.
         const withdrawalMethod = withdrawRequest.withdrawalMethod || freelancer?.withdrawalMethod || null;
         const payoutEmail = withdrawRequest.payoutEmail || freelancer?.email || (userDoc && typeof userDoc === 'object' ? userDoc.email : null) || null;
         const stripeAccountId = freelancer?.stripeAccountId || null;
         const onboardingStatus = freelancer?.onboardingStatus || null;
 
-        // Ensure we always return a user email even if populate is missing for some edge cases.
         let userEmail = userDoc && typeof userDoc === 'object' ? userDoc.email : null;
         if (!userEmail && flattenedUserId) {
             const user = await User.findById(flattenedUserId).select('email username fullName').lean();
             if (user?.email) userEmail = user.email;
         }
 
-        // Log response for debugging
         console.log('[Withdrawal Detail] Response:', {
             requestId,
             userId: flattenedUserId,
@@ -464,7 +382,6 @@ const approveWithdrawRequest = async (req, res) => {
     const adminNote = req?.body?.adminNote;
 
     try {
-        // Find the withdrawal request by its _id
         if (!requestId) {
             return res.status(400).json({ success: false, message: 'Request ID is required.' });
         }
@@ -478,7 +395,6 @@ const approveWithdrawRequest = async (req, res) => {
             });
         }
 
-        // Find the freelancer associated with the withdrawal request
         const freelancer = await Freelancer.findOne({ userId: withdrawalRequest.userId });
 
         if (!freelancer) {
@@ -497,17 +413,13 @@ const approveWithdrawRequest = async (req, res) => {
                     });
                 }
 
-        // ALWAYS use the CURRENT freelancer's withdrawal method, not the stored one
-        // This ensures if user switches from PayPal to Stripe, approval uses Stripe
         let method = String(freelancer.withdrawalMethod || '').toLowerCase();
         
-        // Fallback to stored method only if freelancer has no current method set
         if (!method) {
             const storedMethodOnRequest = withdrawalRequest.withdrawalMethod;
             method = String(storedMethodOnRequest || '').toLowerCase();
         }
 
-        // Log for debugging
         console.log('[Withdrawal Approval] Request ID:', requestId);
         console.log('[Withdrawal Approval] Freelancer:', { 
             id: freelancer._id, 
@@ -518,10 +430,8 @@ const approveWithdrawRequest = async (req, res) => {
         });
         console.log('[Withdrawal Approval] Using method:', method);
 
-        // Update withdrawal request to match current method
         withdrawalRequest.withdrawalMethod = method;
 
-        // Handle Stripe method when stripeAccountId is missing
         if (method === 'stripe' && !freelancer.stripeAccountId) {
             return res.status(400).json({
                 success: false,
@@ -536,8 +446,6 @@ const approveWithdrawRequest = async (req, res) => {
                     message: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).'
                 });
             }
-            // stripeAccountId is guaranteed to exist here due to fallback check above
-            // Use the utility function for Stripe transfer
             let transfer;
             try {
                 transfer = await createStripeTransfer(
@@ -559,18 +467,15 @@ const approveWithdrawRequest = async (req, res) => {
                 });
             }
 
-            // Update the withdrawal request status to 'approved'
             withdrawalRequest.status = 'approved';
             await withdrawalRequest.save();
 
-            // Deduct funds on approval (so seller balance changes when request is accepted)
             freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
             freelancer.revenue.available = Math.max(0, (freelancer.revenue.available || 0) - withdrawalRequest.amount);
             freelancer.revenue.withdrawn = (freelancer.revenue.withdrawn || 0) + withdrawalRequest.amount;
             freelancer.availableBalance = freelancer.revenue.available;
             await freelancer.save();
 
-            // Keep User.revenue in sync if present
             try {
                 const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
                 if (user) {
@@ -586,7 +491,6 @@ const approveWithdrawRequest = async (req, res) => {
                     await notifyWithdrawalApproved(String(user._id), withdrawalRequest.amount, String(withdrawalRequest._id));
                 }
             } catch (sideErr) {
-                // Don't fail the whole operation if email/notification fails
                 console.warn('⚠️ [Withdrawal Approval] Side-effects failed (email/notification), but withdrawal approved:', sideErr?.message || sideErr);
             }
 
@@ -609,7 +513,6 @@ const approveWithdrawRequest = async (req, res) => {
 
             const result = await processPayPalWithdrawal(payoutEmail, withdrawalRequest.amount);
             if (!result.success) {
-                // Return proper error status based on PayPal error type
                 const statusCode = result.error?.includes('INSUFFICIENT_FUNDS') ? 402 : 422;
                 return res.status(statusCode).json({
                     success: false,
@@ -622,14 +525,12 @@ const approveWithdrawRequest = async (req, res) => {
             withdrawalRequest.status = 'approved';
             await withdrawalRequest.save();
 
-            // Deduct funds on approval (so seller balance changes when request is accepted)
             freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
             freelancer.revenue.available = Math.max(0, (freelancer.revenue.available || 0) - withdrawalRequest.amount);
             freelancer.revenue.withdrawn = (freelancer.revenue.withdrawn || 0) + withdrawalRequest.amount;
             freelancer.availableBalance = freelancer.revenue.available;
             await freelancer.save();
 
-            // Keep User.revenue in sync if present
             try {
                 const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
                 if (user) {
@@ -688,12 +589,7 @@ const getUserWithdrawalRequest = async (req, res) => {
 
         const availableBalance = computeAvailableForWithdrawal({ user, freelancer });
 
-        // If a seller has earnings but no Freelancer document yet, return a safe response.
-        // (This prevents 500s and lets the UI show the correct balance.)
 
-        // if (!withdrawRequests.length) {
-        //     return res.status(404).json({ message: "No withdrawal requests found." });
-        // }
 
         res.status(200).json({
             accountDetails: {

@@ -118,7 +118,6 @@ const PricingPlan: React.FC<PricingPlanProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <input
-                  // label="Plan Title"
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black-200"
                   placeholder={`Enter ${selectedPlan} title`}
                   value={formData[selectedPlan].title}

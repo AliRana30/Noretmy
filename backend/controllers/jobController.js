@@ -59,7 +59,6 @@ const createJob = async (req, res) => {
 
     const documentUrls = await uploadDocuments(req);
 
-    // 🧠 Parse stringified fields from FormData
     let parsedFaqs = [];
     let parsedWhyChooseMe = [];
     let parsedPricingPlan = {};
@@ -74,7 +73,6 @@ const createJob = async (req, res) => {
       return res.status(400).json({ message: "Invalid JSON format in one of the fields", error: err.message });
     }
 
-    // Ensure jobStatus is set to Active if not provided
     const finalJobStatus = jobStatus && jobStatus.trim() !== '' ? jobStatus : 'Active';
 
     const newJob = new Job({
@@ -107,196 +105,27 @@ const createJob = async (req, res) => {
   }
 };
 
-// const getAllJobs = async (req, res) => {
-//   try {
-//     const q = req.query;
-//     const targetLang = q.lang || 'en'; 
 
-//     const parsedCategories = q.categories
-//       ? q.categories.split(',').map((entry) => {
-//           const [category, subCat] = entry.split('›').map(s => s.trim());
-//           return { category, subCat };
-//         })
-//       : [];
 
-//     const filters = {
-//       ...(q.min && { "pricingPlan.basic.price": { $gte: parseFloat(q.min) } }),
-//       ...(q.max && { "pricingPlan.pro.price": { $lte: parseFloat(q.max) } }),
-//       ...(q.keywords && {
-//         keywords: {
-//           $in: q.keywords.split(',').map(k => new RegExp(k, 'i')),
-//         },
-//       }),
-//       ...(q.deliveryTime && {
-//         "pricingPlan.basic.deliveryTime": {
-//           $lte: {
-//             "24 hours": 1,
-//             "1 day": 1,
-//             "up to 3 days": 3,
-//             "up to 1 week": 7,
-//             "up to 1 month": 30,
-//             Anytime: Infinity,
-//           }[q.deliveryTime] || Infinity,
-//         },
-//       }),
-//       ...(q.sold && { sold: q.sold === "true" }),
-//       ...(q.search && {
-//         $or: [
-//           { title: { $regex: q.search, $options: "i" } },
-//           { description: { $regex: q.search, $options: "i" } },
-//         ],
-//       }),
-//     };
 
-//     // Add category/subCat filters using $or
-//     if (parsedCategories.length) {
-//       filters.$or = parsedCategories.map(({ category, subCat }) => ({
-//         category: { $regex: new RegExp(category, 'i') },
-//         subCat: { $regex: new RegExp(subCat, 'i') },
-//       }));
-//     }
 
-//     const jobs = await Job.find(Object.keys(filters).length ? filters : {});
 
-//     if (!jobs.length) {
-//       return res.status(404).json({ message: "No jobs found" });
-//     }
 
-// if (targetLang !== 'en') {
-//   const titles = [], descriptions = [], cats = [], subCats = [], whyChooseMes = [];
-//   const pricingTitles = [], pricingDescriptions = [], pricingMap = [];
-//   const faqQuestions = [], faqAnswers = [], faqMap = [];
-//   const addonTitles = [], addonMap = [];
 
-//   jobs.forEach((job, idx) => {
-//     titles.push(job.title || '');
-//     descriptions.push(job.description || '');
-//     cats.push(job.cat || '');
-//     subCats.push(job.subCat || '');
-//     whyChooseMes.push(job.whyChooseMe || '');
 
-//     // pricingPlan titles/descriptions
-//     ['basic', 'premium', 'pro'].forEach(plan => {
-//       if (job.pricingPlan?.[plan]) {
-//         pricingTitles.push(job.pricingPlan[plan].title || '');
-//         pricingDescriptions.push(job.pricingPlan[plan].description || '');
-//         pricingMap.push({ idx, plan });
-//       }
-//     });
 
-//     // addons title
-//     if (job.addons?.title) {
-//       addonTitles.push(job.addons.title);
-//       addonMap.push(idx);
-//     }
 
-//     // FAQs
-//     if (Array.isArray(job.faqs)) {
-//       job.faqs.forEach((faq, faqIdx) => {
-//         faqQuestions.push(faq.question || '');
-//         faqAnswers.push(faq.answer || '');
-//         faqMap.push({ jobIdx: idx, faqIdx });
-//       });
-//     }
-//   });
 
-//   const [
-//     translatedTitles,
-//     translatedDescriptions,
-//     translatedCats,
-//     translatedSubCats,
-//     translatedWhyChooseMes,
-//     translatedPricingTitles,
-//     translatedPricingDescriptions,
-//     translatedFaqQuestions,
-//     translatedFaqAnswers,
-//     translatedAddonTitles
-//   ] = await Promise.all([
-//     translateText(titles, targetLang),
-//     translateText(descriptions, targetLang),
-//     translateText(cats, targetLang),
-//     translateText(subCats, targetLang),
-//     translateText(whyChooseMes, targetLang),
-//     translateText(pricingTitles, targetLang),
-//     translateText(pricingDescriptions, targetLang),
-//     translateText(faqQuestions, targetLang),
-//     translateText(faqAnswers, targetLang),
-//     translateText(addonTitles, targetLang),
-//   ]);
 
-//   jobs.forEach((job, idx) => {
-//     job.title = translatedTitles[idx];
-//     job.description = translatedDescriptions[idx];
-//     job.cat = translatedCats[idx];
-//     job.subCat = translatedSubCats[idx];
-//     job.whyChooseMe = translatedWhyChooseMes[idx];
-//   });
 
-//   pricingMap.forEach((mapItem, i) => {
-//     const job = jobs[mapItem.idx];
-//     if (job?.pricingPlan?.[mapItem.plan]) {
-//       job.pricingPlan[mapItem.plan].title = translatedPricingTitles[i];
-//       job.pricingPlan[mapItem.plan].description = translatedPricingDescriptions[i];
-//     }
-//   });
 
-//   addonMap.forEach((jobIdx, i) => {
-//     if (jobs[jobIdx]?.addons) {
-//       jobs[jobIdx].addons.title = translatedAddonTitles[i];
-//     }
-//   });
 
-//   faqMap.forEach((mapItem, i) => {
-//     const job = jobs[mapItem.jobIdx];
-//     if (job?.faqs?.[mapItem.faqIdx]) {
-//       job.faqs[mapItem.faqIdx].question = translatedFaqQuestions[i];
-//       job.faqs[mapItem.faqIdx].answer = translatedFaqAnswers[i];
-//     }
-//   });
-// }
 
-//     const upgradePriority = {
-//       homepage: 1,
-//       premium: 2,
-//       sponsored: 3,
-//       standard: 4,
-//       basic: 5,
-//       featured: 6,
-//       free: 7,
-//       null: 8,
-//       undefined: 9,
-//     };
 
-//     const shuffleArray = (arr) => {
-//       return arr
-//         .map((item) => ({ item, sort: Math.random() }))
-//         .sort((a, b) => a.sort - b.sort)
-//         .map(({ item }) => item);
-//     };
 
-//     const jobsGroupedByPriority = {};
 
-//     for (const job of jobs) {
-//       const priority = upgradePriority[job.upgradeOption] || upgradePriority.null;
-//       if (!jobsGroupedByPriority[priority]) {
-//         jobsGroupedByPriority[priority] = [];
-//       }
-//       jobsGroupedByPriority[priority].push(job);
-//     }
 
-//     const sortedJobs = Object.keys(jobsGroupedByPriority)
-//       .sort((a, b) => parseInt(a) - parseInt(b))
-//       .flatMap(priority => {
-//         const group = jobsGroupedByPriority[priority];
-//         return shuffleArray(group);
-//       });
 
-//     res.status(200).json(sortedJobs);
-//   } catch (error) {
-//     console.error("Error fetching jobs:", error);
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
 
 const getAllJobs = async (req, res) => {
   try {
@@ -312,21 +141,17 @@ const getAllJobs = async (req, res) => {
       showAll = "false" // Optional: show all jobs including unavailable
     } = req.query;
 
-    // ----------- Build Filters -------------
     const filters = {};
     
-    // By default, only show available/active jobs
     if (showAll !== "true") {
       filters.jobStatus = { $in: ['Available', 'active', 'Active'] };
     }
 
-    // Price filter - check the basic plan price (or any plan price)
     if (min || max) {
       const priceFilter = {};
       if (min) priceFilter.$gte = parseFloat(min);
       if (max) priceFilter.$lte = parseFloat(max);
       
-      // Filter on basic plan price as the starting price
       filters["pricingPlan.basic.price"] = priceFilter;
     }
 
@@ -336,16 +161,13 @@ const getAllJobs = async (req, res) => {
     }
 
     if (deliveryTime) {
-      // Handle both numeric values and string values for delivery time
       const numericDeliveryTime = parseInt(deliveryTime);
       
       if (!isNaN(numericDeliveryTime)) {
-        // If numeric value is passed (from frontend filter)
         filters["pricingPlan.basic.deliveryTime"] = {
           $lte: numericDeliveryTime,
         };
       } else {
-        // Legacy string format support
         const deliveryMap = {
           "24 hours": 1,
           "1 day": 1,
@@ -364,7 +186,6 @@ const getAllJobs = async (req, res) => {
       filters.sold = true;
     }
 
-    // escape regex characters
     const escapeRegex = (text) => {
       return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     };
@@ -381,7 +202,6 @@ const getAllJobs = async (req, res) => {
       const categoryFilters = categories.split(',').map(entry => {
         const parts = entry.split('›').map(e => e.trim());
         if (parts.length === 2) {
-          // Has both category and subcategory
           return {
             $and: [
               { cat: { $regex: new RegExp(escapeRegex(parts[0]), 'i') } },
@@ -389,12 +209,10 @@ const getAllJobs = async (req, res) => {
             ]
           };
         } else {
-          // Just category name
           return { cat: { $regex: new RegExp(escapeRegex(parts[0]), 'i') } };
         }
       });
       
-      // Combine with existing $or or create new one
       if (filters.$or) {
         filters.$and = [
           { $or: filters.$or },
@@ -406,7 +224,6 @@ const getAllJobs = async (req, res) => {
       }
     }
 
-    // ----------- Projection -------------
     const projection = {
       title: 1,
       cat: 1,
@@ -429,7 +246,6 @@ const getAllJobs = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    // ----------- Optional Translation -------------
     if (lang !== 'en') {
       const textsToTranslate = {
         title: [],
@@ -460,7 +276,6 @@ const getAllJobs = async (req, res) => {
       });
     }
 
-    // ----------- Group + Shuffle + Sort -------------
     const upgradePriority = {
       homepage: 1,
       premium: 2,
@@ -487,7 +302,6 @@ const getAllJobs = async (req, res) => {
         jobs.sort(() => Math.random() - 0.5) // fast shuffle
       );
 
-    // ----------- Fetch Seller Badges -------------
     const uniqueSellerIds = [...new Set(sortedJobs.map(job => job.sellerId).filter(Boolean))];
     
     let badgeMap = new Map();
@@ -507,27 +321,21 @@ const getAllJobs = async (req, res) => {
         });
       } catch (badgeErr) {
         console.error("Error fetching seller badges:", badgeErr);
-        // Continue without badges if there's an error
       }
     }
 
-    // ----------- Apply Search Boost Sorting -------------
-    // Re-sort within each upgrade priority group by search boost
     const boostedSortedJobs = sortedJobs.sort((a, b) => {
-      // First maintain upgrade priority
       const priorityA = a.upgradeOption === "top" ? 1 : a.upgradeOption === "highlighted" ? 2 : 3;
       const priorityB = b.upgradeOption === "top" ? 1 : b.upgradeOption === "highlighted" ? 2 : 3;
       
       if (priorityA !== priorityB) return priorityA - priorityB;
       
-      // Within same priority, sort by search boost
       const badgeA = badgeMap.get(a.sellerId?.toString()) || { searchBoost: 1.0 };
       const badgeB = badgeMap.get(b.sellerId?.toString()) || { searchBoost: 1.0 };
       
       return (badgeB.searchBoost || 1.0) - (badgeA.searchBoost || 1.0);
     });
 
-    // ----------- Fetch Seller Information -------------
     const sellerMap = new Map();
     if (uniqueSellerIds.length > 0) {
       try {
@@ -550,7 +358,6 @@ const getAllJobs = async (req, res) => {
       }
     }
 
-    // ----------- Build Final Response -------------
     const response = boostedSortedJobs.map(job => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
       const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
@@ -648,7 +455,6 @@ const getUserJobs = async (req, res) => {
 
     console.log('[getUserJobs] Searching for sellerId:', userIdString);
     
-    // Search by both string and ObjectId for robustness
     let jobs = await Job.find({ 
       $or: [
         { sellerId: userIdString },
@@ -658,11 +464,9 @@ const getUserJobs = async (req, res) => {
     
     console.log('[getUserJobs] Found', jobs?.length || 0, 'jobs for user:', userIdString);
 
-    // Apply promotion priorities
     const { applyPromotionPriorities } = require('../utils/gigVisibility');
     jobs = await applyPromotionPriorities(jobs);
 
-    // Return empty array instead of 404 to allow frontend to handle gracefully
     res.status(200).json(jobs || []);
   } catch (error) {
     console.error("[getUserJobs] Error fetching user jobs:", error);
@@ -687,83 +491,21 @@ const convertJobPricesToEur = (jobs, rate) => {
       });
     };
 
-// const getFeaturedJobs = async (req, res) => {
-//   try {
-//     const jobs = await Job.find({ upgradeOption: "Feature listing" }); // Adjust query field if necessary
 
-//     if (!jobs || jobs.length === 0) {
-//       return res.status(404).json({ message: "No jobs found" });
-//     }
 
-//     res.status(200).json(jobs);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
 
-// const getFeaturedJobs = async (req, res) => {
-//   try {
-//     const { lang } = req.query;
 
-//     const jobs = await Job.find({ upgradeOption: "Feature listing" });
 
-//     if (!jobs || jobs.length === 0) {
-//       return res.status(404).json({ message: "No jobs found" });
-//     }
 
-//     if (lang) {
-//       const translatedJobs = await Promise.all(
-//         jobs.map(async (job) => {
-//           const translatedJob = {
-//             ...job._doc,
-//             title: await translateText(job.title, "en", lang),
-//             description: await translateText(job.description, "en", lang),
-//             pricingPlan: {
-//               basic: {
-//                 title: await translateText(job.pricingPlan.basic.title, "en", lang),
-//                 description: await translateText(job.pricingPlan.basic.description, "en", lang),
-//               },
-//               premium: {
-//                 title: await translateText(job.pricingPlan.premium.title, "en", lang),
-//                 description: await translateText(job.pricingPlan.premium.description, "en", lang),
-//               },
-//               pro: {
-//                 title: await translateText(job.pricingPlan.pro.title, "en", lang),
-//                 description: await translateText(job.pricingPlan.pro.description, "en", lang),
-//               }
-//             },
-//             addons: {
-//               title: await translateText(job.addons.title, "en", lang),
-//             },
-//             faqs: await Promise.all(
-//               job.faqs.map(async (faq) => ({
-//                 question: await translateText(faq.question, "en", lang),
-//                 answer: await translateText(faq.answer, "en", lang),
-//               }))
-//             ),
-//             whyChooseMe: await translateText(job.whyChooseMe, "en", lang),
-//           };
-//           return translatedJob;
-//         })
-//       );
 
-//       return res.status(200).json(translatedJobs);
-//     }
 
-//     return res.status(200).json(jobs);
 
-//   } catch (error) {
-//     console.error("Error fetching featured jobs:", error);
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
 
 const getFeaturedJobs = async (req, res) => {
   try {
     const { lang, limit = 12 } = req.query;
     const { sortGigsByPromotion } = require('../utils/gigVisibility');
 
-    // Show ALL active gigs, will be sorted by promotion level
     const allJobs = await Job.find({ 
       jobStatus: { $in: ['Available', 'active', 'Active'] }
     }).limit(parseInt(limit) * 2).lean(); // Fetch more to sort and limit
@@ -772,18 +514,15 @@ const getFeaturedJobs = async (req, res) => {
       return res.status(200).json([]); // Return empty array if no gigs
     }
 
-    // Apply promotion-based sorting using the gigVisibility utility
     const sortedByPromotion = await sortGigsByPromotion(allJobs);
     const sortedJobs = sortedByPromotion.slice(0, parseInt(limit));
 
-    // Fetch seller badges and seller info
     const uniqueSellerIds = [...new Set(sortedJobs.map(job => job.sellerId).filter(Boolean))];
     let badgeMap = new Map();
     let sellerMap = new Map();
     
     if (uniqueSellerIds.length > 0) {
       try {
-        // Fetch badges
         const badges = await SellerBadge.find({ 
           userId: { $in: uniqueSellerIds } 
         }).select('userId currentLevel trustScore isVerified').lean();
@@ -796,7 +535,6 @@ const getFeaturedJobs = async (req, res) => {
           });
         });
 
-        // Fetch seller info
         const [sellers, profiles] = await Promise.all([
           User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
           UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
@@ -842,10 +580,8 @@ const getFeaturedJobs = async (req, res) => {
       );
     }
 
-    // Fetch reviews count for each gig
     const gigIds = sortedJobs.map(job => job._id.toString());
     
-    // Aggregate sales count from completed orders
     const Order = require('../models/Order');
     const salesCounts = await Order.aggregate([
       { 
@@ -864,7 +600,6 @@ const getFeaturedJobs = async (req, res) => {
     ]);
     const reviewsMap = new Map(reviewsCounts.map(r => [r._id, r.count]));
 
-    // Add seller badge and seller info to each job
     const jobsWithExtras = convertedJobs.map(job => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
       const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
@@ -923,46 +658,12 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// Function to get gig details, seller info, and reviews
-// const getGigDetails = async (gigId) => {
-//   try {
-//     // Fetch the gig details using gigId
-//     const gig = await Job.findById(gigId);
-//     if (!gig) {
-//       return { error: "Gig not found" }; // Return meaningful message
-//     }
 
-//     // Fetch the seller's user profile using the sellerId from the gig
-//     const seller = await User.findById(gig.sellerId) || { fullName: "Unknown Seller", _id: null };
 
-//     // Fetch the seller's profile picture and full name using the sellerId
-//     const userProfile = await UserProfile.findOne({ userId: seller._id?.toString() }) || { profilePicture: "/default-avatar.png" };
 
-//     // Fetch all reviews for this gig using gigId
-//     const reviews = await Reviews.find({ gigId: gigId }) || []; // Empty array if no reviews
 
-//     // Calculate the average rating (out of 5) from the reviews
-//     const totalStars = reviews.reduce((sum, review) => sum + review.star, 0);
-//     const averageRating = reviews.length > 0 ? (totalStars / reviews.length).toFixed(2) : "N/A";
 
-//     // Structure the data to be returned
-//     const gigDetails = {
-//       gig: gig,
-//       seller: {
-//         fullName: seller.fullName || "Unknown Seller",
-//         userId: seller._id,
-//         profilePicture: userProfile.profilePicture,
-//       },
-//       reviews: reviews,
-//       averageRating: averageRating, // rounded to 2 decimal places
-//     };
 
-//     return gigDetails;
-//   } catch (error) {
-//     console.error(error.message);
-//     return { error: "An unexpected error occurred" }; // General error response
-//   }
-// };
 
 const getGigDetails = async (gigId, lang = 'en') => {
   try {
@@ -979,7 +680,6 @@ const getGigDetails = async (gigId, lang = 'en') => {
     let translatedGig = gig;
     let translatedReviews = reviews;
 
-    // Only translate if language is not English
     if (lang !== 'en') {
       const translationPayload = {
         title: gig.title,
@@ -1072,7 +772,6 @@ const getGigDetails = async (gigId, lang = 'en') => {
     const totalStars = reviews.reduce((sum, review) => sum + (review.star || 0), 0);
     const averageRating = reviews.length > 0 ? (totalStars / reviews.length).toFixed(2) : 0;
 
-    // Get seller level based on performance metrics
     let sellerLevel = null;
     let sellerBadge = null;
     let sellerStats = null;
@@ -1081,7 +780,6 @@ const getGigDetails = async (gigId, lang = 'en') => {
         sellerStats = await getSellerStatistics(gig.sellerId);
         sellerLevel = sellerStats?.sellerLevel || null;
         
-        // Fetch seller badge info
         const badge = await SellerBadge.findOne({ userId: gig.sellerId })
           .select('currentLevel trustScore searchBoost isVerified achievements')
           .lean();
@@ -1145,24 +843,20 @@ const editJob = async (req, res) => {
     const { jobId } = req.params; // Get job ID from URL
     const updateFields = req.body; // Allow partial updates
 
-    // Check if the job exists
     const job = await Job.findById(jobId);
     if (!job) {
       return res.status(404).json({ message: "Job not found!" });
     }
 
-    // Ensure the user is the owner of the job
     if (job.sellerId.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Unauthorized! You can only edit your own gigs." });
     }
 
-    // Ensure the user is a seller
     const user = await User.findById(userId);
     if (!user.isSeller) {
       return res.status(403).json({ message: "You are not allowed to edit gigs!" });
     }
 
-    // Update the job
     const updatedJob = await Job.findByIdAndUpdate(
       jobId,
       { $set: updateFields }, 

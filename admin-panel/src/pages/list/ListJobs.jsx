@@ -67,7 +67,6 @@ const ListJobs = () => {
     }
   };
 
-  // Filter data
   const filteredData = data.filter(job => {
     const matchesSearch = 
       job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,7 +75,6 @@ const ListJobs = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,

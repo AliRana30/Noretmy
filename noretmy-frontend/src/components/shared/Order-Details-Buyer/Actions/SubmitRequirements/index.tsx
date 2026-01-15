@@ -13,26 +13,22 @@ const SubmitRequirements: React.FC<SubmitRequirementsProps> = ({
   const [requirements, setRequirements] = useState<string>('');
   const [files, setFiles] = useState<File[]>([]);
 
-  // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFiles(Array.from(event.target.files));
     }
   };
 
-  // Remove a specific file
   const removeFile = (fileToRemove: File) => {
     setFiles(files.filter(file => file !== fileToRemove));
   };
 
-  // Handle form submission
   const handleSubmit = () => {
     if (requirements.trim()) {
       onSubmit(requirements, files);
     }
   };
 
-  // Get file icon based on file type
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     switch (extension) {

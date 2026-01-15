@@ -15,7 +15,6 @@ interface ViewRequirementsProps {
   onClose: () => void;
 }
 
-// Helper function to determine icon based on file extension
 const getFileIcon = (filename: string) => {
   const extension = filename.split('.').pop()?.toLowerCase();
 

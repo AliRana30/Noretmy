@@ -16,14 +16,11 @@ const ReplyEmail = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Make the API call to submit the reply message
       await axios.post('https://noretmy-backend.vercel.app/api/contact/reply', {
         messageId:rowData._id,
         email: rowData.email,
         message: replyMessage,
-        // Additional data can be included here if needed
       });
-      // Navigate back or to another page after successful submission
       navigate('/');
     } catch (err) {
       setError(err.message);

@@ -1,21 +1,17 @@
-// API Configuration
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
   FRONTEND_URL: import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000',
   ENDPOINTS: {
 
-    // Authentication
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     USER_PROFILE: '/api/user/profile',
     
-    // Admin Dashboard & Analytics
     ADMIN_DASHBOARD_STATS: '/api/admin/dashboard/stats',
     ADMIN_ANALYTICS_USERS: '/api/admin/analytics/users',
     ADMIN_ANALYTICS_REVENUE: '/api/admin/analytics/revenue',
     ADMIN_ANALYTICS_PERFORMANCE: '/api/admin/analytics/performance',
     
-    // Admin User Management
     ADMIN_USERS: '/api/admin/users',
     ADMIN_USER_DETAIL: '/api/admin/users/:userId',
     ADMIN_USER_ROLE: '/api/admin/users/:userId/role',
@@ -26,18 +22,15 @@ export const API_CONFIG = {
     ADMIN_USER_DELETE: '/api/admin/users/:userId',
     ADMIN_USERS_BULK: '/api/admin/users/bulk',
     
-    // Admin Job/Gig Management
     ADMIN_JOBS: '/api/admin/jobs',
     ADMIN_JOB_STATUS: '/api/admin/jobs/:jobId/status',
     ADMIN_JOB_DELETE: '/api/admin/jobs/:jobId',
     
-    // Admin Order Management
     ADMIN_ORDERS: '/api/admin/orders',
     ADMIN_ORDER_DETAIL: '/api/admin/orders/:orderId',
     ADMIN_ORDER_STATUS: '/api/admin/orders/:orderId/status',
     ADMIN_ORDER_DELETE: '/api/admin/orders/:orderId',
     
-    // Admin Financial Management
     ADMIN_FINANCIAL_OVERVIEW: '/api/admin/financial/overview',
     ADMIN_WITHDRAWALS: '/api/withdraw',
     ADMIN_WITHDRAWAL_DETAIL: '/api/withdraw/:withdrawalId',
@@ -45,41 +38,32 @@ export const API_CONFIG = {
     ADMIN_WITHDRAWAL_APPROVE: '/api/withdraw/:withdrawalId/approve',
     ADMIN_WITHDRAWAL_REJECT: '/api/withdraw/reject',
     
-    // Admin Content Management
     ADMIN_REVIEWS: '/api/admin/content/reviews',
     ADMIN_REVIEW_MODERATE: '/api/admin/content/reviews/:reviewId/moderate',
     ADMIN_SENSITIVE_MESSAGES: '/api/admin/content/sensitive-messages',
     
-    // Admin Communication Management
     ADMIN_CONTACTS: '/api/admin/communication/contacts',
     ADMIN_CONTACT_READ: '/api/admin/communication/contacts/:contactId/read',
     ADMIN_CONVERSATIONS: '/api/admin/conversations',
     
-    // Admin Marketing Management
     ADMIN_NEWSLETTER: '/api/admin/marketing/newsletter',
     ADMIN_PROMOTIONS: '/api/admin/marketing/promotions',
     ADMIN_PROMOTION_STATUS: '/api/admin/marketing/promotions/:promotionId/status',
     
-    // Admin Notification Management
     ADMIN_NOTIFICATIONS: '/api/admin/notifications',
     ADMIN_BROADCAST: '/api/admin/notifications/broadcast',
     
-    // Admin Project Management
     ADMIN_PROJECTS: '/api/admin/projects',
     ADMIN_PROJECT_STATUS: '/api/admin/projects/:projectId/status',
     
-    // Admin System Management
     ADMIN_SYSTEM_HEALTH: '/api/admin/system/health',
     ADMIN_SYSTEM_LOGS: '/api/admin/system/logs',
     ADMIN_SYSTEM_AUDIT: '/api/admin/system/audit',
     
-    // Admin Settings
     ADMIN_SETTINGS_VAT: '/api/admin/settings/vat',
     
-    // Admin Management
     ADMIN_CREATE_ADMIN: '/api/admin/admins',
     
-    // Badge Management
     BADGE_ALL: '/api/badges/admin/all',
     BADGE_STATS: '/api/badges/admin/stats',
     BADGE_AUDIT_LOG: '/api/badges/admin/audit-log',
@@ -89,7 +73,6 @@ export const API_CONFIG = {
     BADGE_RE_EVALUATE: '/api/badges/admin/seller/:sellerId/re-evaluate',
     BADGE_BATCH_RE_EVALUATE: '/api/badges/admin/batch-re-evaluate',
     
-    // Regular API Endpoints (for backward compatibility)
     USERS: '/api/users',
     VERIFIED_SELLERS: '/api/users/verified-sellers',
     ORDERS: '/api/orders',
@@ -109,12 +92,10 @@ export const API_CONFIG = {
   },
 };
 
-// Helper function to get full API URL
 export const getApiUrl = (endpoint) => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-// Helper function to get auth headers
 export const getAuthHeaders = () => {
   const userData = localStorage.getItem('userData');
   let token = null;
@@ -134,7 +115,6 @@ export const getAuthHeaders = () => {
     }
   }
 
-  // Only add Authorization header if token exists and is a non-empty string
   const authHeader = (token && typeof token === 'string' && token.trim().length > 0) 
     ? { 'Authorization': `Bearer ${token}` } 
     : {};
@@ -145,7 +125,6 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Helper function to replace URL parameters
 export const replaceUrlParams = (endpoint, params) => {
   let url = endpoint;
   Object.keys(params).forEach(key => {
@@ -154,14 +133,12 @@ export const replaceUrlParams = (endpoint, params) => {
   return url;
 };
 
-// Role definitions
 export const ROLES = {
   ADMIN: 'admin',
   FREELANCER: 'freelancer', 
   CLIENT: 'client'
 };
 
-// Permission definitions
 export const PERMISSIONS = [
   'user_management',
   'order_management', 
@@ -173,13 +150,10 @@ export const PERMISSIONS = [
   'promotion_management'
 ]; 
 
-// FAQ Management Endpoints
 export const FAQ_ENDPOINTS = {
-  // Public endpoints
   GET_CATEGORIES: '/api/faq/categories',
   GET_FAQS_BY_CATEGORY: '/api/faq/category',
   
-  // Admin endpoints
   GET_ALL_FAQS: '/api/faq',
   GET_FAQ_STATS: '/api/faq/stats',
   GET_SINGLE_FAQ: '/api/faq',
@@ -188,7 +162,6 @@ export const FAQ_ENDPOINTS = {
   DELETE_FAQ: '/api/faq',
 };
 
-// FAQ Categories
 export const FAQ_CATEGORIES = [
   { value: 'Promotional_Plans', display: 'Promotional Plans' },
   { value: 'Service_Management', display: 'Service Management' },

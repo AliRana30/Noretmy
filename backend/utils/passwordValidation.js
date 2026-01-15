@@ -3,7 +3,6 @@
  * Enforces strong password requirements for security
  */
 
-// Password requirements
 const PASSWORD_REQUIREMENTS = {
   minLength: 8,
   maxLength: 128,
@@ -13,7 +12,6 @@ const PASSWORD_REQUIREMENTS = {
   requireSpecialChar: true
 };
 
-// Special characters allowed in passwords
 const SPECIAL_CHARS = '@$!%*?&_#^(){}[]|;:,.<>~`+-=';
 
 /**
@@ -44,7 +42,6 @@ const validatePassword = (password) => {
     };
   }
 
-  // Length check
   if (password.length < PASSWORD_REQUIREMENTS.minLength) {
     errors.push(`Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters long`);
   } else {
@@ -55,28 +52,24 @@ const validatePassword = (password) => {
     errors.push(`Password must not exceed ${PASSWORD_REQUIREMENTS.maxLength} characters`);
   }
 
-  // Uppercase check
   if (PASSWORD_REQUIREMENTS.requireUppercase && !/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   } else if (/[A-Z]/.test(password)) {
     score += 20;
   }
 
-  // Lowercase check
   if (PASSWORD_REQUIREMENTS.requireLowercase && !/[a-z]/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   } else if (/[a-z]/.test(password)) {
     score += 20;
   }
 
-  // Number check
   if (PASSWORD_REQUIREMENTS.requireNumber && !/\d/.test(password)) {
     errors.push('Password must contain at least one number');
   } else if (/\d/.test(password)) {
     score += 20;
   }
 
-  // Special character check
   const specialCharRegex = /[@$!%*?&_#^(){}\[\]|;:,.<>~`+\-=]/;
   if (PASSWORD_REQUIREMENTS.requireSpecialChar && !specialCharRegex.test(password)) {
     errors.push(`Password must contain at least one special character (${SPECIAL_CHARS})`);
@@ -84,11 +77,9 @@ const validatePassword = (password) => {
     score += 20;
   }
 
-  // Additional score for length
   if (password.length >= 12) score += 10;
   if (password.length >= 16) score += 10;
 
-  // Check for common patterns (weak passwords)
   const commonPatterns = [
     /^123456/,
     /password/i,
@@ -108,7 +99,6 @@ const validatePassword = (password) => {
     }
   }
 
-  // Determine feedback based on score
   let feedback;
   if (score < 40) {
     feedback = 'Very Weak';

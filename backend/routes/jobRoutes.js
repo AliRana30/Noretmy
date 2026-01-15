@@ -1,4 +1,3 @@
-// routes/jobRoutes.js
 const express = require('express');
 const multer = require('multer');
 const { storage } = require('../config/cloudinaryConfig');
@@ -15,7 +14,6 @@ router.get("/user", verifyToken, getUserJobs);
 
 router.get("/", getAllJobs);    
 
-// Post and delete routes at the end
 router.post("/add-job", verifyToken,checkRole(["seller"]),upload, createJob); 
 router.put("/discount",verifyToken,checkRole(["seller"]),applyDiscountToGig); 
 router.put("/:jobId",verifyToken,checkRole(["seller"]),editJob); 

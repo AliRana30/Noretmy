@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { MapPin, Calendar, Briefcase, ExternalLink, Github, Award, Mail, ChevronRight, ArrowRight, Menu, X } from 'lucide-react';
 import axios from 'axios';
 
-// Types
 interface Experience {
   title: string;
   company: string;
@@ -38,7 +37,6 @@ interface UserData {
   aboutMe : String;
 }
 
-// Component
 const UserProfile: React.FC = ({ params }: { params: { username: string } }) => {
 
   const [userData, setUserData] = useState<UserData | null>(null);

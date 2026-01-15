@@ -6,7 +6,6 @@ import storage from 'redux-persist/lib/storage'; // Local storage for persistenc
 import authReducer from './authSlice';
 import gigsReducer from './gigSlice';
 
-// Persist configuration for the auth slice
 const authPersistConfig = {
   key: 'auth',
   storage,
@@ -14,7 +13,6 @@ const authPersistConfig = {
   version: 1, // Helps in migrating stored state
 };
 
-// Persisted reducers
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
 export const store = configureStore({
@@ -28,7 +26,6 @@ export const store = configureStore({
     }),
 });
 
-// Persistor instance
 export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;

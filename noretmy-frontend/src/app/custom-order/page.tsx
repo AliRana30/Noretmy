@@ -16,7 +16,6 @@ const MilestonePageContent = () => {
       payment_type: 'order_payment',
     }).toString();
 
-    // router.push(`/checkout?${query}`);
   }, []); 
 
   return (

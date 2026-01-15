@@ -21,7 +21,6 @@ interface FormErrors {
 }
 
 const ContactPage: React.FC = () => {
-//   const { t } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -70,7 +69,6 @@ const ContactPage: React.FC = () => {
     const { name, value } = e.target;
     setFormValues(prev => ({ ...prev, [name]: value }));
     
-    // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -80,7 +78,6 @@ const ContactPage: React.FC = () => {
     const { name, checked } = e.target;
     setFormValues(prev => ({ ...prev, [name]: checked }));
     
-    // Clear error when user changes checkbox
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -90,7 +87,6 @@ const ContactPage: React.FC = () => {
     const { name } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     
-    // Validate the field on blur
     const fieldErrors = validateForm();
     if (fieldErrors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: fieldErrors[name as keyof FormErrors] }));
@@ -100,7 +96,6 @@ const ContactPage: React.FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    // Mark all fields as touched
     setTouched({
       subject: true,
       email: true,
@@ -111,7 +106,6 @@ const ContactPage: React.FC = () => {
     const formErrors = validateForm();
     setErrors(formErrors);
     
-    // If there are errors, don't submit
     if (Object.keys(formErrors).length > 0) {
       return;
     }
@@ -142,7 +136,6 @@ const ContactPage: React.FC = () => {
         autoClose: 3000,
       });
       
-      // Reset form after successful submission
       setFormValues({
         subject: '',
         email: '',

@@ -16,7 +16,6 @@ const UploadMultimedia: React.FC<UploadMultimediaProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const maxFiles = 5;
 
-  // Sync selected files to parent
   useEffect(() => {
     onAddPhoto(files);
   }, [files, onAddPhoto]);

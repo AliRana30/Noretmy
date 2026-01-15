@@ -21,7 +21,6 @@ const ListDocuments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(null);
-  // Block modal state
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [blockUserId, setBlockUserId] = useState(null);
   const [blockReason, setBlockReason] = useState('');
@@ -50,7 +49,6 @@ const ListDocuments = () => {
       return;
     }
     
-    // Open the block modal instead of using prompt
     setBlockUserId(userId);
     setBlockReason('');
     setBlockModalOpen(true);
@@ -96,7 +94,6 @@ const ListDocuments = () => {
         { withCredentials: true, headers: getAuthHeaders() }
       );
       toast.success('User verified successfully!');
-      // Documents list only includes unverified users; remove verified user from list
       setData(prev => prev.filter(u => u._id !== userId));
       setSelectedUser(prev => (prev && prev._id === userId ? null : prev));
     } catch (error) {
@@ -131,7 +128,6 @@ const ListDocuments = () => {
     }
   };
 
-  // Filter data
   const filteredData = data.filter(user => {
     const matchesSearch = 
       user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,7 +139,6 @@ const ListDocuments = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,

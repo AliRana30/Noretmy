@@ -23,7 +23,6 @@ export default function AnimateOnScroll({
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
-                    // Unobserve after animation triggers once
                     if (ref.current) {
                         observer.unobserve(ref.current);
                     }

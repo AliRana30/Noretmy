@@ -3,11 +3,7 @@ const router = express.Router();
 const { getSellerStats,editProject,createProject,deleteProject} = require('../controllers/sellerController'); // Import the controller
 const { verifyToken, checkRole } = require('../middleware/jwt');
 const { upload } = require('../controllers/uploadController');
-// const multer = require('multer');
-// const storage = multer.memoryStorage(); 
-// const upload = multer({ storage });
 
-// Route to get seller statistics by sellerId
 router.get('/stats', verifyToken,checkRole(["seller"]),getSellerStats); // :sellerId is a dynamic parameter
 router.post('/project',verifyToken, upload, createProject)
 router.put('/:projectId', verifyToken,checkRole(['seller']), upload, editProject);

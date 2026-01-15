@@ -26,7 +26,6 @@ export const NotificationProvider = ({ children }) => {
   }, [user]);
 
   const fetchNotifications = useCallback(async () => {
-    // Only fetch if authenticated and we have a user
     if (!isAuthenticated() || !user) return;
     
     try {
@@ -50,7 +49,6 @@ export const NotificationProvider = ({ children }) => {
   }, [isAuthenticated, user]);
 
   const handleMarkAsRead = async (id) => {
-    // Optimistic UI update
     const prevNotifications = [...notifications];
     const prevUnreadCount = unreadCount;
 
@@ -58,12 +56,10 @@ export const NotificationProvider = ({ children }) => {
       prev.map(n => n._id === id ? { ...n, isRead: true } : n)
     );
     
-    // Important: decrement unread count if it was unread
     const notif = notifications.find(n => n._id === id);
     if (notif && !notif.isRead) {
         setUnreadCount(prev => Math.max(0, prev - 1));
     } else if (!notif) {
-        // Fallback if not in list
         setUnreadCount(prev => Math.max(0, prev - 1));
     }
 
@@ -96,13 +92,11 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated() && user) {
       fetchNotifications();
-      // Poll for new notifications
       const interval = setInterval(fetchNotifications, 60000);
       return () => clearInterval(interval);
     }
   }, [fetchNotifications, isAuthenticated, user]);
 
-  // Realtime notifications via Socket.IO
   useEffect(() => {
     if (!isAuthenticated() || !user) return;
 
@@ -134,12 +128,9 @@ export const NotificationProvider = ({ children }) => {
 
     const handleRealtimeNotification = (payload) => {
       console.log('📩 [Admin Socket] notification received:', payload);
-      // Keep UI consistent with DB: refetch full list
       fetchNotifications();
     };
 
-    // Backend emits `notification` in most places; promotion uses `newNotification`
-    // Admin-specific events go to 'adminNotification' from admin_room
     socket.on('notification', handleRealtimeNotification);
     socket.on('newNotification', handleRealtimeNotification);
     socket.on('adminNotification', handleRealtimeNotification); // Admin-specific events

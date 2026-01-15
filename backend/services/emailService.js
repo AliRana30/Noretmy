@@ -6,7 +6,6 @@ const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const Vat = require('../models/Vat');
 const EmailLog = require('../models/EmailLog');
 
-// Detect which email service to use
 const USE_SENDGRID = !!process.env.SENDGRID_API_KEY;
 if (USE_SENDGRID) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -15,19 +14,13 @@ if (USE_SENDGRID) {
   console.log('📧 Email Service: SMTP/Gmail (Local Development)');
 }
 
-// ============================================
-// EMAIL TRANSPORTER & LOGGING UTILITIES
-// ============================================
 
-// Create reusable transporter
 const createTransporter = () => {
   const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
-  // Use port 465 for Render/cloud hosting compatibility (SSL/TLS)
   const smtpPort = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '465', 10);
   const smtpService = process.env.SMTP_SERVICE;
   const smtpUser = process.env.SMTP_MAIL || process.env.EMAIL_USER;
   const smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
-  // Port 465 requires secure=true
   const smtpSecure = (process.env.SMTP_SECURE || '').toLowerCase() === 'true' || smtpPort === 465;
 
   console.log(`📧 Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}`);
@@ -45,20 +38,16 @@ const createTransporter = () => {
       user: smtpUser,
       pass: smtpPass,
     },
-    // TLS options for cloud hosting (Render, Vercel, etc.)
     tls: {
       rejectUnauthorized: false,
       minVersion: 'TLSv1.2'
     },
-    // Connection pool for better performance
     pool: true,
     maxConnections: 5,
     maxMessages: 100,
-    // Increased timeouts for cloud hosting
     connectionTimeout: 60000, // 60 seconds
     greetingTimeout: 30000,   // 30 seconds
     socketTimeout: 60000,     // 60 seconds
-    // Debug mode
     debug: process.env.NODE_ENV !== 'production',
     logger: process.env.NODE_ENV !== 'production'
   });
@@ -75,7 +64,6 @@ const getFrontendBaseUrl = () => {
   return String(raw).replace(/\/$/, '');
 };
 
-// Verify transporter connection
 const verifyEmailConnection = async () => {
   try {
     const transporter = createTransporter();
@@ -87,7 +75,6 @@ const verifyEmailConnection = async () => {
   }
 };
 
-// Core email sending function with logging
 const sendEmailWithLogging = async (options) => {
   const {
     to,
@@ -106,7 +93,6 @@ const sendEmailWithLogging = async (options) => {
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    // Create log entry for each attempt if needed, or update existing one
     let emailLog = null;
     try {
       emailLog = new EmailLog({
@@ -133,7 +119,6 @@ const sendEmailWithLogging = async (options) => {
       let result;
       
       if (USE_SENDGRID) {
-        // Use SendGrid HTTP API (works on Render/cloud hosting)
         const msg = {
           to,
           from: fromAddress,
@@ -150,7 +135,6 @@ const sendEmailWithLogging = async (options) => {
         result = await sgMail.send(msg);
         result = { messageId: result[0]?.headers?.['x-message-id'] || 'sendgrid-success', response: 'SendGrid API' };
       } else {
-        // Use SMTP (for local development)
         const transporter = createTransporter();
         const mailOptions = {
           from: `"Noretmy" <${fromAddress}>`,
@@ -189,7 +173,6 @@ const sendEmailWithLogging = async (options) => {
     }
   }
 
-  // If all retries failed, throw error
   const errorMessage = lastError?.message || 'Failed to send email after multiple attempts';
   console.error(`❌ Email sending failed permanently: ${errorMessage}`);
   throw new Error(errorMessage);
@@ -240,7 +223,6 @@ const sendVerificationEmail = async (email, token) => {
   });
 };
 
-// Send welcome email after successful signup and verification
 const sendWelcomeEmail = async (email, fullName, isSeller) => {
   const firstName = fullName.split(' ')[0];
   const userRole = isSeller ? 'freelancer' : 'client';
@@ -731,7 +713,6 @@ const sendWithdrawalRejectionEmail = async (email, reason) => {
     const platformFee = price * platformFeeRate;
     const totalAmount = price + vatAmount + platformFee;
 
-    // Email Content
     
     const emailSubject = `Order Invoice - #${orderId}`;
     const emailBody = `
@@ -875,7 +856,6 @@ const sendSellerOrderNotificationEmail = async (email, orderDetails) => {
   const { _id: orderId, price, gigTitle, sellerName,createdAt } = orderDetails;
   const frontendBaseUrl = getFrontendBaseUrl();
 
-  // Email Content
   const emailSubject = `New Order Received - #${orderId}`;
   const emailBody = `
     <html>
@@ -1003,13 +983,11 @@ const sendPromotionPlanEmail = async (email, promotionDetails) => {
     vatRate 
   } = promotionDetails;
 
-  // VAT and Total Calculations
   const vatAmount = (price * vatRate);
   const platformFeeRate = 0.02;
   const platformFee = price * platformFeeRate;
   const totalAmount = price + vatAmount + platformFee;
 
-  // Email Content
   const emailSubject = `Promotion Plan Activated - ${gigTitle}`;
   const emailBody = `
     <html>
@@ -1151,13 +1129,11 @@ const sendAllGigsPromotionEmail = async (email, promotionDetails) => {
     vatRate
   } = promotionDetails;
 
-  // VAT and Total Calculations
   const vatAmount = (price * vatRate);
   const platformFeeRate = 0.02;
   const platformFee = price * platformFeeRate;
   const totalAmount = price + vatAmount + platformFee;
 
-  // Email Content
   const emailSubject = `Promotion Plan Activated - All Gigs ${promotionPlanId}`;
   const emailBody = `
     <html>
@@ -1287,7 +1263,6 @@ const sendAllGigsPromotionEmail = async (email, promotionDetails) => {
 };
 
 const sendOnboardingEmail = async (email, freelancerName, onboardingLink) => {
-  // Email Content
   const emailSubject = `Complete Your Onboarding to Withdraw Funds`;
   const emailBody = `
     <html>
@@ -1422,7 +1397,6 @@ const sendOrderRequestEmail = async (email, requestDetails) => {
   const { _id: requestId, details, price, senderName, createdAt, description } = requestDetails;
   const frontendBaseUrl = getFrontendBaseUrl();
 
-  // Email Content
   const emailSubject = `New Custom Order Request - #${requestId}`;
   const emailBody = `
     <html>
@@ -1568,7 +1542,6 @@ const sendOrderRequestEmail = async (email, requestDetails) => {
 };
 
 const sendNewsletterWelcomeEmail = async (email, subscriberName) => {
-  // Email Content
   const emailSubject = `Welcome to Noretmy Newsletter`;
   const emailBody = `
     <html>
@@ -1686,9 +1659,6 @@ const sendNewsletterWelcomeEmail = async (email, subscriberName) => {
   }
 };
 
-// ============================================
-// PAYMENT MILESTONE EMAIL FUNCTIONS
-// ============================================
 
 const sendPaymentMilestoneEmail = async (email, milestoneDetails) => {
   const {
@@ -2171,7 +2141,6 @@ const sendChatAttachmentEmail = async (email, attachmentDetails) => {
   });
 };
 
-// Test email function
 const sendTestEmail = async (email, testMessage = 'This is a test email from Noretmy.') => {
   const emailSubject = 'Test Email - Noretmy Email Service';
   const emailBody = `
@@ -2377,32 +2346,26 @@ const sendDeadlineWarningEmail = async (email, orderDetails) => {
 };
 
 module.exports = { 
-  // Core utilities
   sendEmailWithLogging,
   verifyEmailConnection,
   createTransporter,
   sendTestEmail,
   
-  // Authentication emails
   sendVerificationEmail,
   sendWelcomeEmail,
   sendResetPasswordEmail,
   
-  // User notification emails
   sendUserNotificationEmail,
   
-  // Order emails
   sendOrderSuccessEmail,
   sendSellerOrderNotificationEmail,
   sendOrderRequestEmail,
   sendOrderDeliveredEmail,
   sendOrderCompletedEmail,
   
-  // Payment emails
   sendPaymentMilestoneEmail,
   sendPaymentFailedEmail,
   
-  // Order status emails
   sendOrderAcceptedEmail,
   sendOrderRejectedEmail,
   sendDeadlineWarningEmail,
@@ -2411,13 +2374,10 @@ module.exports = {
   sendWithdrawalRejectionEmail,
   sendOnboardingEmail,
   
-  // Promotion emails
   sendPromotionPlanEmail,
   sendAllGigsPromotionEmail,
   
-  // Newsletter emails
   sendNewsletterWelcomeEmail,
   
-  // Chat emails
   sendChatAttachmentEmail
 };

@@ -1,8 +1,6 @@
-// components/BlogList.tsx
 import React from 'react';
 import Link from 'next/link';
 
-// Types for our blog data
 interface BlogPost {
   id: string;
   title: string;
@@ -15,7 +13,6 @@ interface BlogPost {
   slug: string;
 }
 
-// Sample blog data
 const dummyBlogPosts: BlogPost[] = [
   {
     id: '1',

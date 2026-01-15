@@ -14,12 +14,10 @@ const mongoose = require('mongoose');
 const isEligibleForPromotion = (user) => {
   if (!user) return false;
 
-  // Use the schema method if available
   if (typeof user.isSellerUser === 'function') {
     if (user.isSellerUser()) return true;
   }
   
-  // Broad inclusive check
   const isFreelancer = user.role === 'freelancer' || user.role === 'seller';
   const isAdmin = user.role === 'admin';
   const hasSellerFlag = user.isSeller === true || user.isSeller === 'true';
@@ -50,7 +48,6 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
       return res.status(404).json({ message: "User does not exist!" });
     }
 
-    // Check if user is eligible (must be seller/company)
     if (!isEligibleForPromotion(user)) {
       return res.status(403).json({ 
         message: "Only sellers and companies can purchase promotion plans. Please become a seller first." 
@@ -61,13 +58,11 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
       return res.status(400).json({ message: "Promotion plan is required!" });
     }
 
-    // Validate promotion plan using PROMOTION_PLANS
     const plan = getPlan(promotionPlan);
     if (!plan) {
       return res.status(400).json({ message: "Invalid promotion plan!" });
     }
 
-    // Check if user already has an active "all gigs" promotion
     const existingActivePromotion = await Promotion.findOne({
       userId: userId,
       isForAll: true,
@@ -114,8 +109,6 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
 
     const { client_secret: secret, payment_intent } = paymentIntentResponse;
 
-    // Don't create promotion here - it will be created by the webhook after payment succeeds
-    // The webhook handler (handlePaymentIntentSucceeded) creates the promotion
 
     if (!secret) {
       return res.status(500).json({ message: "Failed to create payment intent." });
@@ -149,20 +142,17 @@ const singleJobPromotionMonthlySubscriptionController = async (req, res) => {
       return res.status(400).json({ message: "Promotion plan is required!" });
     }
 
-    // Verify user existence
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User does not exist!" });
     }
 
-    // Check if user is eligible (must be seller/company)
     if (!isEligibleForPromotion(user)) {
       return res.status(403).json({ 
         message: "Only sellers and companies can purchase promotion plans. Please become a seller first." 
       });
     }
 
-    // Check if this gig already has an active promotion (FIVERR-STYLE: Only ONE active plan per gig)
     const existingActivePromotion = await Promotion.findOne({
       gigId: gigId,
       status: 'active',
@@ -181,7 +171,6 @@ const singleJobPromotionMonthlySubscriptionController = async (req, res) => {
       });
     }
 
-    // Validate promotion plan using PROMOTION_PLANS
     const plan = getPlan(promotionPlan);
     if (!plan) {
       return res.status(400).json({ message: "Invalid promotion plan!" });
@@ -208,7 +197,6 @@ const singleJobPromotionMonthlySubscriptionController = async (req, res) => {
       isForAll: false 
     };
 
-    // Create payment intent
     const paymentIntentResponse = await createCustomerAndPaymentIntentUtil(
       breakdown.totalPrice,
       user.email,
@@ -241,7 +229,6 @@ const getUserGigPromotions = async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    // Fetch all promotions for this user
     const promotions = await Promotion.find({ userId: new mongoose.Types.ObjectId(userId) })
       .populate('gigId', 'title photos')
       .sort({ createdAt: -1 })
@@ -249,7 +236,6 @@ const getUserGigPromotions = async (req, res) => {
 
     const now = new Date();
 
-    // Process promotions to add calculated fields
     const processedPromotions = promotions.map(promotion => {
       const isActive = promotion.status === 'active' && 
                        promotion.promotionStartDate && 
@@ -260,9 +246,7 @@ const getUserGigPromotions = async (req, res) => {
         ? Math.ceil((new Date(promotion.promotionEndDate) - now) / (1000 * 60 * 60 * 24))
         : 0;
 
-      // Auto-update status if expired
       if (promotion.status === 'active' && new Date(promotion.promotionEndDate) <= now) {
-        // Mark as expired in DB (async, don't wait)
         Promotion.findByIdAndUpdate(promotion._id, { status: 'expired' }).catch(console.error);
       }
 
@@ -308,7 +292,6 @@ const checkGigActivePromotion = async (req, res) => {
 
     const now = new Date();
 
-    // Check for active promotion on this gig
     const activePromotion = await Promotion.findOne({
       gigId: new mongoose.Types.ObjectId(gigId),
       status: 'active',
@@ -348,7 +331,6 @@ const getUserActivePromotions = async (req, res) => {
 
     const now = new Date();
 
-    // Fetch active promotions from PromotionPurchase model
     const activePromotions = await PromotionPurchase.find({
       userId: new mongoose.Types.ObjectId(userId),
       status: 'active',
@@ -360,7 +342,6 @@ const getUserActivePromotions = async (req, res) => {
 
     console.log(`✅ Found ${activePromotions.length} active promotions for user ${userId}`);
 
-    // Return only the most important active promotion (highest priority)
     if (activePromotions.length === 0) {
       return res.status(200).json({
         activePromotion: null,
@@ -411,7 +392,6 @@ const deletePromotion = async (req, res) => {
 
     const now = new Date();
 
-    // Prefer PromotionPurchase (single source of truth)
     const purchase = await PromotionPurchase.findById(promotionId);
     if (purchase) {
       if (purchase.userId.toString() !== userId.toString()) {
@@ -425,7 +405,6 @@ const deletePromotion = async (req, res) => {
         });
       }
 
-      // Soft-delete to preserve financial history (admin revenue is derived from PromotionPurchase totals)
       purchase.status = 'deleted';
       purchase.deletedAt = now;
       await purchase.save();
@@ -436,7 +415,6 @@ const deletePromotion = async (req, res) => {
       });
     }
 
-    // Fallback to legacy Promotion
     const promotion = await Promotion.findById(promotionId);
     if (!promotion) {
       return res.status(404).json({ error: "Promotion not found" });
@@ -483,7 +461,6 @@ const cancelPromotion = async (req, res) => {
 
     const now = new Date();
 
-    // Prefer PromotionPurchase (single source of truth)
     const purchase = await PromotionPurchase.findById(promotionId);
     if (purchase) {
       if (purchase.userId.toString() !== userId.toString()) {
@@ -511,7 +488,6 @@ const cancelPromotion = async (req, res) => {
       });
     }
 
-    // Fallback to legacy Promotion
     const promotion = await Promotion.findById(promotionId);
     if (!promotion) {
       return res.status(404).json({ error: "Promotion not found" });
@@ -630,13 +606,11 @@ const completePromotionAfterPayment = async (req, res) => {
     }
 
     console.log('🔵 Verifying payment with Stripe...');
-    // Verify payment with Stripe
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
     
     console.log('Payment status:', paymentIntent.status);
     
-    // Accept both succeeded and requires_capture (which will be captured by frontend)
     if (paymentIntent.status !== "succeeded" && paymentIntent.status !== "requires_capture") {
       console.error('❌ Payment not successful:', paymentIntent.status);
       return res.status(400).json({ 
@@ -646,7 +620,6 @@ const completePromotionAfterPayment = async (req, res) => {
       });
     }
     
-    // If requires_capture, capture it now
     if (paymentIntent.status === "requires_capture") {
       console.log('🔵 Capturing payment intent...');
       await stripe.paymentIntents.capture(payment_intent_id);
@@ -656,7 +629,6 @@ const completePromotionAfterPayment = async (req, res) => {
     const { PROMOTION_PLANS, getPlan } = require('../utils/promotionPlans');
     const mongoose = require('mongoose');
 
-    // Check if already processed
     const existingPurchase = await PromotionPurchase.findOne({ stripePaymentIntentId: payment_intent_id });
     if (existingPurchase) {
       return res.status(200).json({ 
@@ -680,7 +652,6 @@ const completePromotionAfterPayment = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Check if user has an active promotion of same type
     const now = new Date();
     const existingActivePromotion = await PromotionPurchase.findOne({
       userId: new mongoose.Types.ObjectId(userId),
@@ -701,10 +672,8 @@ const completePromotionAfterPayment = async (req, res) => {
 
     const expiresAt = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
-    // Extract metadata from payment intent
     const metadata = paymentIntent.metadata;
 
-    // Create promotion purchase record
     const promotionPurchase = new PromotionPurchase({
       stripePaymentIntentId: payment_intent_id,
       userId: new mongoose.Types.ObjectId(userId),
@@ -728,7 +697,6 @@ const completePromotionAfterPayment = async (req, res) => {
     await promotionPurchase.save();
     console.log('✅ Promotion saved:', promotionPurchase._id);
 
-    // If single gig promotion, update the gig's promotion status
     if (gigId && paymentType === 'gig_promotion') {
       const Job = require('../models/Job');
       await Job.findByIdAndUpdate(gigId, {
@@ -741,7 +709,6 @@ const completePromotionAfterPayment = async (req, res) => {
       console.log('✅ Gig promoted:', gigId);
     }
 
-    // If all gigs promotion, update all user's gigs
     if (paymentType === 'monthly_promotion') {
       const Job = require('../models/Job');
       await Job.updateMany(
@@ -759,7 +726,6 @@ const completePromotionAfterPayment = async (req, res) => {
       console.log('✅ All user gigs promoted');
     }
 
-    // Update admin revenue with full promotion amount
     const promotionAmount = paymentIntent.amount / 100; // Convert from cents to dollars
     const Admin = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
     if (Admin) {
@@ -778,7 +744,6 @@ const completePromotionAfterPayment = async (req, res) => {
       console.log('⚠️ No admin user found!');
     }
 
-    // Send notification to user
     const notificationService = require('../services/notificationService');
     await notificationService.createNotification({
       userId: user._id,
@@ -788,7 +753,6 @@ const completePromotionAfterPayment = async (req, res) => {
       link: '/promote-gigs'
     });
 
-    // Notify all admins about the promotion purchase
     try {
       await notificationService.notifyAdminPromotionPurchased(
         user._id.toString(),
@@ -813,7 +777,6 @@ const completePromotionAfterPayment = async (req, res) => {
   }
 };
 
-// Check if user has active promotion (for plan selection UI)
 const checkActivePromotion = async (req, res) => {
   try {
     const { userId } = req;
@@ -825,7 +788,6 @@ const checkActivePromotion = async (req, res) => {
 
     const now = new Date();
 
-    // Check for active all_gigs promotion
     const allGigsPromotion = await PromotionPurchase.findOne({
       userId: userId,
       promotionType: 'all_gigs',
@@ -847,7 +809,6 @@ const checkActivePromotion = async (req, res) => {
       });
     }
 
-    // If checking for specific gig, check gig-specific promotion
     if (gigId) {
       const gigPromotion = await PromotionPurchase.findOne({
         userId: userId,

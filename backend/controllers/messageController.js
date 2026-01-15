@@ -21,7 +21,6 @@ const createMessage = async (req, res, next) => {
   try {
     const savedMessage = await newMessage.save();
 
-    // Determine last message preview
     let lastMessagePreview = desc;
     if (!desc && attachments && attachments.length > 0) {
       lastMessagePreview = `📎 ${attachments.length} file(s) attached`;
@@ -39,8 +38,6 @@ const createMessage = async (req, res, next) => {
       { new: true }
     );
 
-    // Emit the message to the conversation room
-    // io.to(req.body.conversationId).emit('receiveMessage', savedMessage);
 
     res.status(201).send(savedMessage);
   } catch (error) {
@@ -59,7 +56,6 @@ const getMessages = async (req, res, next) => {
 
 const searchSensitiveMessages = async (req, res) => {
   try {
-    // Define regex patterns for each category of sensitive information
     const patterns = {
       emailDomains: [
         'gmail\\.com', 'yahoo\\.com', 'hotmail\\.com',
@@ -233,14 +229,11 @@ const searchSensitiveMessages = async (req, res) => {
       desc: { $regex: keyword, $options: 'i' } // 'i' for case-insensitive search
     }));
 
-    // Search the database
     const sensitiveMessages = await Message.find({
       $or: regexPatterns
     }).sort({ createdAt: -1 });
-    // Return the results
     res.status(201).json(sensitiveMessages);
 
-    // st warned
 
   } catch (error) {
     console.error("Error searching messages:", error);

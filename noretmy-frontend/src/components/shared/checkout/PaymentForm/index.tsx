@@ -1,4 +1,3 @@
-// PaymentForm.tsx
 import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import axios from 'axios';
@@ -50,13 +49,11 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
   const [fetchedPrice, setFetchedPrice] = useState<number | null>(null);
   const [isFetchingOrder, setIsFetchingOrder] = useState(false);
 
-  // Fetch order price if only orderId is provided
   useEffect(() => {
     if (orderData?.orderId && !orderData?.price && !fetchedPrice) {
       setIsFetchingOrder(true);
       axios.get(`${BACKEND_URL}/orders/single/${orderData.orderId}`, { withCredentials: true })
         .then(res => {
-          // The API returns nested structure: { orderDetails: { orderPrice } }
           const orderDetails = res.data?.orderDetails || res.data;
           const price = orderDetails?.orderPrice || orderDetails?.price || res.data?.price;
           if (price) {
@@ -74,7 +71,6 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
     }
   }, [orderData?.orderId, orderData?.price, BACKEND_URL, fetchedPrice]);
 
-  // Parse price - could be string from URL or number
   const parsedPrice = React.useMemo(() => {
     const price = fetchedPrice || orderData?.price;
     if (typeof price === 'number') return price;
@@ -85,10 +81,8 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
     return 0;
   }, [orderData?.price, fetchedPrice]);
 
-  // Fetch price breakdown from backend on mount
   useEffect(() => {
     const fetchPriceBreakdown = async () => {
-      // Skip VAT calculation if price is 0 or invalid
       if (!parsedPrice || parsedPrice <= 0) {
         setPriceBreakdown({
           basePrice: 0,
@@ -107,7 +101,6 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
 
       setIsLoadingBreakdown(true);
       try {
-        // Fetch breakdown for all payment types if we have a valid price
         const response = await axios.post(
           `${BACKEND_URL}/vat/calculate`,
           { basePrice: parsedPrice },
@@ -116,7 +109,6 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
 
         if (response.data.success) {
           const bd = response.data.breakdown;
-          // Map backend keys to frontend state keys
           setPriceBreakdown({
             ...bd,
             basePrice: bd.baseAmount || bd.basePrice || parsedPrice,
@@ -221,12 +213,10 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
       if (result.error) {
         setError(result.error.message || 'Payment failed');
       } else {
-        // Payment succeeded - now verify and complete on backend (LMS-style)
         try {
           const { gigId, orderId, promotionalPlan } = orderData || {};
           
           if (paymentType === 'order_payment' && orderId) {
-            // Complete order
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/complete-payment`, {
               method: 'POST',
               headers: {
@@ -252,7 +242,6 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
               return;
             }
           } else if ((paymentType === 'monthly_promotional' || paymentType === 'gig_promotion') && promotionalPlan) {
-            // Complete promotion
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscription/complete-payment`, {
               method: 'POST',
               headers: {

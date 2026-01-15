@@ -1,17 +1,14 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
-// Create Notification (For All Users OR Single User)
 const createNotification = async (req, res) => {
     try {
         const { userId, type, message, link, isGlobal } = req.body;
 
-        // Validate required fields
         if (!type || !message) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Create Notification Object
         const notificationData = {
             userId: isGlobal ? null : userId, 
             type,
@@ -20,12 +17,10 @@ const createNotification = async (req, res) => {
             isGlobal: !!isGlobal // Ensure it's a boolean
         };
 
-        // If userId is required for user-specific notifications
         if (!isGlobal && !userId) {
             return res.status(400).json({ error: "userId is required for user-specific notifications" });
         }
 
-        // Save Notification
         await Notification.create(notificationData);
 
         return res.status(201).json({ message: "Notification sent successfully" });
@@ -35,7 +30,6 @@ const createNotification = async (req, res) => {
     }
 };
 
-// Get All Notifications for a Specific User
 const getUserNotifications = async (req, res) => {
     try {
         const { userId } = req;
@@ -58,7 +52,6 @@ const getUserNotifications = async (req, res) => {
     }
 };
 
-// Get Unread Notification Count
 const getUnreadNotificationCount = async (req, res) => {
     try {
         const { userId } = req;
@@ -81,7 +74,6 @@ const getUnreadNotificationCount = async (req, res) => {
     }
 };
 
-// Mark a single notification as read
 const markNotificationAsRead = async (req, res) => {
     try {
         const { userId, userRole, user } = req;
@@ -101,10 +93,8 @@ const markNotificationAsRead = async (req, res) => {
             return res.status(404).json({ error: 'Notification not found' });
         }
 
-        // Admins can mark any notification as read
         const isAdmin = userRole === 'admin' || user?.role === 'admin' || req.isAdmin === true;
 
-        // Non-admins can only mark their own notifications or global ones
         if (!isAdmin) {
             if (!notification.isGlobal && notification.userId && notification.userId.toString() !== userId.toString()) {
                 return res.status(403).json({ error: 'You can only mark your own notifications as read' });
@@ -125,7 +115,6 @@ const markNotificationAsRead = async (req, res) => {
     }
 };
 
-// Mark all notifications as read for a user
 const markAllNotificationsAsRead = async (req, res) => {
     try {
         const { userId } = req;
@@ -134,7 +123,6 @@ const markAllNotificationsAsRead = async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // Update all user-specific and global unread notifications
         const result = await Notification.updateMany(
             {
                 $or: [
@@ -156,7 +144,6 @@ const markAllNotificationsAsRead = async (req, res) => {
     }
 };
 
-// Delete a single notification
 const deleteNotification = async (req, res) => {
     try {
         const { userId, userRole, user } = req;
@@ -176,13 +163,9 @@ const deleteNotification = async (req, res) => {
             return res.status(404).json({ error: 'Notification not found' });
         }
 
-        // Admins can delete any notification
-        // Check multiple sources for admin role
         const isAdmin = userRole === 'admin' || user?.role === 'admin' || req.isAdmin === true;
         
         if (!isAdmin) {
-            // Non-admins can only delete their own notifications
-            // Global notifications can't be deleted by regular users
             if (notification.isGlobal) {
                 return res.status(403).json({ error: 'Cannot delete global notifications' });
             }
@@ -204,7 +187,6 @@ const deleteNotification = async (req, res) => {
     }
 };
 
-// Delete all user's notifications (not global ones)
 const deleteAllUserNotifications = async (req, res) => {
     try {
         const { userId } = req;

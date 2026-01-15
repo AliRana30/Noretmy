@@ -55,7 +55,6 @@ const PricingPlans = ({
       return;
     }
 
-    // Freelancers cannot order
     if (isFreelancer) {
       toast.info(t('gigs:single.pricing.freelancerRestriction') || 'Freelancers cannot order services. Switch to buyer account to order.', {
         position: 'top-center',
@@ -123,7 +122,6 @@ const PricingPlans = ({
     }
   };
 
-  // Only disable if freelancer or own gig
   const isButtonDisabled = isFreelancer || isOwnGig;
 
   return (

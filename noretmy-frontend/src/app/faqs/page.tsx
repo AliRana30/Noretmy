@@ -1,5 +1,4 @@
 import FAQScreen from '@/components/shared/FAQS';
-// import DiveDeeper from '@/components/shared/DiveDeeper';
 import { StoreProvider } from '@/store/StoreProvider';
 const FAQS = () => {
   return (

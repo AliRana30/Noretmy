@@ -1,4 +1,3 @@
-// models/Review.js
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema({
@@ -9,24 +8,19 @@ const reviewSchema = new mongoose.Schema({
   star: { type: Number, required: true, min: 1, max: 5 },
   desc: { type: String, required: true },
   
-  // Additional review details
   communicationRating: { type: Number, min: 1, max: 5 },
   qualityRating: { type: Number, min: 1, max: 5 },
   deliveryRating: { type: Number, min: 1, max: 5 },
   
-  // Review metadata
   reviewerName: { type: String },
   reviewerImage: { type: String },
   
-  // Completion stats from order
   completionTime: { type: Number }, // Days to complete
   deadlineMet: { type: Boolean },
   
-  // Response from seller
   sellerResponse: { type: String },
   sellerResponseDate: { type: Date },
   
-  // Moderation
   isApproved: { type: Boolean, default: true },
   isFlagged: { type: Boolean, default: false },
   
@@ -34,7 +28,6 @@ const reviewSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 reviewSchema.index({ sellerId: 1, createdAt: -1 });
 reviewSchema.index({ gigId: 1 });
 

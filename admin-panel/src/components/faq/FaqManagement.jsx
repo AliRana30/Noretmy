@@ -8,18 +8,15 @@ import FaqDataGrid from './FaqDataGrid';
 import FaqFormDialog from './FaqFormDialog';
 
 const FaqManagement = ({
-  // Data
   faqs,
   categories,
   stats,
   loading,
   
-  // Form
   control,
   errors,
   handleSubmit,
   
-  // States
   filters,
   pagination,
   selectedRows,
@@ -27,7 +24,6 @@ const FaqManagement = ({
   openDialog,
   dialogMode,
   
-  // Handlers
   onFilterChange,
   onRefresh,
   onBulkActionChange,

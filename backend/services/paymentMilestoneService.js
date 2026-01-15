@@ -1,4 +1,3 @@
-// services/paymentMilestoneService.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
 const PaymentMilestone = require('../models/PaymentMilestone');
@@ -45,7 +44,6 @@ const getCumulativePercentage = (stage) => {
  */
 const createPaymentIntentWithAuth = async (order, email, captureMethod = 'manual') => {
   try {
-    // Get or create Stripe customer
     let customer = await stripe.customers.list({ email, limit: 1 });
     
     if (customer.data.length > 0) {
@@ -56,7 +54,6 @@ const createPaymentIntentWithAuth = async (order, email, captureMethod = 'manual
     
     const totalAmountCents = Math.round(order.totalAmount * 100);
     
-    // Create payment intent with manual capture
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmountCents,
       currency: order.currency?.toLowerCase() || 'usd',
@@ -73,7 +70,6 @@ const createPaymentIntentWithAuth = async (order, email, captureMethod = 'manual
       description: `Order payment for Order #${order._id}`
     });
     
-    // Update order with payment intent
     order.payment_intent = paymentIntent.id;
     order.paymentStatus = 'processing';
     await order.save();
@@ -105,7 +101,6 @@ const processAcceptedMilestone = async (orderId, sellerId) => {
     
     const amount = calculateMilestoneAmount(order.totalAmount, 'accepted');
     
-    // Create milestone record
     const milestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'accepted',
@@ -125,7 +120,6 @@ const processAcceptedMilestone = async (orderId, sellerId) => {
     
     await milestone.save({ session });
     
-    // Update order
     order.paymentMilestoneStage = 'accepted';
     order.paymentBreakdown.authorizedAmount = amount;
     order.addTimelineEvent('Payment Authorized', `10% ($${amount.toFixed(2)}) authorized`, 'system');
@@ -133,7 +127,6 @@ const processAcceptedMilestone = async (orderId, sellerId) => {
     
     await session.commitTransaction();
     
-    // Send notifications (outside transaction)
     await notifyMilestoneChange(order, 'accepted', amount);
     
     return { success: true, milestone };
@@ -163,12 +156,10 @@ const processEscrowMilestone = async (orderId) => {
     const amount = calculateMilestoneAmount(order.totalAmount, 'in_escrow');
     const amountCents = Math.round(amount * 100);
     
-    // Capture partial payment from Stripe
     const paymentIntent = await stripe.paymentIntents.capture(order.payment_intent, {
       amount_to_capture: amountCents
     });
     
-    // Create milestone record
     const milestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'in_escrow',
@@ -188,7 +179,6 @@ const processEscrowMilestone = async (orderId) => {
     
     await milestone.save({ session });
     
-    // Update order
     order.paymentMilestoneStage = 'in_escrow';
     order.escrowStatus = 'partial';
     order.paymentBreakdown.escrowAmount = amount;
@@ -199,10 +189,8 @@ const processEscrowMilestone = async (orderId) => {
     
     await session.commitTransaction();
     
-    // Send notifications
     await notifyMilestoneChange(order, 'in_escrow', amount);
     
-    // Add to freelancer's pending balance
     const freelancer = await Freelancer.findOne({ userId: order.sellerId });
     if (freelancer) {
       await freelancer.addEarnings(amount, order._id);
@@ -229,7 +217,6 @@ const processDeliveryMilestone = async (orderId, sellerId) => {
     
     const amount = calculateMilestoneAmount(order.totalAmount, 'delivered');
     
-    // Create milestone record
     const milestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'delivered',
@@ -248,14 +235,12 @@ const processDeliveryMilestone = async (orderId, sellerId) => {
     
     await milestone.save();
     
-    // Update order
     order.paymentMilestoneStage = 'delivered';
     order.paymentBreakdown.deliveryAmount = amount;
     order.paymentBreakdown.pendingReleaseAmount += amount;
     order.addTimelineEvent('Delivery Milestone', `20% ($${amount.toFixed(2)}) pending release`, 'seller');
     await order.save();
     
-    // Notify
     await notifyMilestoneChange(order, 'delivered', amount);
     
     return { success: true, milestone };
@@ -276,7 +261,6 @@ const processReviewMilestone = async (orderId, buyerId) => {
     
     const amount = calculateMilestoneAmount(order.totalAmount, 'reviewed');
     
-    // Create milestone record
     const milestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'reviewed',
@@ -295,14 +279,12 @@ const processReviewMilestone = async (orderId, buyerId) => {
     
     await milestone.save();
     
-    // Update order
     order.paymentMilestoneStage = 'reviewed';
     order.paymentBreakdown.reviewAmount = amount;
     order.paymentBreakdown.pendingReleaseAmount += amount;
     order.addTimelineEvent('Review Milestone', `Final 20% ($${amount.toFixed(2)}) pending release`, 'buyer');
     await order.save();
     
-    // Notify
     await notifyMilestoneChange(order, 'reviewed', amount);
     
     return { success: true, milestone };
@@ -328,7 +310,6 @@ const releaseFundsToFreelancer = async (orderId) => {
     const freelancer = await Freelancer.findOne({ userId: order.sellerId }).session(session);
     if (!freelancer) throw new Error('Freelancer account not found');
     
-    // Get all pending milestones
     const pendingMilestones = await PaymentMilestone.find({
       orderId: order._id,
       paymentStatus: { $in: ['held_in_escrow', 'pending_release'] }
@@ -336,7 +317,6 @@ const releaseFundsToFreelancer = async (orderId) => {
     
     let totalToRelease = 0;
     
-    // Create transfer to freelancer's Stripe account
     if (freelancer.stripeAccountId) {
       const totalCents = Math.round(order.paymentBreakdown.pendingReleaseAmount * 100 + order.paymentBreakdown.escrowAmount * 100);
       
@@ -353,7 +333,6 @@ const releaseFundsToFreelancer = async (orderId) => {
       
       order.stripeTransferId = transfer.id;
       
-      // Mark all milestones as released
       for (const milestone of pendingMilestones) {
         milestone.paymentStatus = 'released';
         milestone.stripeTransferId = transfer.id;
@@ -363,7 +342,6 @@ const releaseFundsToFreelancer = async (orderId) => {
       }
     }
     
-    // Create completion milestone
     const completionMilestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'completed',
@@ -382,7 +360,6 @@ const releaseFundsToFreelancer = async (orderId) => {
     
     await completionMilestone.save({ session });
     
-    // Update order
     order.paymentMilestoneStage = 'completed';
     order.escrowStatus = 'released';
     order.paymentBreakdown.totalReleasedAmount = totalToRelease;
@@ -393,10 +370,8 @@ const releaseFundsToFreelancer = async (orderId) => {
     order.addTimelineEvent('Funds Released', `$${totalToRelease.toFixed(2)} released to freelancer`, 'system');
     await order.save({ session });
     
-    // Update freelancer balance
     await freelancer.releaseEarnings(totalToRelease);
     
-    // Also update User model revenue
     const seller = await User.findById(order.sellerId).session(session);
     if (seller) {
       seller.revenue = seller.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0 };
@@ -407,7 +382,6 @@ const releaseFundsToFreelancer = async (orderId) => {
     
     await session.commitTransaction();
     
-    // Send notifications
     await notifyMilestoneChange(order, 'completed', totalToRelease);
     
     return { success: true, amountReleased: totalToRelease };
@@ -429,7 +403,6 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
     const order = await Order.findById(orderId);
     if (!order) throw new Error('Order not found');
     
-    // Get captured milestones
     const capturedMilestones = await PaymentMilestone.find({
       orderId: order._id,
       paymentStatus: { $in: ['captured', 'held_in_escrow'] }
@@ -437,7 +410,6 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
     
     let totalRefunded = 0;
     
-    // Process refund if there are captured funds
     if (capturedMilestones.length > 0 && order.stripeChargeId) {
       const refundAmount = capturedMilestones.reduce((sum, m) => sum + m.amount, 0);
       const refundAmountCents = Math.round(refundAmount * 100);
@@ -454,7 +426,6 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
       
       totalRefunded = refundAmount;
       
-      // Update milestones
       for (const milestone of capturedMilestones) {
         milestone.paymentStatus = 'refunded';
         milestone.refundedAt = new Date();
@@ -462,7 +433,6 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
       }
     }
     
-    // Create cancellation milestone
     const cancelMilestone = new PaymentMilestone({
       orderId: order._id,
       stage: 'cancelled',
@@ -482,14 +452,12 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
     
     await cancelMilestone.save();
     
-    // Update order
     order.paymentMilestoneStage = 'cancelled';
     order.escrowStatus = 'refunded';
     order.paymentStatus = 'refunded';
     order.addTimelineEvent('Order Cancelled', `${reason}. $${totalRefunded.toFixed(2)} refunded.`, 'system');
     await order.save();
     
-    // Update freelancer pending balance
     if (totalRefunded > 0) {
       const freelancer = await Freelancer.findOne({ userId: order.sellerId });
       if (freelancer && freelancer.revenue) {
@@ -499,12 +467,10 @@ const processCancellation = async (orderId, reason, cancelledBy) => {
       }
     }
     
-    // Update seller badge metrics for the cancellation
     try {
       await updateSellerMetricsOnCancellation(order.sellerId);
       } catch (metricsError) {
       console.error('[PaymentMilestone] Error updating seller metrics on cancellation:', metricsError);
-      // Don't fail the cancellation if metrics update fails
     }
     
     return { success: true, refundedAmount: totalRefunded };
@@ -525,7 +491,6 @@ const getOrderPaymentStatus = async (orderId) => {
     
     const milestones = await PaymentMilestone.find({ orderId }).sort({ createdAt: 1 });
     
-    // Calculate totals
     const totals = {
       orderTotal: order.totalAmount,
       authorized: order.paymentBreakdown?.authorizedAmount || 0,
@@ -535,7 +500,6 @@ const getOrderPaymentStatus = async (orderId) => {
       currentStage: order.paymentMilestoneStage || 'order_placed'
     };
     
-    // Generate stage status for UI
     const stages = [
       { 
         id: 'order_placed', 
@@ -680,7 +644,6 @@ const notifyMilestoneChange = async (order, stage, amount) => {
     const messages = stageMessages[stage];
     if (!messages) return;
     
-    // Create notifications
     const notifications = [];
     
     if (buyer) {
@@ -695,7 +658,6 @@ const notifyMilestoneChange = async (order, stage, amount) => {
         })
       );
       
-      // Send email notification to buyer
       notifications.push(
         sendPaymentMilestoneEmail(buyer.email, {
           orderId: order._id.toString(),
@@ -723,7 +685,6 @@ const notifyMilestoneChange = async (order, stage, amount) => {
         })
       );
       
-      // Send email notification to seller
       notifications.push(
         sendPaymentMilestoneEmail(seller.email, {
           orderId: order._id.toString(),
@@ -743,7 +704,6 @@ const notifyMilestoneChange = async (order, stage, amount) => {
     
   } catch (error) {
     console.error('[PaymentMilestone] Error sending notifications:', error);
-    // Don't throw - notifications are non-critical
   }
 };
 

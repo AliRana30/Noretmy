@@ -1,4 +1,3 @@
-// models/PaymentMilestone.js
 const mongoose = require('mongoose');
 
 /**
@@ -20,7 +19,6 @@ const paymentMilestoneSchema = new mongoose.Schema({
     index: true
   },
   
-  // Milestone stage
   stage: {
     type: String,
     required: true,
@@ -37,7 +35,6 @@ const paymentMilestoneSchema = new mongoose.Schema({
     ]
   },
   
-  // Payment details
   percentageOfTotal: {
     type: Number,
     required: true,
@@ -58,7 +55,6 @@ const paymentMilestoneSchema = new mongoose.Schema({
     default: 0
   },
   
-  // Stripe payment tracking
   stripePaymentIntentId: {
     type: String,
     required: false,
@@ -73,7 +69,6 @@ const paymentMilestoneSchema = new mongoose.Schema({
     required: false
   },
   
-  // Payment status
   paymentStatus: {
     type: String,
     required: true,
@@ -91,54 +86,45 @@ const paymentMilestoneSchema = new mongoose.Schema({
     default: 'pending'
   },
   
-  // Timestamps for tracking
   authorizedAt: { type: Date },
   capturedAt: { type: Date },
   releasedAt: { type: Date },
   refundedAt: { type: Date },
   failedAt: { type: Date },
   
-  // Error handling
   failureReason: { type: String },
   failureCode: { type: String },
   
-  // Metadata
   metadata: {
     type: Map,
     of: String,
     default: {}
   },
   
-  // Actor who triggered this milestone
   triggeredBy: {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     role: { type: String, enum: ['buyer', 'seller', 'system', 'admin'] },
     action: { type: String }
   },
   
-  // Notes
   notes: { type: String }
   
 }, {
   timestamps: true
 });
 
-// Compound index for efficient queries
 paymentMilestoneSchema.index({ orderId: 1, stage: 1 });
 paymentMilestoneSchema.index({ stripePaymentIntentId: 1 });
 paymentMilestoneSchema.index({ createdAt: -1 });
 
-// Virtual for display amount
 paymentMilestoneSchema.virtual('displayAmount').get(function() {
   return `$${this.amount.toFixed(2)}`;
 });
 
-// Static method to get all milestones for an order
 paymentMilestoneSchema.statics.getOrderMilestones = async function(orderId) {
   return this.find({ orderId }).sort({ createdAt: 1 });
 };
 
-// Static method to get current payment status for an order
 paymentMilestoneSchema.statics.getCurrentPaymentStatus = async function(orderId) {
   const milestones = await this.find({ orderId }).sort({ createdAt: -1 });
   if (milestones.length === 0) return null;
@@ -159,7 +145,6 @@ paymentMilestoneSchema.statics.getCurrentPaymentStatus = async function(orderId)
   };
 };
 
-// Instance method to mark as failed
 paymentMilestoneSchema.methods.markFailed = async function(reason, code = null) {
   this.paymentStatus = 'failed';
   this.failureReason = reason;
@@ -168,7 +153,6 @@ paymentMilestoneSchema.methods.markFailed = async function(reason, code = null) 
   return this.save();
 };
 
-// Instance method to mark as released
 paymentMilestoneSchema.methods.markReleased = async function(transferId = null) {
   this.paymentStatus = 'released';
   this.stripeTransferId = transferId;

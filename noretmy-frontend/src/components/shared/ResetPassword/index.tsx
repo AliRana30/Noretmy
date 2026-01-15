@@ -73,19 +73,16 @@ const ResetPasswordScreen: React.FC = () => {
   };
 
   const validateForm = () => {
-    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
       return false;
     }
 
-    // Check password length
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long');
       return false;
     }
 
-    // Check password strength
     if (passwordStrength < 3) {
       setError(
         'Password is too weak. Include uppercase, lowercase, numbers, and special characters',
@@ -105,7 +102,6 @@ const ResetPasswordScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Replace with your actual API endpoint
       const response = await axios.post(
         `${BACKEND_URL}/auth/reset-password`,
         {
@@ -146,7 +142,6 @@ const ResetPasswordScreen: React.FC = () => {
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-2xl">
           {isSubmitted ? (
-            /* Success state */
             <div className="p-10 text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 text-orange-600 mb-6 shadow-inner">
                 <CheckCircle size={40} className="animate-pulse" />
@@ -167,7 +162,6 @@ const ResetPasswordScreen: React.FC = () => {
               </button>
             </div>
           ) : (
-            /* Reset form */
             <div>
               <div className="p-10 pb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-3">

@@ -11,9 +11,7 @@ const User = require('../models/User');
 
 const setAdminRole = async (email) => {
   try {
-    // Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGO);
-    // Find user by email
     const user = await User.findOne({ email: email });
     
     if (!user) {
@@ -21,7 +19,6 @@ const setAdminRole = async (email) => {
       process.exit(1);
     }
 
-    // Update role to admin and add all permissions
     user.role = 'admin';
     user.permissions = [
       'user_management',
@@ -34,10 +31,8 @@ const setAdminRole = async (email) => {
       'promotion_management'
     ];
 
-    // Save without triggering password hashing (password not modified)
     await user.save();
 
-    // Also update via updateOne to be sure
     await User.updateOne(
       { _id: user._id },
       { 
@@ -56,7 +51,6 @@ const setAdminRole = async (email) => {
   }
 };
 
-// Get email from command line argument
 const email = process.argv[2];
 
 if (!email) {

@@ -31,20 +31,16 @@ const createProject = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Parse skills if it's a JSON string
     let parsedSkills;
     try {
       parsedSkills = typeof skills === "string" ? JSON.parse(skills) : skills;
     } catch (e) {
-      // If JSON parse fails, try splitting by comma
       parsedSkills = typeof skills === "string" ? skills.split(",").map(s => s.trim()) : skills;
     }
 
-    // Handle file upload using Cloudinary
     let imageUrl = "";
     if (req.files && req.files.length > 0) {
       try {
-        // uploadDocuments returns an array of URLs directly
         const urls = await uploadDocuments(req);
         if (urls && urls.length > 0) {
           imageUrl = urls[0];
@@ -106,7 +102,6 @@ const deleteProject = async (req, res) => {
   }
 };
 
-// ✅ Edit (Update) project by ID
 const editProject = async (req, res) => {
   try {
     const { projectId } = req.params;

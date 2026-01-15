@@ -39,7 +39,6 @@ interface DashboardLayoutProps {
     userType?: 'buyer' | 'seller' | 'admin';
 }
 
-// Seller sidebar configuration
 const sellerSidebar: SidebarSection[] = [
     {
         items: [
@@ -78,7 +77,6 @@ const sellerSidebar: SidebarSection[] = [
     }
 ];
 
-// Buyer sidebar configuration
 const buyerSidebar: SidebarSection[] = [
     {
         items: [

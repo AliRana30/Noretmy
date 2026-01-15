@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-// import DiveDeeper from '@/components/shared/DiveDeeper';
 import SingleOrderPage from '@/components/shared/Order-Details-Buyer/Single';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

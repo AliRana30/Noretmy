@@ -83,7 +83,6 @@ const MessageComponent: React.FC<MessageProps> = ({
   const [rejectReason, setRejectReason] = useState('');
 
   const messageSenderId = item.userId || item.senderId;
-  // Ensure string comparison for ID matching
   const isSelf = String(messageSenderId) === String(userId);
   const messageType = item.messageType || 'text';
 
@@ -91,7 +90,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     ? (currentUserAvatar || defaultAvatar)
     : (otherUserAvatar || item.image || defaultAvatar);
 
-  // Handle accept invitation
   const handleAcceptInvitation = async () => {
     if (!item.orderId) return;
     setIsLoading(true);
@@ -103,7 +101,6 @@ const MessageComponent: React.FC<MessageProps> = ({
       );
       toast.success('Order accepted! The client can now proceed with payment.');
       if (onOrderAction) onOrderAction(item.orderId, 'accept');
-      // Force refresh messages
       window.location.reload();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to accept invitation');
@@ -112,7 +109,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     }
   };
 
-  // Handle reject invitation
   const handleRejectInvitation = async () => {
     if (!item.orderId) return;
     setIsLoading(true);
@@ -125,7 +121,6 @@ const MessageComponent: React.FC<MessageProps> = ({
       toast.info('Order invitation declined.');
       setShowRejectModal(false);
       if (onOrderAction) onOrderAction(item.orderId, 'reject', rejectReason);
-      // Force refresh messages
       window.location.reload();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to reject invitation');
@@ -134,7 +129,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     }
   };
 
-  // Render order invitation card
   const renderOrderInvitation = () => {
     const orderData = item.orderData;
     const invitationStatus = orderData?.invitationStatus || 'pending';
@@ -288,7 +282,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     );
   };
 
-  // Render order status message
   const renderOrderStatus = () => {
     const isAccepted = messageType === 'order_accepted';
 
@@ -316,7 +309,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     );
   };
 
-  // Render regular text message
   const renderTextMessage = () => (
     <div
       className={`p-4 rounded-2xl shadow ${isSelf
@@ -334,7 +326,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     </div>
   );
 
-  // Render file message (message with attachments)
   const renderFileMessage = () => (
     <div
       className={`p-4 rounded-2xl shadow ${isSelf
@@ -352,7 +343,6 @@ const MessageComponent: React.FC<MessageProps> = ({
     </div>
   );
 
-  // Determine which content to render
   const renderMessageContent = () => {
     switch (messageType) {
       case 'order_invitation':

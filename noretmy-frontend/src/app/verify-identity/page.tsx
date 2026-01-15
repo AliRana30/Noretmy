@@ -10,7 +10,6 @@ const DocumentUpload = () => {
   const [error, setError] = useState('');
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Get document status from Redux state
   const documentStatus = useSelector((state: any) => state.auth.user?.documentStatus || 'none');
 
   const handleFileChange = (e: any) => {
@@ -21,7 +20,6 @@ const DocumentUpload = () => {
       return;
     }
 
-    // Check file type (you can customize this for your accepted file types)
     const acceptedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
     if (!acceptedTypes.includes(selectedFile.type)) {
       setError('Please upload a PDF, JPEG, or PNG file.');
@@ -29,7 +27,6 @@ const DocumentUpload = () => {
       return;
     }
 
-    // Check file size (limit to 5MB)
     if (selectedFile.size > 5 * 1024 * 1024) {
       setError('File size should not exceed 5MB.');
       setFile(null);
@@ -51,11 +48,9 @@ const DocumentUpload = () => {
     setStatus('Uploading document...');
 
     try {
-      // Create form data
       const formData = new FormData();
       formData.append('images', files); // this key MUST match the field name in multer
 
-      // Upload document to API
       const response = await axios.post(`${BACKEND_URL}/api/upload/verify`,
         formData
         , {
@@ -87,11 +82,9 @@ const DocumentUpload = () => {
     setStatus('');
   };
 
-  // Render different content based on document status
   const renderContent = () => {
     switch (documentStatus) {
       case 'none':
-        // Show upload form if document status is none
         return (
           <>
             <h2 className="text-xl font-semibold mb-4">Document Verification</h2>

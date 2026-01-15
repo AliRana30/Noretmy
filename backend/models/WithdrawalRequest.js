@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Withdrawal cooldown period in days (configurable)
 const WITHDRAWAL_COOLDOWN_DAYS = 7;
 
 const withdrawalRequestSchema = new mongoose.Schema({
@@ -25,7 +24,6 @@ const withdrawalRequestSchema = new mongoose.Schema({
     required: true
   },
   accountDetails: {
-    // For bank transfer
     accountHolderName: String,
     bankName: String,
     accountNumber: String,
@@ -33,13 +31,10 @@ const withdrawalRequestSchema = new mongoose.Schema({
     swiftCode: String,
     iban: String,
     
-    // For PayPal
     paypalEmail: String,
     
-    // For Stripe
     stripeAccountId: String,
     
-    // For other methods
     otherDetails: String
   },
   notes: {
@@ -67,7 +62,6 @@ const withdrawalRequestSchema = new mongoose.Schema({
   transactionId: {
     type: String // For tracking actual payment transaction
   },
-  // Cooldown tracking
   cooldownEndsAt: {
     type: Date
   }
@@ -75,11 +69,9 @@ const withdrawalRequestSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 withdrawalRequestSchema.index({ userId: 1, status: 1 });
 withdrawalRequestSchema.index({ status: 1, createdAt: -1 });
 
-// Static method to check if user is in cooldown period
 withdrawalRequestSchema.statics.isInCooldown = async function(userId) {
   const lastApprovedWithdrawal = await this.findOne({
     userId,
@@ -104,7 +96,6 @@ withdrawalRequestSchema.statics.isInCooldown = async function(userId) {
   return { inCooldown: false };
 };
 
-// Static method to get cooldown period in days
 withdrawalRequestSchema.statics.getCooldownDays = function() {
   return WITHDRAWAL_COOLDOWN_DAYS;
 };

@@ -53,7 +53,6 @@ const TimelineExtensionModal: React.FC<TimelineExtensionModalProps> = ({
         setIsProcessing(true);
 
         try {
-            // Create payment intent
             const response = await axios.post(
                 `${BACKEND_URL}/timeline-extension/create-payment`,
                 {
@@ -69,13 +68,11 @@ const TimelineExtensionModal: React.FC<TimelineExtensionModalProps> = ({
                 throw new Error('Failed to initialize payment');
             }
 
-            // Load Stripe
             const stripe = await stripePromise;
             if (!stripe) {
                 throw new Error('Stripe failed to load');
             }
 
-            // Confirm payment
             const { error, paymentIntent } = await stripe.confirmCardPayment(client_secret);
 
             if (error) {
@@ -238,7 +235,6 @@ const TimelineExtensionModal: React.FC<TimelineExtensionModalProps> = ({
                         </div>
                     </div>
                 ) : (
-                    /* Confirmation Screen */
                     <div className="p-6 space-y-6">
                         <div className="text-center">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">

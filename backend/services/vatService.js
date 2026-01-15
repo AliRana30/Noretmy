@@ -15,14 +15,12 @@ const VATRate = require('../models/Vat');
 const UserProfile = require('../models/UserProfile');
 const User = require('../models/User');
 
-// EU country codes
 const EU_COUNTRIES = [
   'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
   'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
   'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
 ];
 
-// Platform fee rate
 const PLATFORM_FEE_RATE = 0.05; // 5% platform fee
 
 /**
@@ -43,26 +41,19 @@ const validateVATID = async (vatId, countryCode) => {
       return { valid: false, error: 'VAT ID or country code missing' };
     }
 
-    // Clean VAT ID - remove spaces and country prefix if already included
     const cleanVatId = vatId.replace(/\s/g, '').toUpperCase();
     const country = countryCode.toUpperCase();
     
-    // Ensure country is in EU
     if (!isEUCountry(country)) {
       return { valid: false, error: 'Country is not in EU' };
     }
 
-    // Remove country prefix if present
     let vatNumber = cleanVatId;
     if (cleanVatId.startsWith(country)) {
       vatNumber = cleanVatId.substring(country.length);
     }
 
-    // For production, use EC VIES service
-    // This is a simplified validation - in production use the official VIES API
-    // API: https://ec.europa.eu/taxation_customs/vies/services/checkVatService
     
-    // Basic format validation per country
     const vatFormats = {
       'AT': /^U\d{8}$/,
       'BE': /^0?\d{9,10}$/,
@@ -98,12 +89,7 @@ const validateVATID = async (vatId, countryCode) => {
       return { valid: false, error: 'Invalid VAT ID format' };
     }
 
-    // In production, call VIES API here
-    // For now, we assume basic format validation is sufficient
-    // and mark as valid for testing
     
-    // TODO: Implement actual VIES API call
-    // const response = await axios.post('VIES_API_URL', { countryCode: country, vatNumber });
     
     return {
       valid: true,
@@ -130,20 +116,16 @@ const getVATRateByCountry = async (countryCode) => {
 
     const country = countryCode.toUpperCase();
 
-    // Non-EU countries = 0% VAT
     if (!isEUCountry(country)) {
       return 0;
     }
 
-    // Look up VAT rate in database
     const vatRecord = await VATRate.findOne({ countryCode: country });
     
     if (vatRecord && vatRecord.standardRate) {
-      // standardRate is stored as percentage (e.g., 20), convert to decimal
       return vatRecord.standardRate / 100;
     }
 
-    // Fallback VAT rates if not in database
     const fallbackRates = {
       'AT': 0.20, 'BE': 0.21, 'BG': 0.20, 'HR': 0.25, 'CY': 0.19,
       'CZ': 0.21, 'DK': 0.25, 'EE': 0.22, 'FI': 0.24, 'FR': 0.20,
@@ -196,37 +178,29 @@ const calculateVATBreakdown = async ({
     const country = (clientCountry || '').toUpperCase();
     const isEU = isEUCountry(country);
 
-    // Determine VAT rate
     if (isEU) {
-      // B2B with valid VAT ID = reverse charge
       if (isBusinessClient && vatId) {
         const vatValidation = await validateVATID(vatId, country);
         
         if (vatValidation.valid) {
-          // Reverse charge applies
           vatRate = 0;
           reverseChargeApplied = true;
           reverseChargeNote = 'VAT reverse-charged under Article 44 and 196 of EU VAT Directive';
         } else {
-          // Invalid VAT ID - treat as B2C
           vatRate = await getVATRateByCountry(country);
         }
       } else {
-        // B2C - apply VAT based on client country
         vatRate = await getVATRateByCountry(country);
       }
     } else {
-      // Non-EU = 0% VAT
       vatRate = 0;
     }
 
-    // Calculate amounts
     const platformFee = Math.round(price * PLATFORM_FEE_RATE * 100) / 100;
     const taxableAmount = price + platformFee;
     const vatAmount = Math.round(taxableAmount * vatRate * 100) / 100;
     const totalAmount = Math.round((taxableAmount + vatAmount) * 100) / 100;
     
-    // Seller receives base price minus platform fee (VAT excluded)
     const sellerEarnings = Math.round((price - platformFee) * 100) / 100;
 
     return {
@@ -245,7 +219,6 @@ const calculateVATBreakdown = async ({
         reverseChargeApplied,
         reverseChargeNote,
         sellerEarnings,
-        // For Stripe
         stripeTotalCents: Math.round(totalAmount * 100)
       }
     };
@@ -253,7 +226,6 @@ const calculateVATBreakdown = async ({
   } catch (error) {
     console.error('VAT calculation error:', error.message);
     
-    // Graceful fallback - allow checkout with 0% VAT
     const price = Number(basePrice) || 0;
     const platformFee = Math.round(price * PLATFORM_FEE_RATE * 100) / 100;
     
@@ -286,7 +258,6 @@ const calculateVATBreakdown = async ({
  */
 const getVATForUser = async (userId, basePrice, currency = 'EUR') => {
   try {
-    // Get user profile for country and business info
     const userProfile = await UserProfile.findOne({ userId });
     const user = await User.findById(userId);
 
@@ -332,7 +303,6 @@ const getStripeVATMetadata = (vatBreakdown, orderId, userId) => {
  * Lock VAT data after successful payment (immutable)
  */
 const lockVATData = (order) => {
-  // These fields should not be modified after payment
   return {
     baseAmount: order.baseAmount,
     vatRate: order.vatRate,

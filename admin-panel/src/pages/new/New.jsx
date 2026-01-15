@@ -32,7 +32,6 @@ const New = ({ inputs, title, apiEndpoint }) => {
     e.preventDefault();
     setLoading(true);
     
-    // Check if endpoint is provided
     if (!apiEndpoint) {
       toast.error("API endpoint not configured for this action");
       setLoading(false);
@@ -42,9 +41,6 @@ const New = ({ inputs, title, apiEndpoint }) => {
     try {
       let newUser = { ...info };
 
-      // Handle file upload if exists (assuming backend handles it or we upload to Cloudinary first)
-      // For now, ignoring file upload logic to focus on basic text data or standard file upload
-      // If we need to upload file to Cloudinary:
       if (file) {
         const data = new FormData();
         data.append("file", file);
@@ -61,7 +57,6 @@ const New = ({ inputs, title, apiEndpoint }) => {
         }
       }
 
-      // If we are creating a user, make sure required fields are present
       if (apiEndpoint.includes('auth/signup')) {
           newUser = {
               ...newUser,

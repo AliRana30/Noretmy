@@ -57,13 +57,11 @@ const createReview = async (req, res, next) => {
         return res.status(404).send("Gig not found for updating stars!");
       }
   
-      // Update seller badge metrics
       try {
         await badgeService.updateSellerMetricsOnOrderComplete(order.sellerId, order);
         await badgeService.updateSellerRating(order.sellerId);
       } catch (badgeError) {
         console.error("Error updating seller badge:", badgeError);
-        // Don't fail the review creation if badge update fails
       }
   
       res.status(201).send("Review created successfully!");

@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils';
  * - Top progress bar for navigation
  */
 
-// ================== CONTEXT ==================
 interface LoaderContextType {
   isNavigating: boolean;
   setNavigating: (value: boolean) => void;
@@ -34,7 +33,6 @@ export const useLoader = () => {
   return context;
 };
 
-// ================== PROVIDER ==================
 export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isNavigating, setNavigating] = useState(false);
   const [scopedLoaders, setScopedLoaders] = useState<Record<string, boolean>>({});
@@ -55,7 +53,6 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-// ================== TOP PROGRESS BAR ==================
 export const TopProgressBar: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -65,7 +62,6 @@ export const TopProgressBar: React.FC<{ isLoading: boolean }> = ({ isLoading }) 
       setVisible(true);
       setProgress(0);
       
-      // Animate progress
       const timer1 = setTimeout(() => setProgress(30), 100);
       const timer2 = setTimeout(() => setProgress(60), 500);
       const timer3 = setTimeout(() => setProgress(80), 1000);
@@ -97,7 +93,6 @@ export const TopProgressBar: React.FC<{ isLoading: boolean }> = ({ isLoading }) 
   );
 };
 
-// ================== CONTENT OVERLAY LOADER ==================
 /**
  * Overlay loader that keeps content visible with a subtle loading indicator
  * Use this to wrap content that should stay visible during loading
@@ -126,7 +121,6 @@ export const ContentOverlay: React.FC<{
   </div>
 );
 
-// ================== SUBTLE SPINNER ==================
 export const SubtleSpinner: React.FC<{
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -148,7 +142,6 @@ export const SubtleSpinner: React.FC<{
   );
 };
 
-// ================== SKELETON BASE ==================
 export const Skeleton: React.FC<{
   className?: string;
   style?: React.CSSProperties;
@@ -156,7 +149,6 @@ export const Skeleton: React.FC<{
   <div className={cn('animate-pulse bg-gray-200 rounded', className)} style={style} />
 );
 
-// ================== GIG CARD SKELETON ==================
 export const GigCardSkeleton: React.FC<{ className?: string }> = ({ className }) => (
   <div className={cn('bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100', className)}>
     <Skeleton className="h-48 w-full rounded-none" />
@@ -178,7 +170,6 @@ export const GigCardSkeleton: React.FC<{ className?: string }> = ({ className })
   </div>
 );
 
-// ================== ORDER CARD SKELETON ==================
 export const OrderCardSkeleton: React.FC<{ className?: string }> = ({ className }) => (
   <div className={cn('bg-white rounded-xl shadow-sm border border-gray-100 p-4', className)}>
     <div className="flex gap-4">
@@ -199,7 +190,6 @@ export const OrderCardSkeleton: React.FC<{ className?: string }> = ({ className 
   </div>
 );
 
-// ================== CHAT LIST SKELETON ==================
 export const ChatListSkeleton: React.FC<{ count?: number }> = ({ count = 5 }) => (
   <div className="space-y-0 divide-y divide-gray-100">
     {Array.from({ length: count }).map((_, i) => (
@@ -217,7 +207,6 @@ export const ChatListSkeleton: React.FC<{ count?: number }> = ({ count = 5 }) =>
   </div>
 );
 
-// ================== MESSAGE SKELETON ==================
 export const MessageSkeleton: React.FC<{ isOwn?: boolean }> = ({ isOwn = false }) => (
   <div className={cn('flex gap-3 mb-4', isOwn && 'flex-row-reverse')}>
     <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
@@ -231,7 +220,6 @@ export const MessageSkeleton: React.FC<{ isOwn?: boolean }> = ({ isOwn = false }
   </div>
 );
 
-// ================== DASHBOARD STATS SKELETON ==================
 export const DashboardStatsSkeleton: React.FC = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     {Array.from({ length: 4 }).map((_, i) => (
@@ -247,7 +235,6 @@ export const DashboardStatsSkeleton: React.FC = () => (
   </div>
 );
 
-// ================== TABLE SKELETON ==================
 export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
   rows = 5,
   columns = 5,
@@ -270,7 +257,6 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
   </div>
 );
 
-// ================== PROFILE SKELETON ==================
 export const ProfileSkeleton: React.FC = () => (
   <div className="flex items-center gap-4">
     <Skeleton className="w-16 h-16 rounded-full" />
@@ -282,7 +268,6 @@ export const ProfileSkeleton: React.FC = () => (
   </div>
 );
 
-// ================== GRID SKELETONS ==================
 export const GigGridSkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     {Array.from({ length: count }).map((_, i) => (
@@ -299,7 +284,6 @@ export const OrderListSkeleton: React.FC<{ count?: number }> = ({ count = 5 }) =
   </div>
 );
 
-// ================== FADE IN WRAPPER ==================
 /**
  * Wraps content with a smooth fade-in animation when loading completes
  */
@@ -316,7 +300,6 @@ export const FadeIn: React.FC<{
   </div>
 );
 
-// ================== SEARCH RESULTS SKELETON ==================
 export const SearchResultsSkeleton: React.FC = () => (
   <div className="space-y-6">
     {/* Header */}
@@ -340,7 +323,6 @@ export const SearchResultsSkeleton: React.FC = () => (
   </div>
 );
 
-// ================== BUTTON LOADING STATE ==================
 export const ButtonLoader: React.FC<{
   isLoading: boolean;
   children: React.ReactNode;
@@ -368,7 +350,6 @@ export const ButtonLoader: React.FC<{
   </button>
 );
 
-// ================== SCOPED LOADER HOOK ==================
 /**
  * Hook for managing scoped loading states
  * Usage: const { isLoading, startLoading, stopLoading } = useScopedLoader('search');

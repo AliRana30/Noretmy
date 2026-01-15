@@ -23,7 +23,6 @@ const Logs = () => {
     setLoading(true);
     
     try {
-      // Try to fetch logs from backend
       const response = await axios.get(`${API_CONFIG.BASE_URL}/api/admin/logs`, {
         withCredentials: true
       }).catch(() => null);
@@ -31,13 +30,11 @@ const Logs = () => {
       if (response?.data?.logs) {
         setLogs(response.data.logs);
       } else {
-        // Generate dynamic logs based on current activity
         const dynamicLogs = generateDynamicLogs();
         setLogs(dynamicLogs);
       }
     } catch (error) {
       console.error('Error fetching logs:', error);
-      // Fallback to dynamic logs
       const dynamicLogs = generateDynamicLogs();
       setLogs(dynamicLogs);
     } finally {
@@ -87,7 +84,6 @@ const Logs = () => {
   useEffect(() => {
     fetchLogs();
     
-    // Auto-refresh every 60 seconds
     const interval = setInterval(fetchLogs, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -110,7 +106,6 @@ const Logs = () => {
     return matchesSearch && matchesLevel;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const paginatedLogs = filteredLogs.slice(
     (currentPage - 1) * itemsPerPage,

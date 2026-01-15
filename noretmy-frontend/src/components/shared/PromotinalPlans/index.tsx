@@ -102,7 +102,6 @@ const PromotionalPlansScreen = () => {
     },
   ];
 
-  // Check for active promotions on mount and when returning to page
   useEffect(() => {
     const checkActivePromotions = async () => {
       try {
@@ -122,7 +121,6 @@ const PromotionalPlansScreen = () => {
           setActivePromotion(null);
         }
       } catch (error: any) {
-        // User might not be a seller or no active promotions
         setActivePromotion(null);
       } finally {
         setLoading(false);
@@ -131,7 +129,6 @@ const PromotionalPlansScreen = () => {
 
     checkActivePromotions();
 
-    // Re-check when window gains focus (user returns from another tab/payment)
     const handleFocus = () => {
       checkActivePromotions();
     };
@@ -168,7 +165,6 @@ const PromotionalPlansScreen = () => {
       `You've selected the ${selectedPlanDetails.title} plan for $${selectedPlanDetails.price}`,
     );
 
-    // Navigate to checkout
     const paymentType = 'monthly_promotional';
     router.push(
       `/checkout?promotionalPlan=${selectedPlanDetails.id ?? ''}&title=${encodeURIComponent(selectedPlanDetails.title ?? '')}&price=${selectedPlanDetails.price ?? ''}&payment_type=${paymentType}`,

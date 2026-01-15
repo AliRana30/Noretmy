@@ -55,18 +55,15 @@ const ListFaqs = () => {
   const { getTranslation } = useLocalization();
   const { isAdmin, hasPermission } = useAuth();
   
-  // State management
   const [faqs, setFaqs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create'); // 'create' or 'edit'
   const [selectedFaq, setSelectedFaq] = useState(null);
   
-  // Form states
   const [formData, setFormData] = useState({
     category: '',
     question: '',
@@ -75,37 +72,31 @@ const ListFaqs = () => {
     order: 0
   });
   
-  // Filter states
   const [filters, setFilters] = useState({
     category: '',
     isActive: '',
     search: ''
   });
   
-  // Pagination states
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
     total: 0
   });
   
-  // Selection states
   const [selectedRows, setSelectedRows] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
   
-  // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [faqToDelete, setFaqToDelete] = useState(null);
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   
-  // Notification states
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  // Load FAQs data
   const loadFaqs = async () => {
     try {
       setLoading(true);
@@ -138,12 +129,10 @@ const ListFaqs = () => {
     }
   };
 
-  // Load data on component mount
   useEffect(() => {
     loadFaqs();
   }, [pagination.page, pagination.limit, filters]);
 
-  // Handle form input changes
   const handleFormChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -151,7 +140,6 @@ const ListFaqs = () => {
     }));
   };
 
-  // Handle filter changes
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
       ...prev,
@@ -160,7 +148,6 @@ const ListFaqs = () => {
     setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
   };
 
-  // Open create dialog
   const handleCreate = () => {
     setDialogMode('create');
     setSelectedFaq(null);
@@ -174,7 +161,6 @@ const ListFaqs = () => {
     setOpenDialog(true);
   };
 
-  // Open edit dialog
   const handleEdit = (faq) => {
     setDialogMode('edit');
     setSelectedFaq(faq);
@@ -188,7 +174,6 @@ const ListFaqs = () => {
     setOpenDialog(true);
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     try {
       if (dialogMode === 'create') {
@@ -218,13 +203,11 @@ const ListFaqs = () => {
     }
   };
 
-  // Handle delete - open modal instead of confirm
   const handleDelete = (id) => {
     setFaqToDelete(id);
     setDeleteModalOpen(true);
   };
   
-  // Confirm delete from modal
   const confirmDelete = async () => {
     if (!faqToDelete) return;
     
@@ -248,7 +231,6 @@ const ListFaqs = () => {
     }
   };
 
-  // Handle bulk actions
   const handleBulkAction = async () => {
     if (!selectedRows.length || !bulkAction) return;
     
@@ -279,7 +261,6 @@ const ListFaqs = () => {
     }
   };
   
-  // Confirm bulk delete from modal
   const confirmBulkDelete = async () => {
     try {
       await bulkDeleteFaqs(selectedRows);
@@ -302,7 +283,6 @@ const ListFaqs = () => {
     }
   };
 
-  // DataGrid columns
   const columns = [
     {
       field: 'id',
@@ -398,7 +378,6 @@ const ListFaqs = () => {
     }
   ];
 
-  // Stats cards
   const StatsCard = ({ title, value, color = 'primary' }) => (
     <Card>
       <CardContent>

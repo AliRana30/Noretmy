@@ -8,10 +8,8 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add request interceptor for logging (optional)
 axiosInstance.interceptors.request.use(
   (config) => {
-    // You can add auth token here if needed
     return config;
   },
   (error) => {
@@ -19,13 +17,10 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle common errors here
     if (error.response?.status === 401) {
-      // Handle unauthorized - could redirect to login
       }
     return Promise.reject(error);
   }

@@ -4,19 +4,12 @@ const Reviews = require('../models/Review')
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
-// Helper function to calculate the first day of the current month
 const getFirstDayOfCurrentMonth = () => {
   const date = new Date();
   return new Date(date.getFullYear(), date.getMonth(), 1);
 };
 
-// Calculate seller level based on performance metrics
 const calculateSellerLevel = (completedOrders, rating, completionRate, totalEarnings) => {
-  // Level criteria based on Fiverr-like system
-  // Top Rated Seller: 100+ orders, 4.9+ rating, 98%+ completion, $10000+ earnings
-  // Level 2 Seller: 50+ orders, 4.8+ rating, 95%+ completion, $5000+ earnings
-  // Level 1 Seller: 10+ orders, 4.7+ rating, 90%+ completion, $500+ earnings
-  // New Seller: Default
   
   const ratingNum = parseFloat(rating) || 0;
   
@@ -59,9 +52,7 @@ const calculateSellerLevel = (completedOrders, rating, completionRate, totalEarn
   }
 };
 
-// Calculate success score (weighted average of different metrics)
 const calculateSuccessScore = (rating, completionRate, onTimeDeliveryRate, responseRate) => {
-  // Weighted calculation
   const ratingWeight = 0.4;
   const completionWeight = 0.25;
   const onTimeWeight = 0.2;
@@ -82,20 +73,16 @@ const getSellerStatistics = async (sellerId) => {
     const firstDayOfMonth = getFirstDayOfCurrentMonth();
     const currentDate = new Date();
 
-    // Ensure sellerId is valid before querying
     if (!sellerId) {
       throw new Error("Invalid sellerId");
     }
 
     const sellerIdStr = sellerId.toString();
 
-    // Matching Admin Panel Logic (getUserDetails)
-    // Remove "isInvitation" filter that was potentially hiding oders
     const baseFilter = {
       sellerId: sellerIdStr,
     };
 
-    // Use orders that are paid for earnings calculation
     const paidFilter = {
       ...baseFilter,
       isPaid: true,
@@ -107,7 +94,6 @@ const getSellerStatistics = async (sellerId) => {
       status: 'completed'
     };
 
-    // Calculate seller rating - Match Admin Logic
     const reviews = await Reviews.aggregate([
       { $match: { sellerId: sellerIdStr } }, // Remove isApproved check if admin doesn't use it, but keeping it is usually safer. Admin code didn't show it.
       { $group: { _id: null, averageRating: { $avg: "$star" }, totalReviews: { $sum: 1 } } },
@@ -115,12 +101,10 @@ const getSellerStatistics = async (sellerId) => {
     const rating = reviews?.[0]?.averageRating?.toFixed(1) ?? "0";
     const totalReviews = reviews?.[0]?.totalReviews ?? 0;
 
-    // Fetch order-related data
     const totalOrders = await Order.countDocuments({
       ...baseFilter
     }) ?? 0;
     
-    // Active: Not completed, not cancelled
     const activeOrders = await Order.countDocuments({
       ...baseFilter,
       status: { $nin: ['completed', 'cancelled', 'disputed'] }
@@ -133,7 +117,6 @@ const getSellerStatistics = async (sellerId) => {
     
     const completedOrders = await Order.countDocuments(completedFilter) ?? 0;
 
-    // Calculate on-time delivery rate
     const onTimeDeliveries = await Order.countDocuments({
       ...completedFilter,
       deliveryDate: { $ne: null },
@@ -144,30 +127,25 @@ const getSellerStatistics = async (sellerId) => {
       ? Math.round((onTimeDeliveries / completedOrders) * 100) 
       : 100;
 
-    // Aggregate earnings - Use paidFilter instead of just completed
     const earnings = await Order.aggregate([
       { $match: paidFilter },
       { $group: { _id: null, totalEarnings: { $sum: '$price' } } }
     ]);
     const totalEarnings = earnings?.[0]?.totalEarnings ?? 0;
 
-    // Handle available balance gracefully - check both Freelancer and User revenue
     const freelancer = await Freelancer.findOne({ userId: sellerId }) || null;
     const user = await User.findById(sellerId).select('revenue') || null;
 
-    // Prioritize User revenue, then Freelancer revenue fields
     const userRevenueAvailable = user?.revenue?.available ?? 0;
     const freelancerRevenueAvailable = freelancer?.revenue?.available ?? 0;
     const freelancerAvailableBalance = freelancer?.availableBalance ?? 0;
 
     let availableForWithdrawalAmount = userRevenueAvailable;
     
-    // Fallback if user revenue is 0 but freelancer has balance (legacy sync issue)
     if (availableForWithdrawalAmount === 0 && (freelancerRevenueAvailable > 0 || freelancerAvailableBalance > 0)) {
        availableForWithdrawalAmount = Math.max(freelancerRevenueAvailable, freelancerAvailableBalance);
     }
 
-    // Ensure available never exceeds total (safety check for the reported bug)
     if (availableForWithdrawalAmount > totalEarnings) {
       console.warn(`[Seller Stats] Balance mismatch for ${sellerId}: Available (${availableForWithdrawalAmount}) > Total (${totalEarnings}). Capping available balance.`);
       availableForWithdrawalAmount = totalEarnings;
@@ -175,7 +153,6 @@ const getSellerStatistics = async (sellerId) => {
 
     const pendingClearance = freelancer?.revenue?.pending ?? user?.revenue?.pending ?? 0;
 
-    // Earnings in the current month
     const currentMonthEarnings = await Order.aggregate([
       {
         $match: {
@@ -187,14 +164,12 @@ const getSellerStatistics = async (sellerId) => {
     ]);
     const currentMonthTotalEarnings = currentMonthEarnings?.[0]?.totalCurrentMonthEarnings ?? 0;
 
-    // Calculate average selling price based on all paid orders
     const averageSellingPrice = await Order.aggregate([
       { $match: paidFilter },
       { $group: { _id: null, avgPrice: { $avg: '$price' } } }
     ]);
     const avgSellingPrice = averageSellingPrice?.[0]?.avgPrice ?? 0;
 
-    // Fetch monthly earnings
     const currentYear = new Date().getFullYear();
     const monthlyEarnings = await Order.aggregate([
       {
@@ -212,21 +187,16 @@ const getSellerStatistics = async (sellerId) => {
       monthlyEarningsArray[entry._id - 1] = entry.totalEarnings ?? 0;
     });
 
-    // Calculate completion rate
     const completionRate = totalOrders > 0
       ? Math.round((completedOrders / totalOrders) * 100)
       : 100;
 
-    // Response rate (placeholder - would need message tracking)
     const responseRate = 98;
 
-    // Calculate success score
     const successScore = calculateSuccessScore(rating, completionRate, onTimeDeliveryRate, responseRate);
 
-    // Calculate seller level
     const sellerLevel = calculateSellerLevel(completedOrders, rating, completionRate, totalEarnings);
 
-    // Get pending order invitations count
     const pendingInvitations = await Order.countDocuments({
       sellerId: sellerIdStr,
       isInvitation: true,
@@ -234,21 +204,18 @@ const getSellerStatistics = async (sellerId) => {
     }) ?? 0;
 
     return {
-      // Basic stats
       totalOrders,
       activeOrders,
       completedOrders,
       cancelledOrders,
       pendingInvitations,
       
-      // Earnings
       earnings: totalEarnings,
       availableForWithdrawal: availableForWithdrawalAmount,
       pendingClearance,
       currentMonthEarnings: currentMonthTotalEarnings,
       avgSellingPrice,
       
-      // Performance metrics
       rating,
       totalReviews,
       completionRate,
@@ -256,10 +223,8 @@ const getSellerStatistics = async (sellerId) => {
       responseRate,
       successScore,
       
-      // Seller level
       sellerLevel,
       
-      // Chart data
       monthlyEarnings: monthlyEarningsArray,
     };
 

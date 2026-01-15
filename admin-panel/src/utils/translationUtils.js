@@ -1,13 +1,11 @@
 import { useLocalization } from '../context/LocalizationContext';
 
-// Hook to get translations for a specific page/component
 export const useTranslations = (translations) => {
   const { getTranslation } = useLocalization();
   
   return (key) => getTranslation(translations, key);
 };
 
-// Function to format dates according to current language
 export const formatDate = (date, language) => {
   const options = {
     year: 'numeric',
@@ -18,7 +16,6 @@ export const formatDate = (date, language) => {
   return new Date(date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', options);
 };
 
-// Function to format currency according to current language
 export const formatCurrency = (amount, language) => {
   return new Intl.NumberFormat(language === 'es' ? 'es-ES' : 'en-US', {
     style: 'currency',
@@ -26,7 +23,6 @@ export const formatCurrency = (amount, language) => {
   }).format(amount);
 };
 
-// Function to get month names in current language
 export const getMonthName = (monthIndex, language) => {
   const months = {
     en: [

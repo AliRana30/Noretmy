@@ -1,4 +1,3 @@
-// import CaseStudyLogoRow from '@/components/shared/CaseStudyLogoRow';
 import CaseStudyMain from '@/components/shared/CaseStudyMain';
 import CaseStudyTop from '@/components/shared/CaseStudyTop';
 import { LatestCaseStudies } from '@/components/shared/LatestCaseStudies';

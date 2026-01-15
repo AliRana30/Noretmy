@@ -21,7 +21,6 @@ const Widget = ({
   
   let data;
 
-  // Icon mapping for emojis to Lucide icons
   const getIcon = (iconType) => {
     const iconMap = {
       '👥': Users,
@@ -37,7 +36,6 @@ const Widget = ({
     return <IconComponent className="w-6 h-6" />;
   };
 
-  // If custom props are provided (for admin widgets), use them
   if (title && icon && color) {
     data = {
       title: title,
@@ -48,7 +46,6 @@ const Widget = ({
       value: count || 0,
     };
   } else {
-    // Default widget types for regular dashboard
     const widgetConfig = {
       user: {
         title: getTranslation(homeTranslations, 'users') || 'Users',

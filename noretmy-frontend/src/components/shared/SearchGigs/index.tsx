@@ -17,7 +17,6 @@ import { ContentOverlay, GigGridSkeleton, Skeleton } from '@/components/ui/Globa
 import SearchPageSkeleton from '@/skelton/SearchPage';
 import { FiverrCategories } from '@/util/data';
 
-// Map URL slugs to category names for the carousel links
 const slugToCategoryMap: Record<string, string> = {
   'web-development': 'Web development',
   'ui-ux-design': 'UX/UI',
@@ -82,25 +81,20 @@ const SearchGigs: React.FC = () => {
   const currentLanguage = getCurrentLanguage();
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Handle category from URL
   useEffect(() => {
     const categorySlug = searchParams.get('category');
     const query = searchParams.get('q');
     const type = searchParams.get('type');
 
     if (categorySlug) {
-      // Map the slug to actual category name if it exists in our map
       const categoryName = slugToCategoryMap[categorySlug] || categorySlug;
 
-      // Try to find a matching category in FiverrCategories
       let matchedFilter = categoryName;
       for (const cat of FiverrCategories) {
-        // Check if it matches main category
         if (cat.name?.toLowerCase() === categoryName?.toLowerCase()) {
           matchedFilter = cat.name;
           break;
         }
-        // Check if it matches any subcategory
         const matchedSubcat = cat.subcategories.find(
           sub => sub?.toLowerCase() === categoryName?.toLowerCase()
         );
@@ -122,7 +116,6 @@ const SearchGigs: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Parse selectedFilters to extract categories, price ranges, and delivery times
   const parseFilters = (filters: string[]) => {
     const priceRangeMap: Record<string, { min?: number; max?: number }> = {
       'Under $100': { max: 100 },
@@ -152,7 +145,6 @@ const SearchGigs: React.FC = () => {
       } else if (deliveryTimeMap[filter]) {
         parsedDeliveryTime = deliveryTimeMap[filter];
       } else {
-        // It's a category filter (contains › or is a main category)
         categories.push(filter);
       }
     });
@@ -160,7 +152,6 @@ const SearchGigs: React.FC = () => {
     return { categories, parsedMinBudget, parsedMaxBudget, parsedDeliveryTime };
   };
 
-  // Fetch gigs when filters change (with debounce for searchText)
   useEffect(() => {
     if (searchType === 'gigs') {
       const debounce = setTimeout(() => {
@@ -182,7 +173,6 @@ const SearchGigs: React.FC = () => {
     }
   }, [searchText, selectedFilters, minBudget, maxBudget, deliveryTime, currentLanguage, dispatch, searchType]);
 
-  // Fetch freelancers when searching
   useEffect(() => {
     const searchFreelancers = async () => {
       if (searchType !== 'freelancers' || searchText.length < 2) {
@@ -214,14 +204,12 @@ const SearchGigs: React.FC = () => {
 
   const isLoading = searchType === 'gigs' ? loading : freelancerLoading;
 
-  // Track if we've had at least one successful load
   useEffect(() => {
     if (!loading && gigs.length >= 0) {
       setHasInitialLoad(true);
     }
   }, [loading, gigs]);
 
-  // Show skeleton only on initial page load, not on filter changes
   const showInitialSkeleton = !hasInitialLoad && isLoading;
 
   if (error && searchType === 'gigs') {
@@ -290,7 +278,6 @@ const SearchGigs: React.FC = () => {
             setSelectedFilters={setSelectedFilters}
           />
         ) : (
-          /* Simple search for freelancers */
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 mb-6">
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
@@ -312,7 +299,6 @@ const SearchGigs: React.FC = () => {
           {showInitialSkeleton ? (
             <GigGridSkeleton count={8} />
           ) : searchType === 'gigs' ? (
-            /* Gigs Grid */
             gigs.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {gigs.map((gig: GigData) => (
@@ -342,7 +328,6 @@ const SearchGigs: React.FC = () => {
               </div>
             )
           ) : (
-            /* Freelancers Grid */
             freelancers.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {freelancers.map((freelancer) => (

@@ -77,10 +77,8 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
   const [showReviewModal, setShowReviewModal] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Determine if current user is the seller or buyer
   const isSeller = currentUserId && order?.sellerId?._id === currentUserId;
 
-  // Handle both formats: backend returns gig.title/image OR gigId.title/photos
   const gigPhoto =
     (order as any)?.gig?.image ||
     order?.gigId?.photos?.[0]?.trim() ||
@@ -90,7 +88,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
     order?.gigId?.title ||
     t('details.orderInfo.untitledGig', { ns: 'orders', defaultValue: 'Untitled Gig' });
 
-  // Handle both formats: backend returns seller.name/image OR sellerId.username/image
   const sellerUsername =
     (order as any)?.seller?.name ||
     order?.sellerId?.username ||
@@ -116,7 +113,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
     if (!sellerId || !buyerId) return;
 
     try {
-      // First check if conversation exists
       const response = await axios.get(
         `${BACKEND_URL}/conversations/user/single/${sellerId}/${buyerId}`,
         { withCredentials: true }
@@ -126,7 +122,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
         const { conversationId } = response.data;
         router.push(`/message/${conversationId}?sellerId=${sellerId}&buyerId=${buyerId}`);
       } else if (response.status === 204) {
-        // Create new conversation if it doesn't exist
         const createResponse = await axios.post(
           `${BACKEND_URL}/conversations`,
           { sellerId, buyerId },
@@ -140,7 +135,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
       }
     } catch (error) {
       console.error('Error checking/creating conversation:', error);
-      // Fallback to concatenated ID
       router.push(`/message/${sellerId}${buyerId}?sellerId=${sellerId}&buyerId=${buyerId}`);
     }
   };
@@ -216,7 +210,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
         gigTitle={gigTitle}
         sellerName={sellerUsername}
         onReviewSubmitted={() => {
-          // Optionally refresh orders list
           window.location.reload();
         }}
       />

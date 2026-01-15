@@ -3,21 +3,18 @@ import { createSelector } from '@reduxjs/toolkit';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
 
-// Define state type for better type safety
 interface GigsState {
   data: any[]; // Update `any[]` to a more specific type if possible
   loading: boolean;
   error: string | null;
 }
 
-// Initial state
 const initialState: GigsState = {
   data: [],
   loading: false,
   error: null,
 };
 
-// Async thunk to fetch gigs with optional filters
 export const fetchGigs = createAsyncThunk(
   'gigs/fetchGigs',
   async (
@@ -35,7 +32,6 @@ export const fetchGigs = createAsyncThunk(
       const params = new URLSearchParams();
 
       if (filters?.categories?.length) {
-        // Don't double encode - just join with commas
         params.append('categories', filters.categories.join(','));
       }
       if (filters?.minBudget !== undefined) {
@@ -67,7 +63,6 @@ export const fetchGigs = createAsyncThunk(
   }
 );
 
-// Create the slice
 const gigsSlice = createSlice({
   name: 'gigs',
   initialState,

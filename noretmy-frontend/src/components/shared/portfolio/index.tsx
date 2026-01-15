@@ -27,7 +27,6 @@ interface ProjectFormData {
 }
 
 const Projects: React.FC = () => {
-  // State variables
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -47,7 +46,6 @@ const Projects: React.FC = () => {
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-  // Fetch all projects
   const fetchProjects = async () => {
     try {
       setLoading(true);
@@ -57,7 +55,6 @@ const Projects: React.FC = () => {
       setProjects(response.data);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      // toast.error('Failed to load projects');
     } finally {
       setLoading(false);
     }
@@ -67,7 +64,6 @@ const Projects: React.FC = () => {
     fetchProjects();
   }, []);
 
-  // Reset form data
   const resetForm = () => {
     setFormData({
       title: '',
@@ -82,7 +78,6 @@ const Projects: React.FC = () => {
     setEditingId(null);
   };
 
-  // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -91,7 +86,6 @@ const Projects: React.FC = () => {
     });
   };
 
-  // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -100,7 +94,6 @@ const Projects: React.FC = () => {
         file: file,
       });
 
-      // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -109,7 +102,6 @@ const Projects: React.FC = () => {
     }
   };
 
-  // Add new skill
   const handleAddSkill = () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
       setFormData({
@@ -120,7 +112,6 @@ const Projects: React.FC = () => {
     }
   };
 
-  // Remove a skill
   const handleRemoveSkill = (skill: string) => {
     setFormData({
       ...formData,
@@ -128,13 +119,11 @@ const Projects: React.FC = () => {
     });
   };
 
-  // Open create form
   const handleCreateNew = () => {
     resetForm();
     setShowForm(true);
   };
 
-  // Open edit form
   const handleEdit = (project: Project) => {
     setFormData({
       title: project.title,
@@ -149,7 +138,6 @@ const Projects: React.FC = () => {
     setShowForm(true);
   };
 
-  // Submit form (create or edit)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -181,7 +169,6 @@ const Projects: React.FC = () => {
     try {
       setSubmitting(true);
 
-      // ✅ Use FormData since we are uploading a file
       const projectData = new FormData();
       projectData.append("title", formData.title);
       projectData.append("description", formData.description);
@@ -190,33 +177,26 @@ const Projects: React.FC = () => {
       projectData.append("liveDemoLink", formData.liveDemoLink);
 
       if (Array.isArray(formData.file)) {
-        // If multiple files, append each one
         formData.file.forEach((file) => {
           projectData.append("images", file);
         });
       } else if (formData.file instanceof File) {
-        // If it's a single file, still send it as an array
         projectData.append("images", formData.file);
       }
 
       let response;
       if (editingId) {
-        // Update existing project
         response = await axios.put(`${BASE_URL}/project/${editingId}`, projectData, {
           withCredentials: true,
-          // headers: { "Content-Type": "multipart/form-data" }, // Important!
         });
         toast.success("Project updated successfully");
       } else {
-        // Create new project
         response = await axios.post(`${BASE_URL}/project`, projectData, {
           withCredentials: true,
-          // headers: { "Content-Type": "api/json" }, // Important!
         });
         toast.success("Project created successfully");
       }
 
-      // Update projects list
       await fetchProjects();
       setShowForm(false);
       resetForm();
@@ -228,7 +208,6 @@ const Projects: React.FC = () => {
     }
   };
 
-  // Delete a project
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this project?');
     if (!confirmed) return;
@@ -243,7 +222,6 @@ const Projects: React.FC = () => {
       toast.success('Project deleted successfully');
     } catch (error) {
       console.error('Error deleting project:', error);
-      // toast.error('Failed to delete project');
     } finally {
       setDeleting(null);
     }

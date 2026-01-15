@@ -7,7 +7,6 @@ import featuredTranslations from "../../localization/featured.json";
 const Featured = ({ totalSalesToday, salesLastWeek, salesLastMonth, title, darkMode }) => {
   const { getTranslation } = useLocalization();
   
-  // Calculate percentage (mock target of $5000)
   const target = 5000;
   const percentage = Math.min(Math.round((totalSalesToday / target) * 100), 100);
   

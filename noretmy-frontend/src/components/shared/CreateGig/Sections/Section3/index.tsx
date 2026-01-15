@@ -1,4 +1,3 @@
-// File: components/SectionThree.tsx
 import React from 'react';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import AnimatedSection from '../AnimatedSection';

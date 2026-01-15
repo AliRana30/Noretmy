@@ -73,7 +73,6 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
         });
         setOrders(response.data);
       } catch (error) {
-        // Silently handle errors
       } finally {
         setLoading(false);
       }

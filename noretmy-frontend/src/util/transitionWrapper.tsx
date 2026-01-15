@@ -7,13 +7,10 @@ export default function PageTransitionWrapper({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Reset transition state when pathname changes (navigation complete)
   useEffect(() => {
     if (isTransitioning && nextPath) {
-      // Check if we've navigated to the target page
       const targetPath = nextPath.split('?')[0]; // Remove query params for comparison
       if (pathname === targetPath || pathname.startsWith(targetPath)) {
-        // Wait a bit for the page content to start rendering
         const timer = setTimeout(() => {
           setIsTransitioning(false);
           setNextPath('');
@@ -23,7 +20,6 @@ export default function PageTransitionWrapper({ children }) {
     }
   }, [pathname, isTransitioning, nextPath]);
 
-  // Effect to handle the actual navigation after animation starts
   useEffect(() => {
     if (isTransitioning && nextPath) {
       const timer = setTimeout(() => {
@@ -34,7 +30,6 @@ export default function PageTransitionWrapper({ children }) {
     }
   }, [isTransitioning, nextPath, router]);
 
-  // Function to be passed to children components that need to trigger page transitions
   const navigateWithTransition = (path) => {
     setNextPath(path);
     setIsTransitioning(true);

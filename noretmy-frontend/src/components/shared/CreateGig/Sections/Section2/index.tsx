@@ -1,4 +1,3 @@
-// File: components/SectionTwo.tsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
@@ -35,7 +34,6 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
   onBack,
   onNext,
 }) => {
-  // Local state
   const [showDescTooltip, setShowDescTooltip] = useState(false);
   const [showKeywordTooltip, setShowKeywordTooltip] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
@@ -43,7 +41,6 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
   const [descriptionStrength, setDescriptionStrength] = useState(0);
   const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
 
-  // Auto-save effect
   useEffect(() => {
     const timer = setTimeout(() => {
       if (description || keywords) {
@@ -58,7 +55,6 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
     return () => clearTimeout(timer);
   }, [description, keywords]);
 
-  // Calculate description strength
   useEffect(() => {
     let strength = 0;
 
@@ -77,7 +73,6 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
     setDescriptionStrength(strength);
   }, [description]);
 
-  // Generate suggested keywords based on description
   useEffect(() => {
     const words: string[] = description.toLowerCase().match(/\b\w+\b/g) || [];
     const common: string[] = [
@@ -93,7 +88,6 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
     setSuggestedKeywords(suggested);
   }, [description]);
 
-  // Personality traits with descriptions
   const personalityTraits = [
     {
       id: 'Hard worker',

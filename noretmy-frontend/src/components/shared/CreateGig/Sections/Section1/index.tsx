@@ -36,7 +36,6 @@ const SectionOne: React.FC<SectionOneProps> = ({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [titleStrength, setTitleStrength] = useState(0);
 
-  // Auto-save effect
   useEffect(() => {
     const timer = setTimeout(() => {
       if (title) {
@@ -51,7 +50,6 @@ const SectionOne: React.FC<SectionOneProps> = ({
     return () => clearTimeout(timer);
   }, [title]);
 
-  // Title strength checker
   useEffect(() => {
     let strength = 0;
     if (title.length > 20) strength += 33;

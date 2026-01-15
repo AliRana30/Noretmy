@@ -38,7 +38,6 @@ interface EditGigProps {
   };
 }
 
-// Available categories
 const CATEGORIES = [
   'Digital Marketing',
   'Web Development',
@@ -52,7 +51,6 @@ const CATEGORIES = [
   'Other'
 ];
 
-// Job status options
 const JOB_STATUS = ['Available', 'Unavailable'
 ];
 
@@ -109,7 +107,6 @@ const EditGig: React.FC<EditGigProps> = ({ params }) => {
       } catch (error) {
         console.error('Error fetching gig:', error);
         toast.error('Failed to load gig details');
-        // router.push('/gigs');
       } finally {
         setLoading(false);
       }
@@ -232,9 +229,6 @@ const EditGig: React.FC<EditGigProps> = ({ params }) => {
       
       toast.success('Gig updated successfully');
 
-    //   setTimeout(() => {
-    //     router.push('/gigs');
-    //   }, 1500);
     } catch (error) {
       console.error('Error updating gig:', error);
       toast.error('Failed to update gig');

@@ -21,7 +21,6 @@ interface UpgradeOptionType {
 
 const AddJobScreen: React.FC = () => {
 
-  // State for various inputs
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
@@ -150,7 +149,6 @@ const AddJobScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // ⏳ PREPARE FORM DATA
       const formData = new FormData();
       formData.append('title', title);
       formData.append('cat', category);
@@ -169,13 +167,11 @@ const AddJobScreen: React.FC = () => {
         photos.forEach(photo => formData.append('images', photo));
       }
 
-      // 📡 SEND REQUEST
       const response = await axios.post(`${BACKEND_URL}/job/add-job`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
 
-      // ✅ CLEAR ONLY ON SUCCESS
       setTitle('');
       setCategory('');
       setSubcategory('');
@@ -190,7 +186,6 @@ const AddJobScreen: React.FC = () => {
 
       showSuccess('Gig created successfully!');
 
-      // 🚀 REDIRECT BASED ON PLAN
       if (selectedOption !== 3) {
         const sPlan = upgradeOptions[selectedOption];
         const query = new URLSearchParams({
@@ -204,7 +199,6 @@ const AddJobScreen: React.FC = () => {
 
         router.push(`/checkout?${query}`);
       } else {
-        // Redirect to gigs page for free plan
         router.push('/dashboard/gigs');
       }
     } catch (error) {
@@ -220,7 +214,6 @@ const AddJobScreen: React.FC = () => {
     }
   };
 
-  // Tooltip content for each section
   const tooltipContent: { [key: number]: { title: string; tips: string[] } } = {
     1: {
       title: 'Title & Category',

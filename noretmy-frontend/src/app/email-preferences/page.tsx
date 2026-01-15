@@ -50,17 +50,13 @@ const NewsletterPreferencesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL
-  // Simulate fetching user preferences
   useEffect(() => {
     const fetchPreferences = async () => {
       setLoading(true);
       try {
-        // Simulated API call
-        // await new Promise(resolve => setTimeout(resolve, 800));
 
         const response  = await axios.get(`${BACKEND_URL}/newsletter`,{withCredentials : true})
   
-        // Mock response from backend (using numeric values)
         const dataFromBackend = response.data;
   
         } catch (err) {
@@ -96,8 +92,6 @@ const NewsletterPreferencesPage: React.FC = () => {
         receiveSpecialOffers: preferences.receiveSpecialOffers,
       };
   
-      // Simulate saving to backend
-      // await new Promise(resolve => setTimeout(resolve, 1000));
 
       const response = await axios.put(`${BACKEND_URL}/newsletter/edit`,payload,{withCredentials: true})
       setSaved(true);

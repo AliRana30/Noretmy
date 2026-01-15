@@ -51,7 +51,6 @@ const timelineExtensionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 timelineExtensionSchema.index({ orderId: 1 });
 timelineExtensionSchema.index({ requestedBy: 1, createdAt: -1 });
 

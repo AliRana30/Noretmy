@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Import models
 const User = require('../models/User');
 const UserProfile = require('../models/UserProfile');
 
@@ -20,7 +19,6 @@ const connectDB = async () => {
 
 const setupRoleBasedSystem = async () => {
   try {
-    // Step 1: Migrate existing users to new role system
     const usersToUpdate = await User.find({
       $or: [
         { role: { $exists: false } },
@@ -29,13 +27,11 @@ const setupRoleBasedSystem = async () => {
     });
 
     for (const user of usersToUpdate) {
-      // Determine role based on existing isSeller field
       let newRole = 'client'; // default
       if (user.isSeller === true) {
         newRole = 'freelancer';
       }
 
-      // Update user with new role
       await User.findByIdAndUpdate(user._id, {
         role: newRole,
         permissions: [] // Empty permissions for regular users
@@ -43,13 +39,11 @@ const setupRoleBasedSystem = async () => {
 
       }
 
-    // Step 2: Create initial admin user
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@noretmy.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!@#';
     const adminUsername = process.env.ADMIN_USERNAME || 'admin';
     const adminFullName = process.env.ADMIN_FULLNAME || 'System Administrator';
 
-    // Check if admin already exists
     const existingAdmin = await User.findOne({ 
       $or: [
         { email: adminEmail },
@@ -59,7 +53,6 @@ const setupRoleBasedSystem = async () => {
 
     if (existingAdmin) {
       } else {
-      // Create admin user
       const adminUser = new User({
         email: adminEmail,
         password: adminPassword, // Will be hashed by pre-save hook
@@ -83,7 +76,6 @@ const setupRoleBasedSystem = async () => {
 
       await adminUser.save();
 
-      // Create admin profile
       const adminProfile = new UserProfile({
         userId: adminUser._id,
         isCompany: false,
@@ -93,7 +85,6 @@ const setupRoleBasedSystem = async () => {
 
       }
 
-    // Step 3: Display role statistics
     const roleStats = await User.aggregate([
       {
         $group: {
@@ -109,7 +100,6 @@ const setupRoleBasedSystem = async () => {
     roleStats.forEach(stat => {
       });
 
-    // Step 4: Validation checks
     const usersWithoutRole = await User.countDocuments({ 
       $or: [
         { role: { $exists: false } },
@@ -127,14 +117,12 @@ const setupRoleBasedSystem = async () => {
       } else {
       }
 
-    // Step 5: Show next steps
     } catch (error) {
     console.error('❌ Error during role-based system setup:', error);
     throw error;
   }
 };
 
-// Helper function to create additional admin users
 const createAdminUser = async (email, password, fullName, username, permissions = []) => {
   try {
     const existingUser = await User.findOne({ 
@@ -178,7 +166,6 @@ const createAdminUser = async (email, password, fullName, username, permissions 
   }
 };
 
-// Main execution
 const main = async () => {
   await connectDB();
   
@@ -209,7 +196,6 @@ const main = async () => {
     }
 };
 
-// Execute if run directly
 if (require.main === module) {
   main();
 }

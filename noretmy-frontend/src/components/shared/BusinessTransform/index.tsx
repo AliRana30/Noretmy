@@ -16,11 +16,9 @@ const BusinessTransform: React.FC<BusinessProps> = ({ onSubmit, id }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Call the parent component's submission handler
     if (onSubmit) {
       onSubmit(email);
     }
-    // Clear input after submission
     setEmail('');
   };
 

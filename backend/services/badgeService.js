@@ -16,17 +16,14 @@ const updateSellerMetricsOnOrderComplete = async (sellerId, order) => {
   try {
     const badge = await SellerBadge.getOrCreate(sellerId);
     
-    // Update order count
     badge.metrics.completedOrders += 1;
     badge.metrics.totalOrders += 1;
     badge.metrics.totalEarnings += order.price || 0;
     badge.metrics.lastOrderDate = new Date();
     
-    // Check if delivered on time
     if (order.deliveryDate && order.orderCompletionDate) {
       const wasOnTime = new Date(order.orderCompletionDate) <= new Date(order.deliveryDate);
       if (!wasOnTime) {
-        // Recalculate on-time rate
         const totalCompleted = badge.metrics.completedOrders;
         const currentOnTimeRate = badge.metrics.onTimeDeliveryRate;
         const onTimeCount = Math.round((currentOnTimeRate / 100) * (totalCompleted - 1));
@@ -34,23 +31,19 @@ const updateSellerMetricsOnOrderComplete = async (sellerId, order) => {
       }
     }
     
-    // Recalculate completion rate
     const total = badge.metrics.totalOrders;
     const completed = badge.metrics.completedOrders;
     const cancelled = badge.metrics.cancelledOrders;
     badge.metrics.completionRate = total > 0 ? Math.round(((total - cancelled) / total) * 100) : 100;
     
-    // Check for first order achievement
     if (badge.metrics.completedOrders === 1) {
       await addAchievement(sellerId, 'first_order');
     }
     
-    // Check for 100 orders achievement
     if (badge.metrics.completedOrders === 100) {
       await addAchievement(sellerId, '100_orders');
     }
     
-    // Check for 500 orders achievement
     if (badge.metrics.completedOrders === 500) {
       await addAchievement(sellerId, 'super_seller');
     }
@@ -74,7 +67,6 @@ const updateSellerMetricsOnCancellation = async (sellerId) => {
     badge.metrics.cancelledOrders += 1;
     badge.metrics.totalOrders += 1;
     
-    // Recalculate rates
     const total = badge.metrics.totalOrders;
     const cancelled = badge.metrics.cancelledOrders;
     badge.metrics.cancellationRate = Math.round((cancelled / total) * 100);
@@ -98,7 +90,6 @@ const updateSellerMetricsOnDispute = async (sellerId) => {
     
     badge.metrics.disputedOrders += 1;
     
-    // Recalculate dispute rate
     const total = badge.metrics.totalOrders;
     badge.metrics.disputeRate = total > 0 ? Math.round((badge.metrics.disputedOrders / total) * 100) : 0;
     
@@ -118,7 +109,6 @@ const updateSellerRating = async (sellerId) => {
   try {
     const badge = await SellerBadge.getOrCreate(sellerId);
     
-    // Fetch all reviews for this seller's gigs
     const gigs = await Job.find({ sellerId }).select('_id');
     const gigIds = gigs.map(g => g._id);
     
@@ -137,7 +127,6 @@ const updateSellerRating = async (sellerId) => {
       badge.metrics.averageRating = parseFloat(reviews[0].averageRating.toFixed(2));
       badge.metrics.totalReviews = reviews[0].totalReviews;
       
-      // Check for perfect rating achievement
       if (badge.metrics.averageRating === 5.0 && badge.metrics.totalReviews >= 10) {
         await addAchievement(sellerId, 'perfect_rating');
       }
@@ -159,7 +148,6 @@ const updateResponseMetrics = async (sellerId, responseTimeMinutes) => {
   try {
     const badge = await SellerBadge.getOrCreate(sellerId);
     
-    // Update average response time (rolling average)
     const currentAvg = badge.metrics.averageResponseTime || 0;
     const totalResponses = badge.metrics.totalReviews || 1;
     
@@ -168,7 +156,6 @@ const updateResponseMetrics = async (sellerId, responseTimeMinutes) => {
     );
     badge.metrics.lastResponseDate = new Date();
     
-    // Check for fast responder achievement (< 60 min average)
     if (badge.metrics.averageResponseTime < 60 && totalResponses >= 10) {
       await addAchievement(sellerId, 'fast_responder');
     }
@@ -189,7 +176,6 @@ const addAchievement = async (sellerId, achievementType, metadata = {}) => {
   try {
     const badge = await SellerBadge.getOrCreate(sellerId);
     
-    // Check if achievement already exists
     const hasAchievement = badge.achievements.some(a => a.type === achievementType);
     if (!hasAchievement) {
       badge.achievements.push({
@@ -265,7 +251,6 @@ const adminRemoveOverride = async (sellerId) => {
       overriddenAt: null
     };
     
-    // Re-evaluate badge
     await badge.updateBadge();
     
     return badge;
@@ -309,7 +294,6 @@ const adminUnfreezeBadge = async (sellerId) => {
     badge.frozenBy = null;
     badge.frozenAt = null;
     
-    // Re-evaluate badge
     await badge.updateBadge();
     
     return badge;
@@ -360,10 +344,8 @@ const recalculateSellerMetrics = async (sellerId) => {
     const now = new Date();
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     
-    // Get all orders for this seller
     const allOrders = await Order.find({ sellerId });
     
-    // Lifetime metrics
     const totalOrders = allOrders.length;
     const completedOrders = allOrders.filter(o => 
       ['completed', 'waitingReview'].includes(o.status)
@@ -371,18 +353,15 @@ const recalculateSellerMetrics = async (sellerId) => {
     const cancelledOrders = allOrders.filter(o => o.status === 'cancelled').length;
     const disputedOrders = allOrders.filter(o => o.status === 'disputed').length;
     
-    // Calculate total earnings
     const totalEarnings = allOrders
       .filter(o => ['completed', 'waitingReview'].includes(o.status))
       .reduce((sum, o) => sum + (o.price || 0), 0);
     
-    // Rolling 90-day metrics
     const recentOrders = allOrders.filter(o => new Date(o.createdAt) >= ninetyDaysAgo);
     const recentCompleted = recentOrders.filter(o => 
       ['completed', 'waitingReview'].includes(o.status)
     );
     
-    // On-time delivery rate (rolling window)
     const onTimeDeliveries = recentCompleted.filter(o => {
       if (!o.deliveryDate || !o.orderCompletionDate) return true;
       return new Date(o.orderCompletionDate) <= new Date(o.deliveryDate);
@@ -391,25 +370,20 @@ const recalculateSellerMetrics = async (sellerId) => {
       ? Math.round((onTimeDeliveries / recentCompleted.length) * 100)
       : 100;
     
-    // Completion rate
     const completionRate = totalOrders > 0
       ? Math.round(((totalOrders - cancelledOrders) / totalOrders) * 100)
       : 100;
     
-    // Cancellation rate
     const cancellationRate = totalOrders > 0
       ? Math.round((cancelledOrders / totalOrders) * 100)
       : 0;
     
-    // Dispute rate
     const disputeRate = totalOrders > 0
       ? Math.round((disputedOrders / totalOrders) * 100)
       : 0;
     
-    // Calculate 90-day earnings
     const last90DaysEarnings = recentCompleted.reduce((sum, o) => sum + (o.price || 0), 0);
     
-    // Get reviews and calculate average rating
     const gigs = await Job.find({ sellerId }).select('_id');
     const gigIds = gigs.map(g => g._id.toString());
     
@@ -419,7 +393,6 @@ const recalculateSellerMetrics = async (sellerId) => {
       ? parseFloat((reviews.reduce((sum, r) => sum + r.star, 0) / totalReviews).toFixed(2))
       : 0;
     
-    // Update badge metrics
     badge.metrics = {
       totalOrders,
       completedOrders,
@@ -444,7 +417,6 @@ const recalculateSellerMetrics = async (sellerId) => {
          new Date(badge.metrics.lastResponseDate) >= ninetyDaysAgo)
     };
     
-    // Update badge level and trust score
     await badge.updateBadge();
     
     return badge;
@@ -468,13 +440,10 @@ const calculateDetailedTrustScore = (metrics) => {
     activity: 0.10         // 10% - Recent activity
   };
   
-  // Normalize rating (1-5 scale to 0-100)
   const ratingScore = (metrics.averageRating / 5) * 100;
   
-  // Experience score based on completed orders (caps at 100 orders)
   const experienceScore = Math.min(100, (metrics.completedOrders / 100) * 100);
   
-  // Activity score (based on recent orders and responses)
   const activityScore = metrics.isActive ? 100 : 50;
   
   const score = (
@@ -500,7 +469,6 @@ const getSearchBoostMultiplier = (level, trustScore) => {
     top_rated: 2.5
   };
   
-  // Add trust score bonus (up to 0.5 extra)
   const trustBonus = (trustScore / 100) * 0.5;
   
   return Math.min(3.0, (baseBoost[level] || 1.0) + trustBonus);

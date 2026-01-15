@@ -72,7 +72,6 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     setIsLiked(initialIsFavorite);
   }, [initialIsFavorite]);
 
-  // Check if this gig is in favorites on mount
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (!isLoggedIn || initialIsFavorite !== undefined) return;
@@ -80,13 +79,11 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
         const response = await axiosInstance.get(`/users/favorites/check/${gig._id}`);
         setIsLiked(response.data.isFavorite);
       } catch (error) {
-        // Silently fail - not critical
       }
     };
     checkFavoriteStatus();
   }, [gig._id, isLoggedIn, initialIsFavorite]);
 
-  // Fix rating calculation: ensure proper fallback and validation
   const displayRating = gig.rating ||
     (gig.starNumber && gig.totalStars && gig.starNumber > 0
       ? Number((gig.totalStars / gig.starNumber).toFixed(1))
@@ -114,7 +111,6 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     setIsToggling(true);
     const previousState = isLiked;
 
-    // Optimistic update
     setIsLiked(!isLiked);
 
     try {
@@ -128,10 +124,8 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
         toast.info('Removed from favorites', { autoClose: 2000 });
       }
 
-      // Call callback if provided
       onFavoriteChange?.(gig._id, response.data.isFavorite);
     } catch (error) {
-      // Revert on error
       setIsLiked(previousState);
       toast.error('Failed to update favorites', { autoClose: 2000 });
     } finally {
@@ -139,7 +133,6 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     }
   };
 
-  // Get badge display info based on seller badge level
   const getBadgeDisplayInfo = (badgeLevel?: string) => {
     switch (badgeLevel) {
       case 'top_rated':

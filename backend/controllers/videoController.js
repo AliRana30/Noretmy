@@ -13,7 +13,6 @@ exports.getAgoraToken = async (req, res) => {
   const order = await Order.findById(orderId);
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
-  // Only allow if user is buyer or seller and order is active
   const isParticipant = [order.buyerId, order.sellerId].includes(userId);
   const isActive = true; // You can add your own logic for active status
 
@@ -21,7 +20,6 @@ exports.getAgoraToken = async (req, res) => {
     return res.status(403).json({ message: 'Not allowed to join video call for this order' });
   }
 
-  // Defensive check for env variables
   if (!AGORA_APP_ID || !AGORA_APP_CERTIFICATE) {
     return res.status(500).json({ message: 'Agora App ID or Certificate is not set in environment variables.' });
   }
@@ -33,12 +31,10 @@ exports.getAgoraToken = async (req, res) => {
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const privilegeExpireTs = currentTimestamp + expireTime;
 
-  // Ensure the privilegeExpireTs is always in the future
   if (privilegeExpireTs <= currentTimestamp) {
     return res.status(500).json({ message: 'Token expiration calculation error. Please try again.' });
   }
 
-  // Always generate a new token for each request
   const token = RtcTokenBuilder.buildTokenWithUid(
     AGORA_APP_ID, AGORA_APP_CERTIFICATE, channelName, uid, role, privilegeExpireTs
   );

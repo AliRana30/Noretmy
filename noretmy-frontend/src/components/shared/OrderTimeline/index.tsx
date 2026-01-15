@@ -40,7 +40,6 @@ interface OrderTimelineProps {
     onAdvanceStatus?: (targetStatus: string) => void;
 }
 
-// Main milestone steps - Upwork style
 const mainSteps = [
     {
         key: 'created',
@@ -86,7 +85,6 @@ const mainSteps = [
     },
 ];
 
-// Status to step mapping
 const getStepFromStatus = (status: string): number => {
     const stepIndex = mainSteps.findIndex(step =>
         step.includedStatuses.includes(status)
@@ -112,18 +110,14 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
     const currentStep = getStepFromStatus(status);
     const progress = Math.min(100, ((currentStep + 1) / mainSteps.length) * 100);
 
-    // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingStep, setPendingStep] = useState<{ key: string; label: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Define which steps can be clicked by which role
     const getStepClickability = (stepKey: string, stepIndex: number) => {
-        // Can only click the next step (not future ones)
         const isNextStep = stepIndex === currentStep + 1;
         if (!isNextStep) return { canClick: false, reason: '' };
 
-        // Define who can advance to which step
         const stepRoles: { [key: string]: 'seller' | 'buyer' } = {
             'accepted': 'seller',
             'started': 'buyer',   // Buyer pays to start
@@ -154,7 +148,6 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
         };
     };
 
-    // Map step key to actual status
     const stepToStatus: { [key: string]: string } = {
         'accepted': 'accepted',
         'started': 'pay', // Special key for payment
@@ -165,7 +158,6 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
 
     const handleStepClick = (stepKey: string, stepLabel: string) => {
         if (stepKey === 'started' && isUserBuyer) {
-            // Redirect to checkout with correct query params
             window.location.href = `/checkout?payment_type=order_payment&orderId=${orderId}`;
             return;
         }
@@ -216,7 +208,6 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
         }
     };
 
-    // Find timeline event for a step
     const getTimelineEventForStep = (stepKey: string) => {
         const step = mainSteps.find(s => s.key === stepKey);
         if (!step) return null;

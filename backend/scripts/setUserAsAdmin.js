@@ -16,9 +16,7 @@ const setUserAsAdmin = async () => {
   }
 
   try {
-    // Connect to database
     await mongoose.connect(process.env.MONGO_URI);
-    // Find and update user (case-insensitive email search)
     const user = await User.findOneAndUpdate(
       { email: { $regex: new RegExp(`^${email}$`, 'i') } },
       { 

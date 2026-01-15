@@ -43,7 +43,6 @@ const formatWithdrawalRequestForAdmin = (request) => ({
   updatedAt: request.updatedAt
 });
 
-// ==================== DASHBOARD & ANALYTICS ====================
 
 const getDashboardStats = async (req, res) => {
   try {
@@ -101,7 +100,6 @@ const getDashboardStats = async (req, res) => {
       Order.countDocuments(),
       Order.countDocuments({ status: 'completed' }),
       Order.countDocuments({ status: { $in: ['pending', 'in_progress', 'started'] } }),
-      // Admin revenue from promotion plan purchases
       PromotionPurchase.aggregate([
         { $group: { _id: null, total: { $sum: '$totalAmount' } } }
       ]).then(result => result[0]?.total || 0),
@@ -115,7 +113,6 @@ const getDashboardStats = async (req, res) => {
         },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } }
       ]).then(result => result[0]?.total || 0),
-      // Platform commissions from completed orders
       Order.aggregate([
         { $match: { status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$platformFee' } } }
@@ -135,27 +132,23 @@ const getDashboardStats = async (req, res) => {
 
     const finalTotalRevenue = totalRevenueFromPromotions + totalCommissionsFromOrders;
 
-    // Growth statistics
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const newUsersLast30Days = await User.countDocuments({
       createdAt: { $gte: thirtyDaysAgo }
     });
 
-    // Top performing categories
     const topJobCategories = await Job.aggregate([
       { $group: { _id: '$cat', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
     ]);
 
-    // Recent activity
     const recentOrders = await Order.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .populate('buyerId', 'fullName email')
       .populate('sellerId', 'fullName email');
 
-    // Get revenue metrics
     const today = new Date(new Date().setHours(0, 0, 0, 0));
     const startOfWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -241,7 +234,6 @@ const getDashboardStats = async (req, res) => {
     const monthlyRevenue = monthlyRevenueRes[0]?.total || 0;
     const totalRevenueFromOrders = overallRevenueRes[0]?.total || 0;
 
-    // Monthly revenue for the last 6 months
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     sixMonthsAgo.setDate(1);
@@ -274,7 +266,6 @@ const getDashboardStats = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
-    // Format monthly data for chart
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const chartData = [];
     for (let i = 5; i >= 0; i--) {
@@ -347,7 +338,6 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-// ==================== USER MANAGEMENT ====================
 
 const getAllUsers = async (req, res) => {
   try {
@@ -367,19 +357,16 @@ const getAllUsers = async (req, res) => {
 
     const filter = {};
     
-    // Apply filters
     if (role && role !== 'all') filter.role = role;
     if (isVerified !== undefined) filter.isVerified = isVerified === 'true';
     if (isBlocked !== undefined) filter.isBlocked = isBlocked === 'true';
     
-    // Date range filter
     if (dateFrom || dateTo) {
       filter.createdAt = {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
       if (dateTo) filter.createdAt.$lte = new Date(dateTo);
     }
     
-    // Search functionality
     if (search) {
       filter.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -399,7 +386,6 @@ const getAllUsers = async (req, res) => {
 
     const total = await User.countDocuments(filter);
 
-    // Fetch profile pictures from UserProfile for all users
     const userIds = users.map(u => u._id);
     const userProfiles = await UserProfile.find({ userId: { $in: userIds } }).lean();
     const profileMap = {};
@@ -407,7 +393,6 @@ const getAllUsers = async (req, res) => {
       profileMap[profile.userId.toString()] = profile.profilePicture;
     });
 
-    // Format data for frontend DataGrid (matching your existing structure)
     const formattedUsers = users.map((user) => ({
       _id: user._id,
       id: user._id, // For DataGrid compatibility
@@ -464,7 +449,6 @@ const getUserDetails = async (req, res) => {
     const { userId } = req.params;
     const mongoose = require('mongoose');
     
-    // Validate userId format
     if (!userId || !userId.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
         success: false,
@@ -486,7 +470,6 @@ const getUserDetails = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Fetch related data
     let userProfile = null;
     let userJobs = [];
     let userOrders = [];
@@ -496,26 +479,22 @@ const getUserDetails = async (req, res) => {
       userProfile = await UserProfile.findOne({ userId: userObjectId });
     } catch (e) { }
 
-    // Fetch ALL jobs for this user (for the table)
     try {
       userJobs = await Job.find({ sellerId: userId }).select('_id title category location isActive createdAt upgradeOption').lean();
     } catch (e) { }
 
-    // Fetch recent orders
     try {
       userOrders = await Order.find({ 
         $or: [{ buyerId: userId }, { sellerId: userId }] 
       }).sort({ createdAt: -1 }).limit(20).lean();
     } catch (e) { }
 
-    // Fetch recent reviews
     try {
       userReviews = await Review.find({
         $or: [{ userId: userId }, { sellerId: userId }]
       }).sort({ createdAt: -1 }).limit(10).lean();
     } catch (e) { }
 
-    // Calculate stats
     let userStats = {
       totalJobs: 0, totalOrders: 0, completedOrders: 0, averageRating: 0,
       totalEarnings: 0, totalEarned: 0, totalSpent: 0, totalOrdersPlaced: 0, totalReviews: 0
@@ -566,7 +545,6 @@ const getUserDetails = async (req, res) => {
       userStats.totalOrdersPlaced = await Order.countDocuments({ buyerId: userId });
     } catch (e) {}
 
-    // Generate 6-month chart data
     let chartData = [];
     try {
       const sixMonthsAgo = new Date();
@@ -604,7 +582,6 @@ const getUserDetails = async (req, res) => {
       }
     } catch (e) { }
 
-    // Map recent activity for the frontend table
     const formattedJobs = userJobs.map(job => ({
       id: job._id,
       img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
@@ -710,7 +687,6 @@ const blockUser = async (req, res) => {
 
     await user.save();
 
-    // Send email notification to user about block
     try {
       const { sendUserNotificationEmail } = require('../services/emailService');
       if (user.email) {
@@ -805,7 +781,6 @@ const verifyUser = async (req, res) => {
       });
     }
 
-    // Set user as verified
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpiry = undefined;
@@ -813,7 +788,6 @@ const verifyUser = async (req, res) => {
 
     await user.save();
 
-    // Send email notification to user about verification approval
     try {
       const { sendUserNotificationEmail } = require('../services/emailService');
       if (user.email) {
@@ -877,12 +851,10 @@ const warnUser = async (req, res) => {
       });
     }
 
-    // Initialize warnings array if it doesn't exist
     if (!user.warnings) {
       user.warnings = [];
     }
 
-    // Add warning
     const warning = {
       reason,
       warnedAt: new Date(),
@@ -894,7 +866,6 @@ const warnUser = async (req, res) => {
 
     await user.save();
 
-    // Create notification for the user
     try {
       await Notification.create({
         userId: userId,
@@ -907,7 +878,6 @@ const warnUser = async (req, res) => {
       console.error('Failed to create notification:', notifError);
     }
 
-    // Send email notification to user
     try {
       const { sendUserNotificationEmail } = require('../services/emailService');
       if (user.email) {
@@ -971,15 +941,10 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    // Delete related data
     await Promise.all([
       UserProfile.deleteMany({ userId }),
-      // Optionally delete user's jobs, messages etc - be careful with this
-      // Job.deleteMany({ userId }),
-      // Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] }),
     ]);
 
-    // Delete the user
     await User.findByIdAndDelete(userId);
 
     res.status(200).json({
@@ -1000,7 +965,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// ==================== JOB/GIG MANAGEMENT ====================
 
 const getAllJobs = async (req, res) => {
   try {
@@ -1047,7 +1011,6 @@ const getAllJobs = async (req, res) => {
 
     const total = await Job.countDocuments(filter);
 
-    // Format data for frontend DataGrid
     const formattedJobs = jobs.map((job) => ({
       _id: job._id,
       id: job._id,
@@ -1151,7 +1114,6 @@ const deleteJob = async (req, res) => {
       });
     }
 
-    // Check if job has active orders
     const activeOrders = await Order.countDocuments({
       jobId,
       status: { $nin: ['completed', 'cancelled'] }
@@ -1181,7 +1143,6 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// ==================== ORDER MANAGEMENT ====================
 
 const getAllOrders = async (req, res) => {
   try {
@@ -1227,7 +1188,6 @@ const getAllOrders = async (req, res) => {
 
     const total = await Order.countDocuments(filter);
 
-    // Format data for frontend DataGrid (matching your existing structure)
     const formattedOrders = orders.map((order) => ({
       _id: order._id,
       id: order._id,
@@ -1291,7 +1251,6 @@ const getOrderDetails = async (req, res) => {
   try {
     const { orderId } = req.params;
     
-    // Validate orderId format - must be 24 character hex string
     if (!orderId || !orderId.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
         success: false,
@@ -1299,7 +1258,6 @@ const getOrderDetails = async (req, res) => {
       });
     }
     
-    // First find the order
     let order;
     try {
       order = await Order.findById(orderId);
@@ -1318,11 +1276,8 @@ const getOrderDetails = async (req, res) => {
       });
     }
     
-    // Convert to plain object for modifications
     order = order.toObject();
     
-    // Manually fetch buyer and seller since they might be stored as strings
-    // Wrap in try-catch to handle invalid ObjectId format for user IDs
     let buyer = null;
     let seller = null;
     let job = null;
@@ -1355,12 +1310,10 @@ const getOrderDetails = async (req, res) => {
     } catch (e) {
       }
     
-    // Attach populated data
     order.buyerId = buyer || { _id: order.buyerId, fullName: 'Unknown Buyer' };
     order.sellerId = seller || { _id: order.sellerId, fullName: 'Unknown Seller' };
     order.jobId = job || null;
 
-    // Get related messages (may not exist)
     let messages = [];
     try {
       messages = await Message.find({
@@ -1369,7 +1322,6 @@ const getOrderDetails = async (req, res) => {
     } catch (e) {
       }
 
-    // Get reviews for this order (may not exist)
     let reviews = [];
     try {
       reviews = await Review.find({
@@ -1443,7 +1395,6 @@ const deleteOrder = async (req, res) => {
       });
     }
 
-    // Prevent deletion of active orders (optional safety check)
     if (['in_progress', 'pending'].includes(order.status)) {
       return res.status(400).json({
         success: false,
@@ -1451,7 +1402,6 @@ const deleteOrder = async (req, res) => {
       });
     }
 
-    // Store order info for logging before deletion
     const orderInfo = {
       orderId: order._id,
       buyerId: order.buyerId,
@@ -1462,10 +1412,8 @@ const deleteOrder = async (req, res) => {
       deletionReason: reason || 'No reason provided'
     };
 
-    // Delete the order
     await Order.findByIdAndDelete(orderId);
 
-    // Log the deletion (optional - if you have audit logging)
     res.status(200).json({
       success: true,
       message: 'Order deleted successfully',
@@ -1481,7 +1429,6 @@ const deleteOrder = async (req, res) => {
   }
 };
 
-// ==================== FINANCIAL MANAGEMENT ====================
 
 const getFinancialOverview = async (req, res) => {
   try {
@@ -1678,7 +1625,6 @@ const getWithdrawalRequests = async (req, res) => {
 
     const total = await WithdrawalRequest.countDocuments(filter);
 
-    // Format data for frontend DataGrid (matching your existing structure)
     const formattedRequests = withdrawalRequests.map(formatWithdrawalRequestForAdmin);
 
     res.status(200).json({
@@ -1733,14 +1679,12 @@ const approveWithdrawal = async (req, res) => {
 
     await withdrawal.save();
 
-    // Update user's withdrawn amount
     const user = await User.findById(withdrawal.userId);
     if (user) {
       user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawal.amount;
       await user.save();
     }
 
-    // Notify freelancer
     try {
       await notifyWithdrawalApproved(withdrawal.userId, withdrawal.amount, withdrawal._id);
     } catch (e) {}
@@ -1788,14 +1732,12 @@ const rejectWithdrawal = async (req, res) => {
 
     await withdrawal.save();
 
-    // Return money to user's available balance
     const user = await User.findById(withdrawal.userId);
     if (user) {
       user.revenue.available = (user.revenue.available || 0) + withdrawal.amount;
       await user.save();
     }
 
-    // Notify freelancer
     try {
       await notifyWithdrawalRejected(withdrawal.userId, withdrawal.amount, withdrawal._id, reason);
     } catch (e) {}
@@ -1900,7 +1842,6 @@ const createWithdrawalRequestAdmin = async (req, res) => {
       notes
     });
 
-    // Deduct from available balance (hold it)
     user.revenue.available -= withdrawalAmount;
     await user.save();
 
@@ -1919,7 +1860,6 @@ const createWithdrawalRequestAdmin = async (req, res) => {
   }
 };
 
-// ==================== CONTENT MANAGEMENT ====================
 
 const getAllReviews = async (req, res) => {
   try {
@@ -1949,7 +1889,6 @@ const getAllReviews = async (req, res) => {
 
     const total = await Review.countDocuments(filter);
 
-    // Format data for frontend DataGrid
     const formattedReviews = reviews.map((review) => ({
       _id: review._id,
       id: review._id,
@@ -2047,7 +1986,6 @@ const moderateReview = async (req, res) => {
   }
 };
 
-// ==================== COMMUNICATION MANAGEMENT ====================
 
 const getContactMessages = async (req, res) => {
   try {
@@ -2072,7 +2010,6 @@ const getContactMessages = async (req, res) => {
 
     const total = await Contact.countDocuments(filter);
 
-    // Format data for frontend DataGrid (matching your existing structure)
     const formattedContacts = contacts.map((contact) => ({
       _id: contact._id,
       id: contact._id,
@@ -2143,7 +2080,6 @@ const markContactAsRead = async (req, res) => {
   }
 };
 
-// ==================== ANALYTICS ====================
 
 const getUserAnalytics = async (req, res) => {
   try {
@@ -2193,7 +2129,6 @@ const getPerformanceAnalytics = async (req, res) => {
   }
 };
 
-// ==================== PLATFORM SETTINGS ====================
 
 const getVatSettings = async (req, res) => {
   try {
@@ -2225,7 +2160,6 @@ const getVatReport = async (req, res) => {
       limit = 50
     } = req.query;
 
-    // Build filter
     const filter = {
       isPaid: true,
       vatCollected: true
@@ -2241,7 +2175,6 @@ const getVatReport = async (req, res) => {
       filter.clientCountry = country.toUpperCase();
     }
 
-    // Get VAT summary
     const [
       orders,
       total,
@@ -2268,7 +2201,6 @@ const getVatReport = async (req, res) => {
       ])
     ]);
 
-    // VAT by country
     const vatByCountry = await Order.aggregate([
       { $match: filter },
       {
@@ -2354,7 +2286,6 @@ const exportVatReport = async (req, res) => {
       .populate('buyerId', 'fullName email')
       .populate('sellerId', 'fullName email');
 
-    // Generate CSV
     const csvRows = [
       'Order ID,Date,Client Country,Buyer,Seller,Base Amount,VAT Rate %,VAT Amount,Total Amount,Currency,Reverse Charge'
     ];
@@ -2390,7 +2321,6 @@ const exportVatReport = async (req, res) => {
   }
 };
 
-// ==================== MARKETING ====================
 
 const getNewsletterSubscribers = async (req, res) => {
   try {
@@ -2403,7 +2333,6 @@ const getNewsletterSubscribers = async (req, res) => {
       
     const total = await Newsletter.countDocuments();
     
-    // Format data for frontend DataGrid
     const formattedNewsletters = newsletters.map((newsletter) => ({
       _id: newsletter._id,
       id: newsletter._id,
@@ -2452,7 +2381,6 @@ const getPromotions = async (req, res) => {
       
     const total = await Promotion.countDocuments(filter);
     
-    // Format data for frontend DataGrid
     const formattedPromotions = promotions.map((promotion) => ({
       _id: promotion._id,
       id: promotion._id,
@@ -2529,7 +2457,6 @@ const updatePromotionStatus = async (req, res) => {
   }
 };
 
-// ==================== NOTIFICATION MANAGEMENT ====================
 
 const getNotifications = async (req, res) => {
   try {
@@ -2547,7 +2474,6 @@ const getNotifications = async (req, res) => {
       
     const total = await Notification.countDocuments(filter);
     
-    // Format data for frontend DataGrid
     const formattedNotifications = notifications.map((notification) => ({
       _id: notification._id,
       id: notification._id,
@@ -2613,7 +2539,6 @@ const sendBroadcastNotification = async (req, res) => {
   try {
     const { title, message, type, targetRole } = req.body;
     
-    // Get target users
     const filter = {};
     if (targetRole && targetRole !== 'all') {
       filter.role = targetRole;
@@ -2621,7 +2546,6 @@ const sendBroadcastNotification = async (req, res) => {
     
     const targetUsers = await User.find(filter).select('_id');
     
-    // Create notifications for all target users
     const notifications = targetUsers.map(user => ({
       userId: user._id,
       title,
@@ -2646,7 +2570,6 @@ const sendBroadcastNotification = async (req, res) => {
   }
 };
 
-// ==================== CONVERSATION MANAGEMENT ====================
 
 const getConversations = async (req, res) => {
   try {
@@ -2660,7 +2583,6 @@ const getConversations = async (req, res) => {
       
     const total = await Conversation.countDocuments();
     
-    // Format data for frontend DataGrid
     const formattedConversations = conversations.map((conversation) => ({
       _id: conversation._id,
       id: conversation._id,
@@ -2694,7 +2616,6 @@ const getConversations = async (req, res) => {
   }
 };
 
-// ==================== PROJECT MANAGEMENT ====================
 
 const getProjects = async (req, res) => {
   try {
@@ -2711,7 +2632,6 @@ const getProjects = async (req, res) => {
       
     const total = await Project.countDocuments(filter);
     
-    // Format data for frontend DataGrid
     const formattedProjects = projects.map((project) => ({
       _id: project._id,
       id: project._id,
@@ -2788,7 +2708,6 @@ const updateProjectStatus = async (req, res) => {
   }
 };
 
-// ==================== SENSITIVE MESSAGES ====================
 
 const getSensitiveMessages = async (req, res) => {
   try {
@@ -2806,7 +2725,6 @@ const getSensitiveMessages = async (req, res) => {
       
     const total = await Message.countDocuments({ isFlagged: true });
     
-    // Format data for frontend DataGrid (matching your existing structure)
     const formattedMessages = sensitiveMessages.map((message) => ({
       _id: message._id,
       id: message._id,
@@ -2847,12 +2765,9 @@ const getSensitiveMessages = async (req, res) => {
   }
 };
 
-// ==================== SYSTEM MANAGEMENT ====================
 
 const getSystemLogs = async (req, res) => {
   try {
-    // This is a placeholder for system logs
-    // In a real implementation, you'd integrate with your logging system
     res.status(200).json({
       success: true,
       message: 'System logs feature coming soon',
@@ -2869,7 +2784,6 @@ const getSystemLogs = async (req, res) => {
 
 const getAuditLogs = async (req, res) => {
   try {
-    // Placeholder for audit logs
     res.status(200).json({
       success: true,
       message: 'Audit logs feature coming soon',
@@ -2907,7 +2821,6 @@ const systemHealth = async (req, res) => {
   }
 };
 
-// ==================== BULK OPERATIONS ====================
 
 const bulkUpdateUsers = async (req, res) => {
   try {
@@ -2978,7 +2891,6 @@ const bulkUpdateUsers = async (req, res) => {
   }
 };
 
-// ==================== ADMIN MANAGEMENT ====================
 
 const createAdmin = async (req, res) => {
   try {
@@ -3049,13 +2961,11 @@ const updateUserPermissions = async (req, res) => {
 };
 
 module.exports = {
-  // Dashboard & Analytics
   getDashboardStats,
   getUserAnalytics,
   getRevenueAnalytics,
   getPerformanceAnalytics,
   
-  // User Management
   getAllUsers,
   getUserDetails,
   updateUserRole,
@@ -3065,18 +2975,15 @@ module.exports = {
   warnUser,
   deleteUser,
   
-  // Job/Gig Management
   getAllJobs,
   updateJobStatus,
   deleteJob,
   
-  // Order Management
   getAllOrders,
   getOrderDetails,
   updateOrderStatus,
   deleteOrder,
   
-  // Financial Management
   getFinancialOverview,
   getWithdrawalRequests,
   getWithdrawalRequestDetail,
@@ -3084,44 +2991,35 @@ module.exports = {
   approveWithdrawal,
   rejectWithdrawal,
   
-  // Content Management
   getAllReviews,
   moderateReview,
   getSensitiveMessages,
   
-  // Communication Management
   getContactMessages,
   markContactAsRead,
   getConversations,
   
-  // System Management
   getSystemLogs,
   getAuditLogs,
   systemHealth,
   
-  // Platform Settings & VAT
   getVatSettings,
   getVatReport,
   exportVatReport,
   
-  // Marketing
   getNewsletterSubscribers,
   getPromotions,
   updatePromotionStatus,
   
-  // Notification Management
   getNotifications,
   markAllNotificationsAsReadAdmin,
   sendBroadcastNotification,
   
-  // Project Management
   getProjects,
   updateProjectStatus,
   
-  // Bulk Operations
   bulkUpdateUsers,
   
-  // Admin Management
   createAdmin,
   updateUserPermissions
 }; 

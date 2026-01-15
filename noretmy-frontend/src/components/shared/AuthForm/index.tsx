@@ -63,7 +63,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
     }));
   };
 
-  // Add appropriate icons for common field types
   const getFieldIcon = (placeholder: string) => {
     const lowerPlaceholder = placeholder.toLowerCase();
     if (lowerPlaceholder.includes('email'))

@@ -10,13 +10,11 @@ const notificationService = require('./notificationService');
  * Runs every hour to check for expired orders
  */
 const initDeadlineCronJobs = () => {
-    // Run every hour
     cron.schedule('0 * * * *', async () => {
         console.log('⏰ Running Order Deadline Check Cron...');
         try {
             const now = new Date();
             
-            // Find active orders that have passed their delivery date and haven't been auto-extended yet
             const expiredOrders = await Order.find({
                 status: { $in: ['accepted', 'requirementsSubmitted', 'started', 'halfwayDone', 'requestedRevision'] },
                 deliveryDate: { $lt: now },
@@ -28,7 +26,6 @@ const initDeadlineCronJobs = () => {
 
             for (const order of expiredOrders) {
                 try {
-                    // 1. Extend deadline by 2 days
                     const oldDeadline = order.deliveryDate;
                     const newDeadline = new Date(oldDeadline);
                     newDeadline.setDate(newDeadline.getDate() + 2);
@@ -36,7 +33,6 @@ const initDeadlineCronJobs = () => {
                     order.deliveryDate = newDeadline;
                     order.autoDeadlineExtended = true;
                     
-                    // Add timeline event
                     order.timeline.push({
                         event: 'Deadline Auto-Extended',
                         description: `Deadline was automatically extended by 2 days due to expiration.`,
@@ -46,12 +42,10 @@ const initDeadlineCronJobs = () => {
 
                     await order.save();
 
-                    // 2. Fetch seller and gig info for email
                     const seller = await User.findById(order.sellerId);
                     const gig = await Job.findById(order.gigId);
 
                     if (seller && seller.email) {
-                        // 3. Send warning email to freelancer
                         await sendDeadlineWarningEmail(seller.email, {
                             orderId: order._id,
                             sellerName: seller.fullName || seller.username,
@@ -61,7 +55,6 @@ const initDeadlineCronJobs = () => {
                         console.log(`📧 Deadline warning email sent to seller: ${seller.email}`);
                     }
 
-                    // 4. Create internal notification for seller
                     await notificationService.createNotification({
                         userId: order.sellerId,
                         title: '⚠️ Order Deadline Expired',

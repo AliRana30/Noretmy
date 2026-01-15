@@ -1,5 +1,3 @@
-// Mock API for testing login functionality
-// In a real application, this would be replaced with actual API calls
 
 const MOCK_USERS = [
   {
@@ -20,11 +18,9 @@ const MOCK_USERS = [
   }
 ];
 
-// Simulate API delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const mockLoginAPI = async (email, password) => {
-  // Simulate network delay
   await delay(1000);
   
   const user = MOCK_USERS.find(u => u.email === email && u.password === password);
@@ -33,7 +29,6 @@ export const mockLoginAPI = async (email, password) => {
     throw new Error('Invalid email or password');
   }
   
-  // Return user data without password
   const { password: _, ...userData } = user;
   
   return {

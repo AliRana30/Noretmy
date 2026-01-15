@@ -1,4 +1,3 @@
-// routes/paymentMilestoneRoutes.js
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/jwt');
@@ -16,7 +15,6 @@ router.get('/order/:orderId', verifyToken, async (req, res) => {
     const { orderId } = req.params;
     const userId = req.userId;
 
-    // Verify user has access to this order
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ success: false, error: 'Order not found' });
@@ -99,18 +97,15 @@ router.post('/order/:orderId/release', verifyToken, async (req, res) => {
     const { orderId } = req.params;
     const userId = req.userId;
 
-    // Verify order exists and is in correct state
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
-    // Only buyer can trigger fund release (or admin)
     if (order.buyerId !== userId && req.user?.role !== 'admin') {
       return res.status(403).json({ success: false, error: 'Only buyer or admin can release funds' });
     }
 
-    // Verify order is in a state where funds can be released
     if (!['reviewed', 'waitingReview', 'completed'].includes(order.status)) {
       return res.status(400).json({ 
         success: false, 
@@ -138,7 +133,6 @@ router.post('/order/:orderId/refund', verifyToken, async (req, res) => {
     const { reason } = req.body;
     const userId = req.userId;
 
-    // Only admin can process refunds
     if (req.user?.role !== 'admin') {
       return res.status(403).json({ success: false, error: 'Admin access required' });
     }
@@ -172,7 +166,6 @@ router.get('/user/summary', verifyToken, async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Get recent payment milestones for orders where user is seller
     const recentMilestones = await PaymentMilestone.find({})
       .populate({
         path: 'orderId',
@@ -184,7 +177,6 @@ router.get('/user/summary', verifyToken, async (req, res) => {
 
     const filteredMilestones = recentMilestones.filter(m => m.orderId);
 
-    // Calculate total by status
     const allMilestones = await PaymentMilestone.aggregate([
       {
         $lookup: {

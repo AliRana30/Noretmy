@@ -109,7 +109,6 @@ export const useSellerBadge = (sellerId: string | undefined) => {
         console.error('Error fetching seller badge:', err);
         setError(err.response?.data?.message || 'Failed to fetch badge');
         
-        // Set default badge for errors
         setBadge({
           level: 'new',
           label: 'New Seller',

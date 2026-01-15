@@ -3,7 +3,6 @@ const { submitContactForm,getAllMessages, replyMessage } = require('../controlle
 const { verifyToken } = require('../middleware/jwt');
 const router = express.Router();
 
-// Contact form submission route
 router.post('/',verifyToken, submitContactForm);
 router.get('/', getAllMessages);
 router.post('/reply', replyMessage);

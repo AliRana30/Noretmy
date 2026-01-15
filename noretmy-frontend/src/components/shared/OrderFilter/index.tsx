@@ -65,7 +65,6 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({ onApply }) => {
     setOrderType(defaultFilters.orderType);
     setCustomStartDate('');
     setCustomEndDate('');
-    // Also apply the default filters
     onApply(defaultFilters);
   };
 

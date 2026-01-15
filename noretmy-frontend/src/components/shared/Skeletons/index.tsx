@@ -12,7 +12,6 @@ interface SkeletonProps {
     style?: React.CSSProperties;
 }
 
-// Base skeleton component
 export const Skeleton: React.FC<SkeletonProps> = ({ className = '', style }) => {
     return (
         <div
@@ -22,7 +21,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', style }) => 
     );
 };
 
-// Text skeleton
 export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
     lines = 1,
     className = ''
@@ -40,7 +38,6 @@ export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
     );
 };
 
-// Avatar skeleton
 export const SkeletonAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' }> = ({
     size = 'md'
 }) => {
@@ -54,7 +51,6 @@ export const SkeletonAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' }> = ({
     return <div className={`skeleton rounded-full ${sizes[size]}`} />;
 };
 
-// Button skeleton
 export const SkeletonButton: React.FC<{ size?: 'sm' | 'md' | 'lg'; width?: string }> = ({
     size = 'md',
     width = '120px'
@@ -68,7 +64,6 @@ export const SkeletonButton: React.FC<{ size?: 'sm' | 'md' | 'lg'; width?: strin
     return <div className={`skeleton rounded-md ${heights[size]}`} style={{ width }} />;
 };
 
-// Image skeleton
 export const SkeletonImage: React.FC<{
     aspectRatio?: string;
     className?: string
@@ -81,7 +76,6 @@ export const SkeletonImage: React.FC<{
     );
 };
 
-// Card skeleton (for gig cards, etc.)
 export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => {
     return (
         <div className={`bg-white border border-gray-200 rounded-xl overflow-hidden ${className}`}>
@@ -105,7 +99,6 @@ export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' 
     );
 };
 
-// Gig card skeleton grid
 export const SkeletonGigGrid: React.FC<{ count?: number }> = ({ count = 8 }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -116,7 +109,6 @@ export const SkeletonGigGrid: React.FC<{ count?: number }> = ({ count = 8 }) => 
     );
 };
 
-// Table row skeleton
 export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 5 }) => {
     return (
         <tr className="border-b border-gray-100">
@@ -129,7 +121,6 @@ export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 5 }
     );
 };
 
-// Table skeleton
 export const SkeletonTable: React.FC<{ rows?: number; columns?: number }> = ({
     rows = 5,
     columns = 5
@@ -156,7 +147,6 @@ export const SkeletonTable: React.FC<{ rows?: number; columns?: number }> = ({
     );
 };
 
-// Stats card skeleton
 export const SkeletonStatsCard: React.FC = () => {
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -167,7 +157,6 @@ export const SkeletonStatsCard: React.FC = () => {
     );
 };
 
-// Stats grid skeleton
 export const SkeletonStatsGrid: React.FC<{ count?: number }> = ({ count = 4 }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -178,7 +167,6 @@ export const SkeletonStatsGrid: React.FC<{ count?: number }> = ({ count = 4 }) =
     );
 };
 
-// Chat message skeleton
 export const SkeletonChatMessage: React.FC<{ isOwn?: boolean }> = ({ isOwn = false }) => {
     return (
         <div className={`flex gap-3 mb-4 ${isOwn ? 'flex-row-reverse' : ''}`}>
@@ -194,7 +182,6 @@ export const SkeletonChatMessage: React.FC<{ isOwn?: boolean }> = ({ isOwn = fal
     );
 };
 
-// Chat list item skeleton
 export const SkeletonChatListItem: React.FC = () => {
     return (
         <div className="flex items-center gap-3 p-4 border-b border-gray-100">
@@ -208,7 +195,6 @@ export const SkeletonChatListItem: React.FC = () => {
     );
 };
 
-// Chat skeleton
 export const SkeletonChat: React.FC = () => {
     return (
         <div className="flex h-[calc(100vh-120px)] bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -253,7 +239,6 @@ export const SkeletonChat: React.FC = () => {
     );
 };
 
-// Profile header skeleton
 export const SkeletonProfileHeader: React.FC = () => {
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -271,7 +256,6 @@ export const SkeletonProfileHeader: React.FC = () => {
     );
 };
 
-// Single gig page skeleton
 export const SkeletonGigDetail: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto py-8 px-4">
@@ -328,7 +312,6 @@ export const SkeletonGigDetail: React.FC = () => {
     );
 };
 
-// Search results skeleton
 export const SkeletonSearchResults: React.FC = () => {
     return (
         <div>
@@ -341,7 +324,6 @@ export const SkeletonSearchResults: React.FC = () => {
     );
 };
 
-// Dashboard skeleton
 export const SkeletonDashboard: React.FC = () => {
     return (
         <div className="space-y-6">
@@ -374,7 +356,6 @@ export const SkeletonDashboard: React.FC = () => {
     );
 };
 
-// Page loading wrapper - keeps layout visible
 export const PageSkeleton: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
         <div className="animate-pulse">
@@ -383,7 +364,6 @@ export const PageSkeleton: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
-// Order card skeleton
 export const SkeletonOrderCard: React.FC = () => {
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -409,7 +389,6 @@ export const SkeletonOrderCard: React.FC = () => {
     );
 };
 
-// Orders list skeleton
 export const SkeletonOrdersList: React.FC<{ count?: number }> = ({ count = 5 }) => {
     return (
         <div className="space-y-4">
@@ -420,7 +399,6 @@ export const SkeletonOrdersList: React.FC<{ count?: number }> = ({ count = 5 }) 
     );
 };
 
-// Notification skeleton
 export const SkeletonNotification: React.FC = () => {
     return (
         <div className="flex items-start gap-3 p-4 border-b border-gray-100">

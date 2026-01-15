@@ -55,7 +55,6 @@ interface FilePreview {
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// File type categories and their icons
 const FILE_CATEGORIES: Record<string, { icon: React.ComponentType<any>; color: string }> = {
   image: { icon: ImageIcon, color: 'text-orange-500' },
   video: { icon: Film, color: 'text-purple-500' },
@@ -65,21 +64,14 @@ const FILE_CATEGORIES: Record<string, { icon: React.ComponentType<any>; color: s
   other: { icon: File, color: 'text-gray-500' }
 };
 
-// Allowed file extensions
 const ALLOWED_EXTENSIONS = [
-  // Images
   '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico',
-  // Documents
   '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf', '.csv',
-  // Videos
   '.mp4', '.mov', '.avi', '.mkv', '.webm',
-  // Audio
   '.mp3', '.wav', '.ogg', '.m4a',
-  // Archives
   '.zip', '.rar', '.7z', '.tar', '.gz'
 ];
 
-// Blocked extensions
 const BLOCKED_EXTENSIONS = [
   '.exe', '.bat', '.cmd', '.sh', '.ps1', '.msi', '.dll', '.scr', '.com',
   '.vbs', '.js', '.jar', '.php', '.py', '.rb', '.pl'
@@ -113,7 +105,6 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
         mimeType.includes('compressed') ||
         mimeType.includes('archive')) return 'archive';
     
-    // Check by extension
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) return 'image';
     if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext || '')) return 'video';
@@ -125,18 +116,15 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
   };
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
-    // Check extension
     const ext = `.${file.name.split('.').pop()?.toLowerCase()}`;
     if (BLOCKED_EXTENSIONS.includes(ext)) {
       return { valid: false, error: `File type ${ext} is not allowed for security reasons` };
     }
 
-    // Check size
     if (file.size > maxFileSize * 1024 * 1024) {
       return { valid: false, error: `File exceeds ${maxFileSize}MB limit` };
     }
 
-    // Check total files
     if (files.length >= maxFiles) {
       return { valid: false, error: `Maximum ${maxFiles} files allowed` };
     }
@@ -168,7 +156,6 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
         progress: 0
       };
 
-      // Create preview for images
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -230,11 +217,9 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
     const uploadedAttachments: AttachmentData[] = [];
 
     try {
-      // Upload files one by one to show progress
       for (let i = 0; i < files.length; i++) {
         const filePreview = files[i];
         
-        // Update progress state
         setFiles(prev => prev.map(f => 
           f.id === filePreview.id ? { ...f, uploading: true } : f
         ));
@@ -264,12 +249,10 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
             }
           );
 
-          // Get uploaded attachments from response
           if (response.data.success && response.data.attachments) {
             uploadedAttachments.push(...response.data.attachments);
           }
 
-          // Mark as completed
           setFiles(prev => prev.map(f => 
             f.id === filePreview.id ? { ...f, uploading: false, progress: 100 } : f
           ));

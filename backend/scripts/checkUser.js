@@ -22,7 +22,6 @@ const checkUser = async () => {
     if (!user) {
       console.error(`User with email ${email} not found`);
       
-      // List all users to help find the correct email
       const allUsers = await User.find({}).select('email fullName role').limit(10);
       allUsers.forEach(u => {
         });

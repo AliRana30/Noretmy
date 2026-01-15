@@ -1,4 +1,3 @@
-// utils/startOrFetchConversation.ts
 import axios from "axios";
 
 interface StartOrFetchConversationParams {
@@ -15,7 +14,6 @@ export const startOrFetchConversation = async ({ buyerId, sellerId }: StartOrFet
   }
 
   try {
-    // Try to find an existing conversation
     const response = await axios.get(`${BACKEND_URL}/conversations/user/single/${sellerId}/${buyerId}`, {
       withCredentials: true,
     });
@@ -24,7 +22,6 @@ export const startOrFetchConversation = async ({ buyerId, sellerId }: StartOrFet
       const { conversationId } = response.data;
       return `/message/${conversationId}&sellerId=${sellerId}&buyerId=${buyerId}`;
     } else if (response.status === 204) {
-      // No conversation found, create one
       const createResponse = await axios.post(`${BACKEND_URL}/conversations`, {
         sellerId,
         buyerId,

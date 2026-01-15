@@ -9,7 +9,6 @@ import {
 } from "recharts";
 
 const Chart = ({ aspect, title, data, darkMode }) => {
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (

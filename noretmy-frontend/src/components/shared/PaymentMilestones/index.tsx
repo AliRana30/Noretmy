@@ -104,7 +104,6 @@ const PaymentMilestones: React.FC<PaymentMilestonesProps> = ({
     }
   }, [orderId]);
 
-  // Optional auto-refresh: if parent provides `onMilestoneUpdate`, keep polling until completed.
   useEffect(() => {
     if (!orderId) return;
     if (!onMilestoneUpdate) return;

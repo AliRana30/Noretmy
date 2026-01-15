@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import { DarkModeContext } from '../../context/darkModeContext';
 import { AlertTriangle, RefreshCw, ShieldX, WifiOff, ServerCrash, Lock, AlertCircle } from 'lucide-react';
 
-// Error type configurations
 const ERROR_TYPES = {
   default: {
     icon: AlertTriangle,
@@ -54,7 +53,6 @@ const ErrorMessage = ({
 }) => {
   const { darkMode } = useContext(DarkModeContext);
   
-  // Parse error message for 403 errors
   const errorType = message?.includes('403') || message?.toLowerCase().includes('forbidden') || message?.toLowerCase().includes('access denied') 
     ? 'forbidden' 
     : message?.toLowerCase().includes('network') || message?.toLowerCase().includes('connection')
@@ -70,7 +68,6 @@ const ErrorMessage = ({
   const config = ERROR_TYPES[errorType] || ERROR_TYPES.default;
   const IconComponent = config.icon;
   
-  // Color classes based on error type
   const colorClasses = {
     red: {
       bg: darkMode ? 'bg-red-500/10' : 'bg-red-50',
@@ -111,7 +108,6 @@ const ErrorMessage = ({
   
   const colors = colorClasses[config.color] || colorClasses.red;
 
-  // Friendly error messages
   const getFriendlyMessage = (msg) => {
     if (msg?.includes('403') || msg?.toLowerCase().includes('forbidden')) {
       return "You don't have permission to access this resource. Please contact your administrator if you believe this is an error.";

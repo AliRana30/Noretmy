@@ -14,7 +14,6 @@ const createProject = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Parse skills if it's a JSON string
     let parsedSkills;
     try {
       parsedSkills = typeof skills === "string" ? JSON.parse(skills) : skills;
@@ -26,7 +25,6 @@ const createProject = async (req, res) => {
       return res.status(400).json({ message: "Project image is required" });
     }
 
-    // Handle file upload using Cloudinary
     let imageUrl = "";
     try {
       const urls = await uploadDocuments(req);
@@ -81,8 +79,6 @@ const getProjectsByUser = async (req, res) => {
 
     console.log('[getProjectsByUser] Searching for userId:', userId);
     
-    // Fetch projects where userId matches, but exclude `userId` from response
-    // userId in Project model is ObjectId, so we can use it directly
     const projects = await Project.find({ userId }).select("-userId");
 
     console.log('[getProjectsByUser] Found', projects?.length || 0, 'projects');

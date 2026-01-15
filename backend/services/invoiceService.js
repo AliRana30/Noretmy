@@ -16,7 +16,6 @@ const User = require('../models/User');
 const UserProfile = require('../models/UserProfile');
 const Job = require('../models/Job');
 
-// Platform info (should be in .env in production)
 const PLATFORM_INFO = {
   name: 'Noretmy Platform',
   legalName: 'Noretmy Ltd.',
@@ -49,30 +48,23 @@ const generateInvoice = async (orderId) => {
       return { success: false, error: 'Invoice can only be generated for paid orders' };
     }
 
-    // Get buyer info
     const buyer = await User.findById(order.buyerId);
     const buyerProfile = await UserProfile.findOne({ userId: order.buyerId });
 
-    // Get seller info
     const seller = await User.findById(order.sellerId);
     const sellerProfile = await UserProfile.findOne({ userId: order.sellerId });
 
-    // Get gig info
     const gig = await Job.findById(order.gigId);
 
-    // Generate invoice ID if not exists
     const invoiceId = order.invoiceId || generateInvoiceId();
 
     const invoiceData = {
-      // Invoice identification
       invoiceId,
       invoiceDate: new Date(),
       orderId: order._id,
       
-      // Platform info
       platform: PLATFORM_INFO,
       
-      // Seller info
       seller: {
         id: seller?._id,
         name: seller?.fullName || seller?.username || 'Unknown Seller',
@@ -82,7 +74,6 @@ const generateInvoice = async (orderId) => {
         isCompany: seller?.role === 'company'
       },
       
-      // Buyer info
       buyer: {
         id: buyer?._id,
         name: buyer?.fullName || buyer?.username || 'Unknown Buyer',
@@ -92,13 +83,11 @@ const generateInvoice = async (orderId) => {
         isCompany: buyer?.role === 'company' || buyerProfile?.isCompany
       },
       
-      // Service details
       service: {
         description: gig?.title || 'Digital Service',
         category: gig?.category || 'Service'
       },
       
-      // Price breakdown (immutable after payment)
       pricing: {
         baseAmount: order.baseAmount || order.price,
         currency: order.currency || 'EUR',
@@ -110,7 +99,6 @@ const generateInvoice = async (orderId) => {
         vatCollected: order.vatCollected || false
       },
       
-      // Reverse charge info
       reverseCharge: {
         applied: order.reverseChargeApplied || false,
         note: order.reverseChargeApplied 
@@ -118,7 +106,6 @@ const generateInvoice = async (orderId) => {
           : null
       },
       
-      // Payment info
       payment: {
         status: order.paymentStatus || 'completed',
         provider: order.paymentProvider || 'stripe',
@@ -127,7 +114,6 @@ const generateInvoice = async (orderId) => {
       }
     };
 
-    // Update order with invoice ID
     if (!order.invoiceId) {
       order.invoiceId = invoiceId;
       order.invoiceGenerated = true;

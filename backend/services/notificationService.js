@@ -270,7 +270,6 @@ const notifyWithdrawalRequestSubmitted = async (adminIds, freelancerId, amount, 
   
   const createdNotifications = await createBulkNotifications(notifications);
   
-  // Emit socket events to all admins
   const io = global.io;
   if (io) {
     adminIds.forEach((adminId) => {

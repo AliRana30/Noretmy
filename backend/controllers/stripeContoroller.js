@@ -1,9 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Freelancer = require('../models/Freelancer');
 
-// Get the frontend URL for Stripe redirect URLs
 const getFrontendUrl = () => {
-    // Priority: ORIGIN env var > fallback to production URL
     return process.env.ORIGIN || 'https://noretmy.com';
 };
 
@@ -15,20 +13,17 @@ async function handleStripeOnboarding(userId, email, country) {
     try {
         let freelancerAccount = await Freelancer.findOne({ userId });
 
-        // If Freelancer exists but has no stripeAccountId, we need to create a Stripe account
         const needsStripeAccount = !freelancerAccount || !freelancerAccount.stripeAccountId;
 
         if (needsStripeAccount) {
             try {
                 console.log('[Stripe Onboarding] Creating new Stripe account for:', { userId, email, country });
                 
-                // DEVELOPMENT MODE BYPASS: Skip real Stripe Connect in development
                 const isDevelopment = process.env.NODE_ENV === 'development';
                 
                 if (isDevelopment) {
                     console.log('🔧 [DEV MODE] Bypassing Stripe Connect - creating mock account');
                     
-                    // Create/update freelancer with mock Stripe account
                     if (!freelancerAccount) {
                         freelancerAccount = new Freelancer({
                             email,
@@ -50,7 +45,6 @@ async function handleStripeOnboarding(userId, email, country) {
                     return { success: true, freelancerAccount };
                 }
                 
-                // PRODUCTION MODE: Real Stripe Connect account creation
                 const account = await stripe.accounts.create({
                     type: 'standard',
                     country,
@@ -60,7 +54,6 @@ async function handleStripeOnboarding(userId, email, country) {
                 console.log('[Stripe Onboarding] Stripe account created:', account.id);
 
                 if (!freelancerAccount) {
-                    // Create new Freelancer document
                     freelancerAccount = new Freelancer({
                         email,
                         stripeAccountId: account.id,
@@ -69,7 +62,6 @@ async function handleStripeOnboarding(userId, email, country) {
                         onboardingStatus: 'pending',
                     });
                 } else {
-                    // Update existing Freelancer with Stripe account
                     freelancerAccount.stripeAccountId = account.id;
                     freelancerAccount.email = email;
                     freelancerAccount.withdrawalMethod = 'stripe';
@@ -102,7 +94,6 @@ async function handleStripeOnboarding(userId, email, country) {
                     rawError: err
                 });
                 
-                // Common local/dev misconfiguration: Connect not enabled on the Stripe account.
                 if (String(message).includes("signed up for Connect") || String(message).includes('docs/connect')) {
                     return {
                         success: false,
@@ -113,9 +104,7 @@ async function handleStripeOnboarding(userId, email, country) {
             }
         }
 
-        // Freelancer has a stripeAccountId - check if onboarding is complete
         try {
-            // DEVELOPMENT MODE BYPASS: Mock accounts in dev mode
             const isDevelopment = process.env.NODE_ENV === 'development';
             const isMockAccount = freelancerAccount.stripeAccountId?.startsWith('acct_dev_');
             
@@ -130,7 +119,6 @@ async function handleStripeOnboarding(userId, email, country) {
                 return { success: true, freelancerAccount };
             }
             
-            // PRODUCTION MODE: Real Stripe account validation
             const account = await stripe.accounts.retrieve(freelancerAccount.stripeAccountId);
             console.log('[Stripe Onboarding] Account status:', { 
                 accountId: freelancerAccount.stripeAccountId, 
@@ -166,7 +154,6 @@ async function handleStripeOnboarding(userId, email, country) {
             return { success: false, message };
         }
 
-        // Update email, method, and status
         freelancerAccount.email = email;
         freelancerAccount.withdrawalMethod = 'stripe';
         freelancerAccount.onboardingStatus = 'completed';
@@ -183,7 +170,6 @@ async function handleStripeOnboarding(userId, email, country) {
 
 const createStripeTransfer = async (amount, destination, description) => {
     try {
-        // DEVELOPMENT MODE BYPASS: Skip real payouts for mock accounts
         const isDevelopment = process.env.NODE_ENV === 'development';
         const isMockAccount = destination?.startsWith('acct_dev_');
         
@@ -209,10 +195,6 @@ const createStripeTransfer = async (amount, destination, description) => {
             return mockPayout;
         }
         
-        // PRODUCTION MODE: Real Stripe payout
-        // IMPORTANT: Use payouts, not transfers
-        // Transfers move money FROM platform TO connected account (requires platform balance)
-        // Payouts send money FROM connected account TO their bank (correct for withdrawals)
         const payout = await stripe.payouts.create({
             amount, // Amount in cents
             currency: 'usd',
@@ -238,7 +220,6 @@ const createStripeTransfer = async (amount, destination, description) => {
             destination
         });
         
-        // Return more specific error messages
         if (error.code === 'insufficient_funds') {
             throw new Error('Insufficient funds in connected Stripe account for this payout.');
         } else if (error.code === 'account_invalid') {

@@ -8,7 +8,6 @@ const TOKEN_EXPIRY_DURATION = 15 * 60 * 1000; // 15 minutes
 
 const signUp = async (email, password, fullName, username, isSeller, isCompany, countryInfoPromise) => {
   try {
-    // Validate password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return {
@@ -19,7 +18,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       };
     }
     
-    // Auto-generate username if not provided
     if (!username) {
       const emailPrefix = email.split('@')[0];
       const randomSuffix = Math.floor(Math.random() * 10000);
@@ -29,21 +27,17 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     const existingUserByEmail = await User.findOne({ email });
     const existingUserByUsername = await User.findOne({ username });
 
-    // If either email or username exists
     if (existingUserByEmail || existingUserByUsername) {
-      // If the existing email/username is not verified
       const existingUser = existingUserByEmail || existingUserByUsername;
 
       if (!existingUser.isVerified) {
         const now = Date.now();
         if (!existingUser.verificationTokenExpiry || existingUser.verificationTokenExpiry < now) {
-          // Token expired → generate new token and resend
           const newToken = crypto.randomBytes(32).toString('hex');
           existingUser.verificationToken = newToken;
           existingUser.verificationTokenExpiry = now + TOKEN_EXPIRY_DURATION;
           await existingUser.save();
 
-          // Send verification email in background
           const backgroundResend = async () => {
             try {
               console.log(`📧 Resending verification email to existing unverified user: ${existingUser.email} in background`);
@@ -69,7 +63,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
         }
       }
 
-      // If verified, block duplicate signup
       if (existingUserByEmail) {
         const existingRole = existingUserByEmail.role === 'freelancer' ? 'freelancer' : 'client';
         const requestedRole = isSeller === true || isSeller === 'true' ? 'freelancer' : 'client';
@@ -101,7 +94,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     const token = crypto.randomBytes(32).toString('hex');
 
-    // Determine user role based on input
     let userRole = 'client'; // Default role
     if (isSeller === true || isSeller === 'true') {
       userRole = 'freelancer';
@@ -117,17 +109,14 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       role: userRole,
       verificationToken: token,
       verificationTokenExpiry: Date.now() + TOKEN_EXPIRY_DURATION,
-      // All users start unverified - they appear in admin documents for manual verification
       isVerified: false,
     });
 
     await user.save();
 
-    // Resolve country info (which was started in parallel)
     const resolvedCountryInfo = await countryInfoPromise;
     const { country = 'United States', countryCode = 'US' } = resolvedCountryInfo || {};
 
-    // Create associated user profile
     const userProfile = new UserProfile({
       userId: user._id,
       country,
@@ -141,7 +130,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     console.log('ℹ️  User will appear in admin documents for manual verification');
     console.log('ℹ️  User can login immediately without email verification');
 
-    // Send admin notification in background
     const sendAdminNotification = async () => {
       try {
         const notificationService = require('./notificationService');
@@ -170,10 +158,8 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       }
     };
 
-    // Execute admin notification without awaiting
     sendAdminNotification();
 
-    // Send verification email in background (fire-and-forget to avoid delays)
     const sendVerificationInBackground = async () => {
       try {
         console.log(`📧 Sending verification email to: ${user.email}`);
@@ -184,7 +170,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       }
     };
     
-    // Execute verification email without awaiting
     sendVerificationInBackground();
 
     return {
@@ -204,9 +189,7 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     };
   } catch (error) {
     console.error('Signup error:', error);
-    // Return more specific error message
     if (error.code === 11000) {
-      // Duplicate key error
       const field = Object.keys(error.keyPattern)[0];
       return {
         success: false,
@@ -240,13 +223,11 @@ const verifyEmail = async (email, token) => {
   user.verificationTokenExpiry = undefined;
   await user.save();
 
-  // Send welcome email after successful verification
   try {
     const { sendWelcomeEmail } = require('./emailService');
     await sendWelcomeEmail(user.email, user.fullName, user.isSeller);
     console.log(`✅ Welcome email sent to ${user.email}`);
   } catch (emailError) {
-    // Don't fail verification if welcome email fails
     console.error('Failed to send welcome email:', emailError.message);
   }
 };
@@ -261,8 +242,6 @@ const signIn = async (email, password) => {
     throw error;
   }
 
-  // Email verification removed - users can login immediately
-  // Verification is done manually by admins through admin panel
 
   if (user.isBlocked) {
     const error = new Error(`Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}. Please contact support.`);
@@ -314,13 +293,11 @@ const resendVerificationEmail = async (email) => {
     throw error;
   }
 
-  // Generate new token
   const newToken = crypto.randomBytes(32).toString('hex');
   user.verificationToken = newToken;
   user.verificationTokenExpiry = Date.now() + TOKEN_EXPIRY_DURATION;
   await user.save();
 
-  // Send new verification email
   try {
     console.log(`📧 Resending verification email to ${user.email}`);
     await sendVerificationEmail(user.email, newToken);
@@ -338,7 +315,6 @@ const resendVerificationEmail = async (email) => {
   };
 };
 
-// Admin-specific functions
 const createAdminUser = async (adminData) => {
   const { email, password, fullName, username, permissions = [] } = adminData;
   
@@ -364,7 +340,6 @@ const createAdminUser = async (adminData) => {
 
   await adminUser.save();
 
-  // Create admin profile
   const adminProfile = new UserProfile({
     userId: adminUser._id,
     isCompany: false,
@@ -396,7 +371,6 @@ const updateUserRole = async (userId, newRole, permissions = []) => {
   user.role = newRole;
   user.permissions = permissions;
   
-  // Update isSeller for backward compatibility
   if (newRole === 'freelancer') {
     user.isSeller = true;
   } else if (newRole === 'client') {

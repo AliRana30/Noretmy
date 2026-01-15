@@ -1,4 +1,3 @@
-// models/Message.js
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
@@ -6,14 +5,12 @@ const messageSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     desc: { type: String, required: false }, // Made optional for file-only messages
     
-    // Message type - can be 'text', 'order_invitation', 'order_accepted', 'order_rejected', 'order_update', 'system', 'file'
     messageType: { 
         type: String, 
         enum: ['text', 'file', 'order_invitation', 'order_accepted', 'order_rejected', 'order_update', 'milestone_update', 'payment_update', 'system'],
         default: 'text' 
     },
     
-    // Order-related fields (for order messages)
     orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: false },
     orderData: {
         gigTitle: { type: String, required: false },
@@ -25,7 +22,6 @@ const messageSchema = new mongoose.Schema({
         invitationStatus: { type: String, required: false }
     },
     
-    // Enhanced Attachments for file sharing
     attachments: [{
         _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
         url: { type: String, required: true },
@@ -43,13 +39,10 @@ const messageSchema = new mongoose.Schema({
         }
     }],
     
-    // File count for quick reference
     attachmentCount: { type: Number, default: 0 },
     
-    // For tracking if message is read
     isRead: { type: Boolean, default: false },
     
-    // For deleted messages
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date }
 
@@ -57,7 +50,6 @@ const messageSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster queries
 messageSchema.index({ conversationId: 1, createdAt: -1 });
 messageSchema.index({ orderId: 1 });
 messageSchema.index({ userId: 1 });

@@ -17,7 +17,6 @@ import toast from 'react-hot-toast';
 import { Briefcase, FolderOpen, Star, ShoppingBag, DollarSign, User } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
 
-// Helper function to calculate member since duration
 const calculateMemberSince = (createdAt: string): string => {
   if (!createdAt) return 'Recently';
   const now = new Date();
@@ -35,7 +34,6 @@ const calculateMemberSince = (createdAt: string): string => {
   return `${diffYears} years`;
 };
 
-// Skeleton loaders for each section
 const SectionSkeleton = ({ type }: { type: string }) => {
   switch (type) {
     case 'profile':
@@ -125,7 +123,6 @@ const SectionSkeleton = ({ type }: { type: string }) => {
   }
 };
 
-// Empty state component
 const EmptyState = ({ section, isSeller, t }: { section: string; isSeller: boolean; t: any }) => {
   const emptyStates: Record<string, { icon: any; title: string; description: string; action?: { label: string; href: string } }> = {
     gigs: {
@@ -221,7 +218,6 @@ const ProfileSection = () => {
   const apiBase = (BASE_URL || '').replace(/\/$/, '');
   const apiRoot = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-  // Fetch Profile Data
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -243,7 +239,6 @@ const ProfileSection = () => {
     }
   };
 
-  // Update Profile Data
   const updateProfileData = async (updates: any) => {
     try {
       setSectionLoading(true);
@@ -258,7 +253,6 @@ const ProfileSection = () => {
     }
   };
 
-  // Handle Profile Picture Upload
   const uploadProfilePicture = async (file: File) => {
     try {
       if (!file) {
@@ -292,7 +286,6 @@ const ProfileSection = () => {
     }
   };
 
-  // Handle section change with loading state
   const handleSectionChange = (section: string) => {
     setSectionLoading(true);
     setActiveSection(section);
@@ -309,7 +302,6 @@ const ProfileSection = () => {
     }
   }, [profileData.createdAt]);
 
-  // Render the active section content
   const renderSectionContent = () => {
     if (sectionLoading) {
       return <SectionSkeleton type={activeSection} />;

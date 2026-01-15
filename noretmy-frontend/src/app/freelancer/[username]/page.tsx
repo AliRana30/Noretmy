@@ -103,7 +103,6 @@ const FreelancerProfileContent = () => {
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fetch seller badge data
   const { badge: sellerBadge, loading: badgeLoading } = useSellerBadge(freelancer?.user._id);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ const FreelancerProfileContent = () => {
       router.push('/login');
       return;
     }
-    // Navigate to chat with this freelancer
     router.push(`/chat?freelancer=${freelancer?.user._id}`);
   };
 
