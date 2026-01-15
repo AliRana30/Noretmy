@@ -9,9 +9,9 @@ const EmailLog = require('../models/EmailLog');
 const USE_SENDGRID = !!process.env.SENDGRID_API_KEY;
 if (USE_SENDGRID) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('?? Email Service: SendGrid (Production)');
+  console.log('📧 Email Service: SendGrid (Production)');
 } else {
-  console.log('?? Email Service: SMTP/Gmail (Local Development)');
+  console.log('📧 Email Service: SMTP/Gmail (Local Development)');
 }
 
 
@@ -23,7 +23,7 @@ const createTransporter = () => {
   const smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
   const smtpSecure = (process.env.SMTP_SECURE || '').toLowerCase() === 'true' || smtpPort === 465;
 
-  console.log(`?? Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}`);
+  console.log(`📧 Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}`);
 
   if (!smtpUser || !smtpPass) {
     throw new Error('Email configuration missing: set SMTP_MAIL/SMTP_PASSWORD (preferred) or EMAIL_USER/EMAIL_PASS.');
@@ -70,7 +70,7 @@ const verifyEmailConnection = async () => {
     await transporter.verify();
     return { success: true, message: 'Email service connected' };
   } catch (error) {
-    console.error('? Email service connection failed:', error.message);
+    console.error('❌ Email service connection failed:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -114,7 +114,7 @@ const sendEmailWithLogging = async (options) => {
     try {
       const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_MAIL || process.env.EMAIL_USER || 'noreply@noretmy.com';
       
-      console.log(`?? [Attempt ${attempt}/${maxRetries}] Sending ${emailType} email to ${to}...`);
+      console.log(`📧 [Attempt ${attempt}/${maxRetries}] Sending ${emailType} email to ${to}...`);
       
       let result;
       
@@ -155,7 +155,7 @@ const sendEmailWithLogging = async (options) => {
         });
       }
       
-      console.log(`? ${emailType} email sent successfully to ${to}`);
+      console.log(`✅ ${emailType} email sent successfully to ${to}`);
       return { success: true, messageId: result.messageId };
       
     } catch (error) {
@@ -164,7 +164,7 @@ const sendEmailWithLogging = async (options) => {
         await emailLog.markAsFailed(error);
       }
       
-      console.error(`? [Attempt ${attempt}/${maxRetries}] Email failed: ${emailType} to ${to} - ${error.message}`);
+      console.error(`❌ [Attempt ${attempt}/${maxRetries}] Email failed: ${emailType} to ${to} - ${error.message}`);
       
       if (attempt < maxRetries) {
         const delay = 1000 * Math.pow(2, attempt - 1); // Exponential backoff
@@ -174,7 +174,7 @@ const sendEmailWithLogging = async (options) => {
   }
 
   const errorMessage = lastError?.message || 'Failed to send email after multiple attempts';
-  console.error(`? Email sending failed permanently: ${errorMessage}`);
+  console.error(`❌ Email sending failed permanently: ${errorMessage}`);
   throw new Error(errorMessage);
 };
 
@@ -560,7 +560,7 @@ const sendUserNotificationEmail = async (email, type, emailMessage, userType, or
   };
 
   try {
-    console.log(`?? [sendUserNotificationEmail] Sending type=${type} to=${email} subject="${subject}"`);
+    console.log(`📧 [sendUserNotificationEmail] Sending type=${type} to=${email} subject="${subject}"`);
     const result = await sendEmailWithLogging({
       ...mailOptions,
       emailType: `user_notification_${type || 'generic'}`,
@@ -568,10 +568,10 @@ const sendUserNotificationEmail = async (email, type, emailMessage, userType, or
       recipientName: recipientLabel,
       metadata: { type, userType, hasOrderDetails: !!orderDetails },
     });
-    console.log(`? [sendUserNotificationEmail] Sent to=${email} messageId=${result?.messageId || 'n/a'}`);
+    console.log(`✅ [sendUserNotificationEmail] Sent to=${email} messageId=${result?.messageId || 'n/a'}`);
     return result;
   } catch (err) {
-    console.error(`? [sendUserNotificationEmail] Failed to send type=${type} to=${email}:`, err?.message || err);
+    console.error(`❌ [sendUserNotificationEmail] Failed to send type=${type} to=${email}:`, err?.message || err);
     throw err;
   }
 };
@@ -1759,11 +1759,11 @@ const sendPaymentMilestoneEmail = async (email, milestoneDetails) => {
 
           ${isForSeller ? `
             <p style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #10B981;">
-              ?? <strong>Funds Update:</strong> ${stage === 'completed' ? 'Funds have been released to your account!' : 'Funds are being held securely in escrow.'}
+              💰 <strong>Funds Update:</strong> ${stage === 'completed' ? 'Funds have been released to your account!' : 'Funds are being held securely in escrow.'}
             </p>
           ` : `
             <p style="background-color: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-              ?? <strong>Payment Protected:</strong> Your payment is secured through our escrow system.
+              🔒 <strong>Payment Protected:</strong> Your payment is secured through our escrow system.
             </p>
           `}
 
@@ -1830,7 +1830,7 @@ const sendPaymentFailedEmail = async (email, paymentDetails) => {
         </div>
         <div class="content">
           <div class="alert-box">
-            <div class="alert-icon">??</div>
+            <div class="alert-icon">⚠️</div>
             <h2 style="color: #dc2626; text-align: center; margin: 0;">Payment Failed</h2>
           </div>
 
@@ -1932,7 +1932,7 @@ const sendOrderDeliveredEmail = async (email, deliveryDetails) => {
         </div>
         <div class="content">
           <div class="success-box">
-            <span style="font-size: 48px;">??</span>
+            <span style="font-size: 48px;">📦</span>
             <h2 style="color: #059669; margin: 10px 0;">Order Delivered!</h2>
           </div>
 
@@ -1956,7 +1956,7 @@ const sendOrderDeliveredEmail = async (email, deliveryDetails) => {
             </div>
 
             <p style="background-color: #fef3c7; padding: 10px; border-radius: 6px; font-size: 14px;">
-              ? <strong>Note:</strong> If you don't respond within 3 days, the delivery will be automatically accepted.
+              ⏰ <strong>Note:</strong> If you don't respond within 3 days, the delivery will be automatically accepted.
             </p>
           ` : `
             <p>Your delivery for order <strong>"${gigTitle}"</strong> has been submitted successfully.</p>
@@ -2023,7 +2023,7 @@ const sendOrderCompletedEmail = async (email, orderDetails) => {
         </div>
         <div class="content">
           <div class="celebration">
-            <div class="celebration-icon">??</div>
+            <div class="celebration-icon">🎉</div>
             <h2 style="color: #059669;">Order Completed!</h2>
           </div>
 
@@ -2111,7 +2111,7 @@ const sendChatAttachmentEmail = async (email, attachmentDetails) => {
           <p><strong>${senderName}</strong> has sent you ${attachmentCount} file${attachmentCount > 1 ? 's' : ''} in your conversation.</p>
 
           <div class="file-box">
-            <strong>?? Files received:</strong>
+            <strong>📎 Files received:</strong>
             <ul>
               ${fileList}
               ${moreFiles}
@@ -2161,7 +2161,7 @@ const sendTestEmail = async (email, testMessage = 'This is a test email from Nor
         </div>
         <div class="content">
           <div class="success">
-            <span style="font-size: 48px;">?</span>
+            <span style="font-size: 48px;">✅</span>
             <h2 style="color: #059669;">Email Service Working!</h2>
           </div>
           <p>${testMessage}</p>
@@ -2300,7 +2300,7 @@ const sendDeadlineWarningEmail = async (email, orderDetails) => {
   const gigTitle = orderDetails?.gigTitle || 'Service';
   const newDeadline = orderDetails?.newDeadline || 'N/A';
 
-  const emailSubject = `?? ACTION REQUIRED: Order Deadline Expired - #${orderId}`;
+  const emailSubject = `⚠️ ACTION REQUIRED: Order Deadline Expired - #${orderId}`;
   const emailBody = `
     <html>
       <head>
@@ -2381,4 +2381,3 @@ module.exports = {
   
   sendChatAttachmentEmail
 };
-
