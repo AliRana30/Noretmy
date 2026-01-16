@@ -81,7 +81,7 @@ const NotificationBell: React.FC = () => {
                 <div className="fixed inset-x-4 top-[70px] sm:absolute sm:inset-auto sm:right-0 sm:mt-3 sm:w-96 max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[90] transform origin-top-right transition-all duration-200">
                     {/* Header */}
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-white">
-                        <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
+                        <h3 className="text-lg font-semibold !text-gray-800">Notifications</h3>
                         <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
                                 <button
@@ -106,15 +106,15 @@ const NotificationBell: React.FC = () => {
                         {loading && notifications.length === 0 ? (
                             <div className="p-12 text-center">
                                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500 mx-auto"></div>
-                                <p className="mt-4 text-sm text-gray-500 font-medium">Loading notifications...</p>
+                                <p className="mt-4 text-sm !text-gray-500 font-medium">Loading notifications...</p>
                             </div>
                         ) : notifications.length === 0 ? (
                             <div className="p-10 text-center text-gray-500">
                                 <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Bell className="w-8 h-8 text-orange-400" />
                                 </div>
-                                <p className="font-bold text-gray-900">No notifications yet</p>
-                                <p className="text-sm mt-1">We'll notify you when something happens</p>
+                                <p className="font-bold !text-gray-900">No notifications yet</p>
+                                <p className="text-sm mt-1 !text-gray-500">We'll notify you when something happens</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-50">
@@ -132,38 +132,19 @@ const NotificationBell: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-0.5">
                                                     {notification.title && (
-                                                        <p className="force-dark-text" style={{
-                                                            fontSize: '14px',
-                                                            fontWeight: 'bold',
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                            margin: 0
-                                                        }}>
+                                                        <p className="text-sm font-bold truncate !text-gray-900">
                                                             {notification.title}
                                                         </p>
                                                     )}
-                                                    <span className="force-gray-text" style={{
-                                                        fontSize: '10px',
-                                                        marginLeft: '8px',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>
+                                                    <span className="text-[10px] !text-gray-500 whitespace-nowrap ml-2">
                                                         {moment(notification.createdAt).fromNow(true)}
                                                     </span>
                                                 </div>
-                                                <p className="force-dark-text-secondary" style={{
-                                                    fontSize: '14px',
-                                                    lineHeight: '1.4',
-                                                    margin: '4px 0 0 0',
-                                                    overflow: 'hidden',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical'
-                                                }}>
+                                                <p className="text-sm leading-relaxed !text-gray-700 line-clamp-2">
                                                     {notification.message}
                                                 </p>
                                                 {notification.link && (
-                                                    <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-orange-500 uppercase tracking-wider">
+                                                    <div className="flex items-center gap-1 mt-2 text-[10px] font-bold !text-orange-500 uppercase tracking-wider">
                                                         View Details <ExternalLink className="w-2.5 h-2.5" />
                                                     </div>
                                                 )}
@@ -198,7 +179,7 @@ const NotificationBell: React.FC = () => {
                                     router.push('/notifications');
                                     setIsOpen(false);
                                 }}
-                                className="w-full py-2 bg-white border border-gray-200 rounded-xl text-center text-sm text-gray-700 hover:text-orange-600 hover:border-orange-200 font-semibold shadow-sm transition-all active:scale-95"
+                                className="w-full py-2 bg-white border border-gray-200 rounded-xl text-center text-sm !text-gray-700 hover:!text-orange-600 hover:border-orange-200 font-semibold shadow-sm transition-all active:scale-95"
                             >
                                 View all notification history
                             </button>
