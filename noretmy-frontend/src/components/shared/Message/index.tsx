@@ -308,8 +308,10 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       {/* Messages List - flex-1 with min-h-0 to enable proper scrolling in flex container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-scroll p-3 md:p-4 space-y-3 md:space-y-4 min-h-0"
+        className="flex-1 p-3 md:p-4 space-y-3 md:space-y-4 min-h-0"
         style={{
+          maxHeight: 'calc(100vh - 300px)',
+          overflowY: 'scroll',
           scrollBehavior: 'smooth',
           scrollbarWidth: 'thin',
           scrollbarColor: '#ea580c #f3f4f6'

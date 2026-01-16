@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, CheckCheck, Trash2, Clock, ExternalLink } from 'lucide-react';
+import { Bell, X, CheckCheck, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/context/NotificationContext';
 import moment from 'moment';
@@ -62,106 +62,239 @@ const NotificationBell: React.FC = () => {
     };
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div style={{ position: 'relative' }} ref={dropdownRef}>
             <button
                 onClick={handleBellClick}
-                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                style={{
+                    position: 'relative',
+                    padding: '8px',
+                    borderRadius: '9999px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 aria-label="Notifications"
             >
-                <Bell className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                <Bell style={{ width: '24px', height: '24px', color: '#374151' }} />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-lg animate-pulse">
+                    <span style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        right: '-4px',
+                        backgroundColor: '#f97316',
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        borderRadius: '9999px',
+                        minWidth: '20px',
+                        height: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0 6px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}>
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
             </button>
 
-            {/* Notification Dropdown Modal */}
             {isOpen && (
-                <div className="fixed inset-x-4 top-[70px] sm:absolute sm:inset-auto sm:right-0 sm:mt-3 sm:w-96 max-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[90] transform origin-top-right transition-all duration-200">
+                <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '12px',
+                    width: '384px',
+                    maxWidth: 'calc(100vw - 32px)',
+                    maxHeight: '500px',
+                    backgroundColor: '#fff',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    border: '1px solid #f3f4f6',
+                    overflow: 'hidden',
+                    zIndex: 90
+                }}>
                     {/* Header */}
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-white">
-                        <h3 className="text-lg font-semibold !text-gray-800">Notifications</h3>
-                        <div className="flex items-center gap-2">
+                    <div style={{
+                        padding: '16px',
+                        borderBottom: '1px solid #f3f4f6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'linear-gradient(to right, #fff7ed, #fff)'
+                    }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937', margin: 0 }}>Notifications</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
-                                    className="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1 transition-colors"
+                                    style={{
+                                        fontSize: '12px',
+                                        color: '#ea580c',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        backgroundColor: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px'
+                                    }}
                                 >
-                                    <CheckCheck className="w-3 h-3" />
+                                    <CheckCheck style={{ width: '12px', height: '12px' }} />
                                     Mark all read
                                 </button>
                             )}
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                style={{
+                                    padding: '4px',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    borderRadius: '9999px',
+                                    cursor: 'pointer'
+                                }}
                             >
-                                <X className="w-4 h-4 text-gray-500" />
+                                <X style={{ width: '16px', height: '16px', color: '#6b7280' }} />
                             </button>
                         </div>
                     </div>
 
                     {/* Notifications List */}
-                    <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                         {loading && notifications.length === 0 ? (
-                            <div className="p-12 text-center">
-                                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500 mx-auto"></div>
-                                <p className="mt-4 text-sm !text-gray-500 font-medium">Loading notifications...</p>
+                            <div style={{ padding: '48px', textAlign: 'center' }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    border: '2px solid #f97316',
+                                    borderTopColor: 'transparent',
+                                    borderRadius: '9999px',
+                                    margin: '0 auto',
+                                    animation: 'spin 1s linear infinite'
+                                }}></div>
+                                <p style={{ marginTop: '16px', fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>Loading notifications...</p>
                             </div>
                         ) : notifications.length === 0 ? (
-                            <div className="p-10 text-center text-gray-500">
-                                <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Bell className="w-8 h-8 text-orange-400" />
+                            <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                                <div style={{
+                                    width: '64px',
+                                    height: '64px',
+                                    backgroundColor: '#fff7ed',
+                                    borderRadius: '9999px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 16px'
+                                }}>
+                                    <Bell style={{ width: '32px', height: '32px', color: '#fb923c' }} />
                                 </div>
-                                <p className="font-bold !text-gray-900">No notifications yet</p>
-                                <p className="text-sm mt-1 !text-gray-500">We'll notify you when something happens</p>
+                                <p style={{ fontWeight: 'bold', color: '#111827', margin: '0 0 4px 0' }}>No notifications yet</p>
+                                <p style={{ fontSize: '14px', marginTop: '4px', color: '#6b7280' }}>We'll notify you when something happens</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-50">
+                            <div>
                                 {notifications.slice(0, 10).map((notification) => (
                                     <div
                                         key={notification._id}
                                         onClick={() => handleNotificationClick(notification)}
-                                        className={`p-4 cursor-pointer hover:bg-orange-50/30 transition-all duration-200 group relative ${!notification.isRead ? 'bg-orange-50/20' : ''
-                                            }`}
+                                        style={{
+                                            padding: '16px',
+                                            cursor: 'pointer',
+                                            backgroundColor: notification.isRead ? '#fff' : '#fff7ed',
+                                            borderBottom: '1px solid #f9fafb',
+                                            transition: 'background-color 0.2s',
+                                            position: 'relative'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = notification.isRead ? '#f9fafb' : '#ffedd5'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notification.isRead ? '#fff' : '#fff7ed'}
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-xl flex-shrink-0 bg-white shadow-sm w-10 h-10 rounded-full flex items-center justify-center border border-gray-50 group-hover:scale-110 transition-transform">
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                            <span style={{
+                                                fontSize: '20px',
+                                                flexShrink: 0,
+                                                backgroundColor: '#fff',
+                                                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '9999px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                border: '1px solid #f9fafb'
+                                            }}>
                                                 {getNotificationIcon(notification.type)}
                                             </span>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-0.5">
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
                                                     {notification.title && (
-                                                        <p className="text-sm font-bold truncate !text-gray-900">
+                                                        <p style={{
+                                                            fontSize: '14px',
+                                                            fontWeight: 'bold',
+                                                            color: '#000',
+                                                            margin: 0,
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
                                                             {notification.title}
                                                         </p>
                                                     )}
-                                                    <span className="text-[10px] !text-gray-500 whitespace-nowrap ml-2">
+                                                    <span style={{
+                                                        fontSize: '10px',
+                                                        color: '#9ca3af',
+                                                        whiteSpace: 'nowrap',
+                                                        marginLeft: '8px'
+                                                    }}>
                                                         {moment(notification.createdAt).fromNow(true)}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm leading-relaxed !text-gray-700 line-clamp-2">
+                                                <p style={{
+                                                    fontSize: '14px',
+                                                    lineHeight: '1.4',
+                                                    color: '#4b5563',
+                                                    margin: 0,
+                                                    overflow: 'hidden',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical'
+                                                }}>
                                                     {notification.message}
                                                 </p>
-                                                {notification.link && (
-                                                    <div className="flex items-center gap-1 mt-2 text-[10px] font-bold !text-orange-500 uppercase tracking-wider">
-                                                        View Details <ExternalLink className="w-2.5 h-2.5" />
-                                                    </div>
-                                                )}
                                             </div>
-                                            <div className="flex flex-col items-center gap-2">
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                                                 {!notification.isRead && (
-                                                    <span className="w-2 h-2 bg-orange-500 rounded-full shadow-sm shadow-orange-200 animate-pulse"></span>
+                                                    <span style={{
+                                                        width: '8px',
+                                                        height: '8px',
+                                                        backgroundColor: '#f97316',
+                                                        borderRadius: '9999px',
+                                                        boxShadow: '0 0 0 2px rgba(249, 115, 22, 0.2)'
+                                                    }}></span>
                                                 )}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         deleteNotification(notification._id);
                                                     }}
-                                                    className="p-1.5 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                                    style={{
+                                                        padding: '6px',
+                                                        backgroundColor: 'transparent',
+                                                        border: 'none',
+                                                        borderRadius: '9999px',
+                                                        cursor: 'pointer',
+                                                        opacity: 0,
+                                                        transition: 'opacity 0.2s'
+                                                    }}
+                                                    className="delete-btn"
                                                     title="Delete"
                                                 >
-                                                    <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-red-500" />
+                                                    <Trash2 style={{ width: '14px', height: '14px', color: '#ef4444' }} />
                                                 </button>
                                             </div>
                                         </div>
@@ -173,13 +306,38 @@ const NotificationBell: React.FC = () => {
 
                     {/* Footer */}
                     {notifications.length > 0 && (
-                        <div className="p-3 border-t border-gray-100 bg-gray-50/50">
+                        <div style={{
+                            padding: '12px',
+                            borderTop: '1px solid #f3f4f6',
+                            backgroundColor: '#fafafa'
+                        }}>
                             <button
                                 onClick={() => {
                                     router.push('/notifications');
                                     setIsOpen(false);
                                 }}
-                                className="w-full py-2 bg-white border border-gray-200 rounded-xl text-center text-sm !text-gray-700 hover:!text-orange-600 hover:border-orange-200 font-semibold shadow-sm transition-all active:scale-95"
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                    fontSize: '14px',
+                                    color: '#374151',
+                                    fontWeight: '600',
+                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.color = '#ea580c';
+                                    e.currentTarget.style.borderColor = '#fed7aa';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.color = '#374151';
+                                    e.currentTarget.style.borderColor = '#e5e7eb';
+                                }}
                             >
                                 View all notification history
                             </button>
@@ -187,6 +345,20 @@ const NotificationBell: React.FC = () => {
                     )}
                 </div>
             )}
+
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .delete-btn:hover {
+                    opacity: 1 !important;
+                    background-color: #fef2f2 !important;
+                }
+                [style*="cursor: pointer"]:hover .delete-btn {
+                    opacity: 1 !important;
+                }
+            `}</style>
         </div>
     );
 };
