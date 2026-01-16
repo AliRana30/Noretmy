@@ -181,11 +181,6 @@ const GigTop: React.FC<GigTopProps> = ({
               </div>
               <div className="w-px h-10 bg-slate-200"></div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{sales || 0}</p>
-                <p className="text-sm text-slate-500">Sales</p>
-              </div>
-              <div className="w-px h-10 bg-slate-200"></div>
-              <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">
                   {typeof successScore === 'number' ? `${Math.round(successScore)}%` : 'N/A'}
                 </p>
