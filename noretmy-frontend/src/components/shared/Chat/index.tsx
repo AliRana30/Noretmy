@@ -142,76 +142,66 @@ const ChatScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-[calc(100vh-160px)]">
-          <div className="flex h-full">
-            {/* Chat List Sidebar - Always visible */}
-            <div className="w-full md:w-96 flex-shrink-0 border-r border-gray-200 flex flex-col">
-              {/* Header */}
-              <div className="bg-white px-4 py-4 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-semibold text-gray-900">
-                      {t('chat:header.title')}
-                    </h1>
-                  </div>
-                </div>
-
-                {/* Search Bar */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={t('chat:header.searchPlaceholder')}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    aria-label={t('chat:conversation.aria.searchInput')}
-                  />
-                  <MagnifyingGlassIcon
-                    className="absolute right-3 top-3 h-4 w-4 text-gray-400"
-                    aria-label={t('chat:conversation.aria.searchButton')}
-                  />
-                </div>
-              </div>
-
-              {/* Conversation List */}
-              <div className="flex-1 overflow-y-auto">
-                {loading ? (
-                  <div>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <SkeletonChatListItem key={i} />
-                    ))}
-                  </div>
-                ) : error ? (
-                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                      <AlertCircle className="w-8 h-8 text-red-400" />
-                    </div>
-                    <p className="text-gray-600 mb-4">{error}</p>
-                    <button
-                      onClick={() => fetchConversations()}
-                      className="btn btn-secondary"
-                    >
-                      Try again
-                    </button>
-                  </div>
-                ) : filteredConversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                      <InboxArrowDownIcon className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h3 className="font-medium text-gray-900 mb-1">No conversations</h3>
-                    <p className="text-sm text-gray-500">{t('chat:empty.noConversations')}</p>
-                  </div>
-                ) : (
-                  filteredConversations.map(renderConversationItem)
-                )}
-              </div>
-            </div>
-
+    <div className="w-full h-full flex flex-col bg-white">
+      {/* Header */}
+      <div className="bg-white px-4 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-gray-900">
+              {t('chat:header.title')}
+            </h1>
           </div>
         </div>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('chat:header.searchPlaceholder')}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label={t('chat:conversation.aria.searchInput')}
+          />
+          <MagnifyingGlassIcon
+            className="absolute right-3 top-3 h-4 w-4 text-gray-400"
+            aria-label={t('chat:conversation.aria.searchButton')}
+          />
+        </div>
+      </div>
+
+      {/* Conversation List */}
+      <div className="flex-1 overflow-y-scroll">
+        {loading ? (
+          <div>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonChatListItem key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="w-8 h-8 text-red-400" />
+            </div>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => fetchConversations()}
+              className="btn btn-secondary"
+            >
+              Try again
+            </button>
+          </div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <InboxArrowDownIcon className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="font-medium text-gray-900 mb-1">No conversations</h3>
+            <p className="text-sm text-gray-500">{t('chat:empty.noConversations')}</p>
+          </div>
+        ) : (
+          filteredConversations.map(renderConversationItem)
+        )}
       </div>
     </div>
   );

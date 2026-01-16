@@ -132,15 +132,34 @@ const NotificationBell: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-0.5">
                                                     {notification.title && (
-                                                        <p style={{ color: '#000000', fontSize: '14px', fontWeight: '700', margin: '0' }} className="truncate text-black">
+                                                        <p className="force-dark-text" style={{
+                                                            fontSize: '14px',
+                                                            fontWeight: 'bold',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap',
+                                                            margin: 0
+                                                        }}>
                                                             {notification.title}
                                                         </p>
                                                     )}
-                                                    <span style={{ color: '#666666', fontSize: '10px', marginLeft: '8px', whiteSpace: 'nowrap' }} className="text-gray-500">
+                                                    <span className="force-gray-text" style={{
+                                                        fontSize: '10px',
+                                                        marginLeft: '8px',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
                                                         {moment(notification.createdAt).fromNow(true)}
                                                     </span>
                                                 </div>
-                                                <p style={{ color: '#000000', fontSize: '14px', lineHeight: '1.4', margin: '4px 0' }} className="line-clamp-2 text-gray-800">
+                                                <p className="force-dark-text-secondary" style={{
+                                                    fontSize: '14px',
+                                                    lineHeight: '1.4',
+                                                    margin: '4px 0 0 0',
+                                                    overflow: 'hidden',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical'
+                                                }}>
                                                     {notification.message}
                                                 </p>
                                                 {notification.link && (

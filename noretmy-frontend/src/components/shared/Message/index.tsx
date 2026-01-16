@@ -267,7 +267,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full lg:w-3/4 md:w-5/6 bg-gray-50">
+    <div className="flex flex-col h-full w-full bg-gray-50">
       {/* Chat Header */}
       <div className="p-3 md:p-4 bg-white shadow-md border-b flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
@@ -308,8 +308,12 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       {/* Messages List - flex-1 with min-h-0 to enable proper scrolling in flex container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 min-h-0"
-        style={{ scrollBehavior: 'smooth' }}
+        className="flex-1 overflow-y-scroll p-3 md:p-4 space-y-3 md:space-y-4 min-h-0"
+        style={{
+          scrollBehavior: 'smooth',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#ea580c #f3f4f6'
+        }}
       >
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
