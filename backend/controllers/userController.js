@@ -875,8 +875,21 @@ const getFreelancerProfile = async (req, res) => {
 
     const gigIds = gigs.map(g => g._id);
     const reviews = await Reviews.find({ gigId: { $in: gigIds } })
-      .populate('userId', 'fullName username profilePicture')
       .sort({ createdAt: -1 });
+
+    const reviewerIds = [...new Set(reviews.map(r => r.userId).filter(Boolean))];
+    const reviewerUsers = await User.find({ _id: { $in: reviewerIds } }).select('_id fullName username').lean();
+    const reviewerProfiles = await UserProfile.find({ userId: { $in: reviewerIds } }).select('userId profilePicture').lean();
+    
+    const reviewerMap = new Map();
+    reviewerUsers.forEach(u => {
+      const profile = reviewerProfiles.find(p => p.userId.toString() === u._id.toString());
+      reviewerMap.set(u._id.toString(), {
+        fullName: u.fullName,
+        username: u.username,
+        profilePicture: profile?.profilePicture || null
+      });
+    });
 
     const totalReviews = reviews.length;
     const averageRating = totalReviews > 0
@@ -973,22 +986,25 @@ const getFreelancerProfile = async (req, res) => {
       };
     });
 
-    const formattedReviews = reviews.slice(0, 10).map(r => ({
-      _id: r._id,
-      gigId: r.gigId,
-      star: r.star,
-      desc: r.desc,
-      user: r.userId ? {
-        fullName: r.userId.fullName,
-        username: r.userId.username,
-        profilePicture: r.userId.profilePicture || r.reviewerImage || null
-      } : { 
-        fullName: r.reviewerName || 'Anonymous', 
-        username: 'anonymous',
-        profilePicture: r.reviewerImage || null
-      },
-      createdAt: r.createdAt
-    }));
+    const formattedReviews = reviews.slice(0, 10).map(r => {
+      const reviewer = reviewerMap.get(r.userId?.toString());
+      return {
+        _id: r._id,
+        gigId: r.gigId,
+        star: r.star,
+        desc: r.desc,
+        user: reviewer ? {
+          fullName: reviewer.fullName,
+          username: reviewer.username,
+          profilePicture: reviewer.profilePicture
+        } : { 
+          fullName: r.reviewerName || 'Anonymous', 
+          username: 'anonymous',
+          profilePicture: r.reviewerImage || null
+        },
+        createdAt: r.createdAt
+      };
+    });
 
     const response = {
       user: {

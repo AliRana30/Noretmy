@@ -797,6 +797,17 @@ const getGigDetails = async (gigId, lang = 'en') => {
       }
     }
 
+    const Order = require('../models/Order');
+    const ordersCount = await Order.countDocuments({
+      gigId: gigId,
+      status: { $in: ['active', 'in_progress', 'delivered', 'completed'] }
+    });
+    
+    const salesCount = await Order.countDocuments({
+      gigId: gigId,
+      status: { $in: ['completed', 'delivered'] }
+    });
+
     return {
       gig: translatedGig,
       seller: {
@@ -811,6 +822,8 @@ const getGigDetails = async (gigId, lang = 'en') => {
       },
       reviews: reviewsWithUserDetails,
       averageRating,
+      orders: ordersCount,
+      sales: salesCount,
     };
   } catch (error) {
     console.error("Error in getGigDetails:", error);
