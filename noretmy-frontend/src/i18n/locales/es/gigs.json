@@ -81,6 +81,7 @@
       "contactSeller": "Contactar Vendedor",
       "readMore": "Leer Más",
       "showLess": "Mostrar Menos",
+      "aboutThisService": "Acerca de Este Servicio",
       "imageCounter": "{{current}}/{{total}}"
     },
     "pricing": {

@@ -802,16 +802,19 @@ body {
     background: #c2410c;
   }
 
-  /* Force dark text for notifications */
-  .force-dark-text {
+  /* Force dark text for notifications - High specificity */
+  .force-dark-text,
+  .force-dark-text * {
     color: #000 !important;
   }
 
-  .force-dark-text-secondary {
+  .force-dark-text-secondary,
+  .force-dark-text-secondary * {
     color: #333 !important;
   }
 
-  .force-gray-text {
+  .force-gray-text,
+  .force-gray-text * {
     color: #666 !important;
   }
 }

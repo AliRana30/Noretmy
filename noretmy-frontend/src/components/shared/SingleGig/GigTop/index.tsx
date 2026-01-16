@@ -197,7 +197,7 @@ const GigTop: React.FC<GigTopProps> = ({
 
             {/* Description */}
             <div>
-              <h3 className="font-semibold text-slate-900 mb-2">About This Service</h3>
+              <h3 className="font-semibold text-slate-900 mb-2">{t('gigs:single.gigTop.aboutThisService') || 'About This Service'}</h3>
               <p className={`text-slate-600 leading-relaxed ${!showFullDescription && 'line-clamp-4'}`}>
                 {description}
               </p>
@@ -206,7 +206,7 @@ const GigTop: React.FC<GigTopProps> = ({
                   onClick={() => setShowFullDescription(!showFullDescription)}
                   className="text-orange-600 hover:text-orange-700 font-medium mt-2"
                 >
-                  {showFullDescription ? 'Show less' : 'Read more'}
+                  {showFullDescription ? (t('gigs:single.gigTop.showLess') || 'Show less') : (t('gigs:single.gigTop.readMore') || 'Read more')}
                 </button>
               )}
             </div>
