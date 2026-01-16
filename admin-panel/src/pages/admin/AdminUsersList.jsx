@@ -87,7 +87,7 @@ const AdminUsersList = () => {
       setError(null);
       
       try {
-        const response = await getAdminUsers({});
+        const response = await getAdminUsers({ limit: 1000 });
         const usersArray = extractUsersArray(response);
         if (!usersArray) throw new Error('No users array in response');
         setData(usersArray.map(normalizeUser));

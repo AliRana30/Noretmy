@@ -610,31 +610,38 @@ export const fetchData = async () => {
 
 export const fetchDocumentsData = async () => {
   try {
-    const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.VERIFIED_SELLERS), {
+    const response = await axios.get(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_USERS)}?isVerified=false&role=freelancer&limit=1000`, {
       withCredentials: true,
       headers: getAuthHeaders()
     });
 
-    const mapped = response.data.map((user) => ({
+    const users = response.data?.data || response.data || [];
+    
+    const mapped = users.map((user) => ({
       _id: user._id,
       id: user._id,
       fullName: user.fullName,
       username: user.username,
       email: user.email,
       img: user.img || user.profilePicture || user.profileImage || user.profileImg || user.avatar || "https://via.placeholder.com/40",
+      profilePicture: user.img || user.profilePicture || "https://via.placeholder.com/40",
       isCompany: user.isCompany,
       documentUrl: user.documentImages?.[0] || user.documentVerify || user.documentUrl || "",
       isWarned: user.isWarned,
       warningCount: user.warningCount || 0,
       isBlocked: user.isBlocked,
       isVerified: !!user.isVerified,
+      isSeller: user.isSeller,
+      role: user.role,
       status: user.isBlocked ? "blocked" : user.isVerified ? "active" : "pending",
     }));
 
-    return mapped.filter((u) => !u.isVerified);
+    // Show all users who are sellers/freelancers and not yet verified
+    return mapped.filter((u) => (u.isSeller || u.role === 'freelancer') && !u.isVerified);
   } catch (error) {
     console.error("Error fetching documents data:", error);
     handleApiError(error);
+    return [];
   }
 };
 
