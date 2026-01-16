@@ -1353,7 +1353,10 @@ const sendOnboardingEmail = async (email, freelancerName, onboardingLink) => {
   });
 };
 
-const sendResetPasswordEmail = async (email, resetLink) => {
+const sendPasswordResetEmail = async (email, token) => {
+  const frontendBaseUrl = getFrontendBaseUrl();
+  const resetUrl = `${frontendBaseUrl}/reset-password?token=${token}`;
+  
   const emailSubject = "Reset Your Password - Noretmy";
   const emailBody = `
     <html>
@@ -1373,8 +1376,9 @@ const sendResetPasswordEmail = async (email, resetLink) => {
         <div class="content">
           <p>Dear User,</p>
           <p>You have requested to reset your password. Click the button below to proceed:</p>
-          <a href="${resetLink}" class="button">Reset Password</a>
-          <p>If you did not request this, you can safely ignore this email.</p>
+          <a href="${resetUrl}" class="button">Reset Password</a>
+          <p style="margin-top: 20px; font-size: 14px; color: #666;">This link will expire in 1 hour.</p>
+          <p style="margin-top: 10px; font-size: 12px; color: #999;">If you did not request this, you can safely ignore this email.</p>
         </div>
         <div class="footer">
           <p>&copy; 2025 Noretmy | All Rights Reserved</p>
@@ -1389,9 +1393,12 @@ const sendResetPasswordEmail = async (email, resetLink) => {
     subject: emailSubject,
     html: emailBody,
     emailType: 'password_reset',
-    metadata: { resetLink }
+    metadata: { resetUrl }
   });
 };
+
+// Alias for backwards compatibility
+const sendResetPasswordEmail = sendPasswordResetEmail;
 
 const sendOrderRequestEmail = async (email, requestDetails) => {
   const { _id: requestId, details, price, senderName, createdAt, description } = requestDetails;
@@ -2354,6 +2361,7 @@ module.exports = {
   sendVerificationEmail,
   sendWelcomeEmail,
   sendResetPasswordEmail,
+  sendPasswordResetEmail,
   
   sendUserNotificationEmail,
   

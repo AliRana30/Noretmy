@@ -30,6 +30,7 @@ const chatAttachmentRoutes = require('./routes/chatAttachmentRoutes');
 const paymentMilestoneRoutes = require('./routes/paymentMilestoneRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const contentRoutes = require('./routes/contentRoutes');
+const passwordResetRoutes = require('./routes/passwordResetRoutes');
 
 const { initBadgeCronJobs } = require('./services/badgeCronJobs');
 const { initDeadlineCronJobs } = require('./services/orderDeadlineCron');
@@ -132,6 +133,7 @@ app.use('/api/chat-attachments', chatAttachmentRoutes);
 app.use('/api/payment-milestones', paymentMilestoneRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/password-reset', passwordResetRoutes);
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || err.statusCode || 500;
