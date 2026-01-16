@@ -289,11 +289,6 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
                 </div>
               </>
             )}
-            <span className="text-slate-300">|</span>
-            <div className="flex items-center gap-1 text-sm text-slate-500">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{deliveryDays}</span>
-            </div>
           </div>
 
           {/* Price */}
