@@ -40,36 +40,35 @@ const AboutPage = () => {
     return (
         <div className="bg-white min-h-screen">
             {/* Hero Section */}
-            <section className="relative py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <span className="inline-block px-4 py-1.5 bg-orange-500/20 text-orange-400 rounded-full text-sm font-semibold mb-6 border border-orange-500/20">
-                        {t('hero.badge')}
-                    </span>
-                    <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
-                        {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[0]}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">{t('hero.opportunity')}</span>
-                        {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[1]}
-                    </h1>
-                    <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                        {t('hero.description')}
-                    </p>
+            <section className="py-16 md:py-20 bg-slate-900">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div className="max-w-3xl">
+                        <span className="inline-block px-3 py-1 bg-orange-500/10 text-orange-500 rounded text-xs font-medium mb-4 border border-orange-500/20">
+                            {t('hero.badge')}
+                        </span>
+                        <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                            {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[0]}
+                            <span className="text-orange-500">{t('hero.opportunity')}</span>
+                            {t('hero.title', { opportunity: t('hero.opportunity') }).split(t('hero.opportunity'))[1]}
+                        </h1>
+                        <p className="text-lg text-slate-400 leading-relaxed">
+                            {t('hero.description')}
+                        </p>
+                    </div>
                 </div>
             </section>
 
             {/* Stats Section */}
-            <section className="py-12 -mt-12 relative z-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <section className="py-12 bg-gray-50">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {stats.map((stat, idx) => (
-                            <div key={idx} className="bg-white rounded-2xl p-6 shadow-xl border border-slate-100 flex flex-col items-center text-center transform hover:-translate-y-1 transition-all duration-300">
-                                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4">
-                                    <stat.icon className="w-6 h-6 text-orange-600" />
+                            <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <stat.icon className="w-4 h-4 text-orange-600" />
+                                    <div className="text-sm text-gray-600">{stat.label}</div>
                                 </div>
-                                <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
-                                <div className="text-sm text-slate-500 font-medium">{stat.label}</div>
+                                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
                             </div>
                         ))}
                     </div>
@@ -77,66 +76,46 @@ const AboutPage = () => {
             </section>
 
             {/* Mission & Vision */}
-            <section className="py-24">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                        <div className="relative">
-                            <div className="absolute -top-4 -left-4 w-24 h-24 bg-orange-100 rounded-2xl -z-10"></div>
-                            <Image
-                                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
-                                alt="Our Team"
-                                width={600}
-                                height={400}
-                                className="rounded-2xl shadow-2xl object-cover"
-                            />
-                            <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px]">
-                                <p className="text-sm font-bold text-slate-900 mb-1">{t('mission.label')}</p>
-                                <p className="text-xs text-slate-500 text-pretty">{t('mission.sublabel')}</p>
+            <section className="py-16 bg-white">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div className="max-w-3xl mb-12">
+                        <div className="mb-8">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Target className="w-5 h-5 text-orange-600" />
+                                <h2 className="text-xl font-bold text-gray-900">{t('mission.title')}</h2>
                             </div>
+                            <p className="text-gray-700 leading-relaxed">
+                                {t('mission.description')}
+                            </p>
                         </div>
-                        <div className="space-y-10">
-                            <div className="flex gap-6">
-                                <div className="shrink-0 w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                                    <Target className="w-7 h-7" />
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{t('mission.title')}</h3>
-                                    <p className="text-slate-600 leading-relaxed text-lg">
-                                        {t('mission.description')}
-                                    </p>
-                                </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Eye className="w-5 h-5 text-blue-600" />
+                                <h2 className="text-xl font-bold text-gray-900">{t('vision.title')}</h2>
                             </div>
-                            <div className="flex gap-6">
-                                <div className="shrink-0 w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                                    <Eye className="w-7 h-7" />
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{t('vision.title')}</h3>
-                                    <p className="text-slate-600 leading-relaxed text-lg">
-                                        {t('vision.description')}
-                                    </p>
-                                </div>
-                            </div>
+                            <p className="text-gray-700 leading-relaxed">
+                                {t('vision.description')}
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Core Values */}
-            <section className="py-24 bg-slate-50 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{t('values.title')}</h2>
-                        <p className="text-slate-600 max-w-2xl mx-auto">{t('values.subtitle')}</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <section className="py-16 bg-gray-50">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('values.title')}</h2>
+                    <p className="text-gray-600 mb-8 max-w-2xl">{t('values.subtitle')}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {values.map((value, idx) => (
-                            <div key={idx} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300">
-                                <div className={`w-14 h-14 ${value.color} rounded-2xl flex items-center justify-center mb-6`}>
-                                    <value.icon className="w-7 h-7" />
+                            <div key={idx} className="bg-white p-5 rounded-lg border border-gray-200">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className={`w-10 h-10 ${value.color} rounded-lg flex items-center justify-center`}>
+                                        <value.icon className="w-5 h-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900">{value.title}</h3>
                                 </div>
-                                <h4 className="text-xl font-bold text-slate-900 mb-3">{value.title}</h4>
-                                <p className="text-slate-600 leading-relaxed">{value.description}</p>
+                                <p className="text-gray-600 text-sm leading-relaxed">{value.description}</p>
                             </div>
                         ))}
                     </div>
@@ -144,29 +123,28 @@ const AboutPage = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="py-24">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-[3rem] p-12 text-center text-white shadow-2xl shadow-orange-500/30 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
-
-                        <h2 className="text-3xl md:text-4xl font-extrabold mb-6 relative z-10">{t('cta.title')}</h2>
-                        <p className="text-orange-100 mb-10 text-lg max-w-2xl mx-auto relative z-10">
-                            {t('cta.description')}
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-4 relative z-10">
-                            <Link
-                                href="/register"
-                                className="bg-white text-orange-600 hover:bg-orange-50 px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105"
-                            >
-                                {t('cta.joinAsFreelancer')}
-                            </Link>
-                            <Link
-                                href="/search-gigs"
-                                className="bg-slate-900 text-white hover:bg-slate-800 px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105"
-                            >
-                                {t('cta.hireTalent')}
-                            </Link>
+            <section className="py-16 bg-white">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div className="bg-orange-600 rounded-lg p-8 md:p-12">
+                        <div className="max-w-2xl">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{t('cta.title')}</h2>
+                            <p className="text-orange-100 mb-6">
+                                {t('cta.description')}
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                                <Link
+                                    href="/register"
+                                    className="bg-white text-orange-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors"
+                                >
+                                    {t('cta.joinAsFreelancer')}
+                                </Link>
+                                <Link
+                                    href="/search-gigs"
+                                    className="bg-gray-900 text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
+                                >
+                                    {t('cta.hireTalent')}
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

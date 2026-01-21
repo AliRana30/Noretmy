@@ -368,6 +368,20 @@ const notifyOrderCompleted = async (buyerId, sellerId, orderId, orderTitle, comm
       data: { orderId, orderTitle, commission: commissionAmount }
     }));
     notifications.push(...adminNotifications);
+
+    // Emit socket events to admins
+    const io = global.io;
+    if (io) {
+      adminIds.forEach((adminId) => {
+        io.to(`user_${adminId}`).emit('notification', {
+          title: '💰 Order Completed',
+          message: `Order "${orderTitle}" completed. Commission earned: $${commissionAmount.toFixed(2)}`,
+          type: 'order',
+          link: `/admin/orders/${orderId}`,
+          data: { orderId, orderTitle, commission: commissionAmount }
+        });
+      });
+    }
   }
   
   return createBulkNotifications(notifications);

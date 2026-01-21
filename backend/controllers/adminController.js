@@ -1672,6 +1672,51 @@ const approveWithdrawal = async (req, res) => {
       });
     }
 
+    // Validate Stripe Connect account if withdrawal method is Stripe
+    if (withdrawal.withdrawalMethod === 'stripe') {
+      const freelancer = await Freelancer.findOne({ userId: withdrawal.userId });
+      
+      if (!freelancer || !freelancer.stripeAccountId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Freelancer has not set up Stripe Connect account. Cannot process payout.',
+          blockingReason: 'stripe_not_connected'
+        });
+      }
+
+      const isMockAccount = freelancer.stripeAccountId?.startsWith('acct_dev_');
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      
+      if (!isDevelopment || !isMockAccount) {
+        try {
+          const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          const account = await stripe.accounts.retrieve(freelancer.stripeAccountId);
+          
+          if (!account.payouts_enabled) {
+            return res.status(400).json({
+              success: false,
+              message: 'Freelancer Stripe account does not have payouts enabled. They need to complete Stripe onboarding.',
+              blockingReason: 'stripe_payouts_disabled'
+            });
+          }
+
+          if (!account.charges_enabled) {
+            return res.status(400).json({
+              success: false,
+              message: 'Freelancer Stripe account onboarding is incomplete. They must complete setup first.',
+              blockingReason: 'stripe_onboarding_incomplete'
+            });
+          }
+        } catch (stripeError) {
+          return res.status(400).json({
+            success: false,
+            message: 'Unable to verify Stripe account status. Payout cannot be processed.',
+            blockingReason: 'stripe_verification_failed'
+          });
+        }
+      }
+    }
+
     withdrawal.status = 'approved';
     withdrawal.adminNotes = adminNote;
     withdrawal.processedAt = new Date();
@@ -1695,7 +1740,6 @@ const approveWithdrawal = async (req, res) => {
       data: withdrawal
     });
   } catch (error) {
-    console.error('Approve withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to approve withdrawal',

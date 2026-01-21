@@ -9,7 +9,8 @@ import commonTranslations from "../../localization/common.json";
 import { Link } from "react-router-dom";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import toast from "react-hot-toast";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Tooltip, IconButton } from "@mui/material";
+import { Eye, Check, X } from 'lucide-react';
 
 const ListWithdrawlRequests = () => {
   const [data, setData] = useState([]);
@@ -103,8 +104,20 @@ const ListWithdrawlRequests = () => {
       setActionType(null);
       setSelectedRequest(null);
     } catch (error) {
-      console.error('Error processing withdrawal:', error);
-      toast.error(error?.message || `Failed to ${actionType} withdrawal`);
+      const errorMsg = error?.response?.data?.message || error?.message || `Failed to ${actionType} withdrawal`;
+      const blockingReason = error?.response?.data?.blockingReason;
+      
+      if (blockingReason) {
+        const reasonMessages = {
+          'stripe_not_connected': 'Freelancer has not connected their Stripe account yet.',
+          'stripe_payouts_disabled': 'Stripe payouts are not enabled for this freelancer.',
+          'stripe_onboarding_incomplete': 'Freelancer must complete Stripe onboarding first.',
+          'stripe_verification_failed': 'Unable to verify Stripe account status.'
+        };
+        toast.error(reasonMessages[blockingReason] || errorMsg);
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setProcessingId(null);
     }
@@ -114,41 +127,55 @@ const ListWithdrawlRequests = () => {
     {
       field: "action",
       headerName: getTranslation(commonTranslations, "actions"),
-      width: 400,
+      width: 200,
       renderCell: (params) => {
         const isPending = params.row.status === 'pending' || !params.row.status;
         const isProcessing = processingId === (params.row._id || params.row.requestId);
+        const isStripe = params.row.withdrawalMethod === 'stripe';
         
         return (
-          <div className="flex items-center gap-2">
-            <Link
-              to={`/admin/withdrawals/${params.row._id || params.row.requestId}`}
-              state={{ requestData: params.row }}
-              className="px-3 py-1 bg-linear-to-r from-amber-400 to-pink-500 hover:from-amber-500 hover:to-pink-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
-            >
-              View Request
-            </Link>
+          <div className="flex items-center gap-1">
+            <Tooltip title="View Details">
+              <Link
+                to={`/admin/withdrawals/${params.row._id || params.row.requestId}`}
+                state={{ requestData: params.row }}
+              >
+                <IconButton size="small" className="text-blue-600 hover:bg-blue-50">
+                  <Eye className="w-4 h-4" />
+                </IconButton>
+              </Link>
+            </Tooltip>
             {isPending ? (
               <>
-                <button 
-                  className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
-                  onClick={() => openActionModal('approve', params.row)}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? 'Processing...' : 'Approve'}
-                </button>
-                <button 
-                  className="px-3 py-1 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
-                  onClick={() => openActionModal('reject', params.row)}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? 'Processing...' : 'Reject'}
-                </button>
+                <Tooltip title={isStripe ? "Approve (will validate Stripe account)" : "Approve withdrawal"}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      className="text-green-600 hover:bg-green-50"
+                      onClick={() => openActionModal('approve', params.row)}
+                      disabled={isProcessing}
+                    >
+                      <Check className="w-4 h-4" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip title="Reject withdrawal">
+                  <span>
+                    <IconButton
+                      size="small"
+                      className="text-red-600 hover:bg-red-50"
+                      onClick={() => openActionModal('reject', params.row)}
+                      disabled={isProcessing}
+                    >
+                      <X className="w-4 h-4" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </>
             ) : (
-              <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                params.row.status === 'approved' ? 'bg-orange-100 text-orange-700' :
-                params.row.status === 'rejected' ? 'bg-slate-100 text-slate-700' :
+              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                params.row.status === 'approved' ? 'bg-green-100 text-green-700' :
+                params.row.status === 'rejected' ? 'bg-red-100 text-red-700' :
                 'bg-gray-100 text-gray-700'
               }`}>
                 {params.row.status?.charAt(0).toUpperCase() + params.row.status?.slice(1)}
