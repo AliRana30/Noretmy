@@ -110,6 +110,7 @@ function FreelancerSearchContent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('freelancers:searchPlaceholder') || 'Search...'}
                 className="flex-1 min-w-0 py-3 sm:py-4 px-2 sm:px-4 text-sm sm:text-base text-slate-900 placeholder-slate-400 bg-transparent outline-none"
+                autoComplete="off"
               />
               <button
                 type="button"

@@ -1,0 +1,25 @@
+{
+  "dashboard": {
+    "title": "Panel de Vendedor",
+    "welcome": "¡Bienvenido de nuevo, {{name}}! Aquí está tu resumen de rendimiento.",
+    "withdrawFunds": "Retirar Fondos",
+    "progressTo": "Progreso hacia {{level}}",
+    "levelUpMessage": "¡Completa más pedidos, mantén calificaciones altas y entrega a tiempo para subir de nivel!",
+    "successScore": "Puntuación de Éxito",
+    "successScoreDescription": "Basado en tus métricas generales de rendimiento",
+    "rating": "Calificación",
+    "completion": "Finalización",
+    "onTime": "A tiempo",
+    "response": "Respuesta",
+    "availableForWithdrawal": "Disponible para Retirar",
+    "pendingClearance": "{{amount}} pendiente de liquidación",
+    "minimumWithdraw": "Se requiere mínimo ${{amount}} para retirar",
+    "totalEarnings": "Ganancias Totales",
+    "currentMonth": "Este Mes",
+    "activeOrders": "Pedidos Activos",
+    "avgSellingPrice": "Precio Promedio de Venta",
+    "completedOrders": "Pedidos Completados",
+    "inProgress": "En Progreso",
+    "cancelled": "Cancelados"
+  }
+}

@@ -140,16 +140,22 @@ const getSellerStatistics = async (sellerId) => {
     const freelancerRevenueAvailable = freelancer?.revenue?.available ?? 0;
     const freelancerAvailableBalance = freelancer?.availableBalance ?? 0;
 
+    // Calculate available amount, prioritizing User revenue, fallback to Freelancer
     let availableForWithdrawalAmount = userRevenueAvailable;
     
     if (availableForWithdrawalAmount === 0 && (freelancerRevenueAvailable > 0 || freelancerAvailableBalance > 0)) {
        availableForWithdrawalAmount = Math.max(freelancerRevenueAvailable, freelancerAvailableBalance);
     }
 
+    // CRITICAL: Enforce cap - available can NEVER exceed total earnings
+    // This prevents data integrity issues where revenue fields become out of sync
     if (availableForWithdrawalAmount > totalEarnings) {
-      console.warn(`[Seller Stats] Balance mismatch for ${sellerId}: Available (${availableForWithdrawalAmount}) > Total (${totalEarnings}). Capping available balance.`);
+      console.warn(`[Seller Stats] Balance mismatch for ${sellerId}: Available (${availableForWithdrawalAmount}) > Total (${totalEarnings}). Capping to total earnings.`);
       availableForWithdrawalAmount = totalEarnings;
     }
+
+    // Additional safety check: Ensure the value is never negative
+    availableForWithdrawalAmount = Math.max(0, Math.min(availableForWithdrawalAmount, totalEarnings));
 
     const pendingClearance = freelancer?.revenue?.pending ?? user?.revenue?.pending ?? 0;
 

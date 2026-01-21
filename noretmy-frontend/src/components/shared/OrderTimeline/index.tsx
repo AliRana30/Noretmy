@@ -16,6 +16,7 @@ import {
     FileText,
     X
 } from 'lucide-react';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface TimelineEvent {
     event: string;
@@ -40,58 +41,6 @@ interface OrderTimelineProps {
     onAdvanceStatus?: (targetStatus: string) => void;
 }
 
-const mainSteps = [
-    {
-        key: 'created',
-        label: 'Order Placed',
-        description: 'Order created, pending freelancer acceptance',
-        icon: FileText,
-        includedStatuses: ['pending', 'created']
-    },
-    {
-        key: 'accepted',
-        label: 'Accepted',
-        description: 'Freelancer accepted, ready for payment',
-        icon: CheckCircle,
-        includedStatuses: ['accepted']
-    },
-    {
-        key: 'started',
-        label: 'In Escrow',
-        description: 'Payment secured, project started',
-        icon: PlayCircle,
-        includedStatuses: ['requirementsSubmitted', 'started', 'halfwayDone']
-    },
-    {
-        key: 'delivered',
-        label: 'Delivered',
-        description: 'Freelancer submitted work for review',
-        icon: Truck,
-        includedStatuses: ['delivered', 'requestedRevision']
-    },
-    {
-        key: 'approved',
-        label: 'Reviewed',
-        description: 'Client is reviewing the deliverables',
-        icon: Star,
-        includedStatuses: ['waitingReview']
-    },
-    {
-        key: 'completed',
-        label: 'Completed',
-        description: 'Order finished and funds released',
-        icon: CreditCard,
-        includedStatuses: ['completed']
-    },
-];
-
-const getStepFromStatus = (status: string): number => {
-    const stepIndex = mainSteps.findIndex(step =>
-        step.includedStatuses.includes(status)
-    );
-    return stepIndex >= 0 ? stepIndex : 0;
-};
-
 const OrderTimeline: React.FC<OrderTimelineProps> = ({
     status,
     timeline,
@@ -107,6 +56,60 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
     onApprovePayment,
     onAdvanceStatus,
 }) => {
+    const { t } = useTranslations('orders');
+    const [processingIndex, setProcessingIndex] = useState<number | null>(null);
+
+    const mainSteps = [
+        {
+            key: 'created',
+            label: t('details.orderSteps.orderPlaced'),
+            description: t('details.orderSteps.orderPlacedDesc'),
+            icon: FileText,
+            includedStatuses: ['pending', 'created']
+        },
+        {
+            key: 'accepted',
+            label: t('details.orderSteps.accepted'),
+            description: t('details.orderSteps.acceptedDesc'),
+            icon: CheckCircle,
+            includedStatuses: ['accepted']
+        },
+        {
+            key: 'started',
+            label: t('details.orderSteps.inEscrow'),
+            description: t('details.orderSteps.inEscrowDesc'),
+            icon: PlayCircle,
+            includedStatuses: ['requirementsSubmitted', 'started', 'halfwayDone']
+        },
+        {
+            key: 'delivered',
+            label: t('details.orderSteps.delivered'),
+            description: t('details.orderSteps.deliveredDesc'),
+            icon: Truck,
+            includedStatuses: ['delivered', 'requestedRevision']
+        },
+        {
+            key: 'approved',
+            label: t('details.orderSteps.reviewed'),
+            description: t('details.orderSteps.reviewedDesc'),
+            icon: Star,
+            includedStatuses: ['waitingReview']
+        },
+        {
+            key: 'completed',
+            label: t('details.orderSteps.completed'),
+            description: t('details.orderSteps.completedDesc'),
+            icon: CreditCard,
+            includedStatuses: ['completed']
+        },
+    ];
+
+    const getStepFromStatus = (status: string): number => {
+        const stepIndex = mainSteps.findIndex(step =>
+            step.includedStatuses.includes(status)
+        );
+        return stepIndex >= 0 ? stepIndex : 0;
+    };
     const currentStep = getStepFromStatus(status);
     const progress = Math.min(100, ((currentStep + 1) / mainSteps.length) * 100);
 
@@ -299,14 +302,14 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 border-b border-orange-200">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900">Order Progress</h3>
+                            <h3 className="text-xl font-bold text-gray-900">{t('details.orderProgress')}</h3>
                             <p className="text-gray-500 text-sm mt-1">
-                                Track your order from start to finish
+                                {t('details.timeline.trackOrder')}
                             </p>
                         </div>
                         <div className="text-right">
                             <div className="text-3xl font-bold text-orange-500">{Math.round(progress)}%</div>
-                            <div className="text-gray-500 text-sm">Complete</div>
+                            <div className="text-gray-500 text-sm">{t('details.completion')}</div>
                         </div>
                     </div>
 
@@ -321,7 +324,7 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
                     {/* Due Date */}
                     {deliveryDate && (
                         <div className="mt-3 text-sm text-gray-600">
-                            Due Date: <span className="font-medium text-gray-900">{formatDate(deliveryDate).split(',')[0]}</span>
+                            {t('details.timeline.dueDate')}: <span className="font-medium text-gray-900">{formatDate(deliveryDate).split(',')[0]}</span>
                         </div>
                     )}
                 </div>
@@ -382,13 +385,13 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
                                             {isCurrent && (
                                                 <span className="inline-flex items-center px-2.5 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
                                                     <CircleDot className="w-3 h-3 mr-1 animate-pulse" />
-                                                    Current
+                                                    {t('details.timeline.current')}
                                                 </span>
                                             )}
                                             {isCompleted && (
                                                 <span className="inline-flex items-center px-2.5 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
                                                     <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Done
+                                                    {t('details.timeline.done')}
                                                 </span>
                                             )}
                                         </div>

@@ -336,7 +336,7 @@ const notifyWithdrawalRejected = async (freelancerId, amount, requestId, reason)
 /**
  * Order Completed (for both parties)
  */
-const notifyOrderCompleted = async (buyerId, sellerId, orderId, orderTitle) => {
+const notifyOrderCompleted = async (buyerId, sellerId, orderId, orderTitle, commissionAmount) => {
   const notifications = [
     {
       userId: buyerId,
@@ -355,6 +355,20 @@ const notifyOrderCompleted = async (buyerId, sellerId, orderId, orderTitle) => {
       data: { orderId, orderTitle }
     }
   ];
+  
+  // Notify admins with commission amount
+  if (commissionAmount && commissionAmount > 0) {
+    const adminIds = await getAdminIds();
+    const adminNotifications = adminIds.map(adminId => ({
+      userId: adminId,
+      title: '💰 Order Completed',
+      message: `Order "${orderTitle}" completed. Commission earned: $${commissionAmount.toFixed(2)}`,
+      type: 'order',
+      link: `/admin/orders/${orderId}`,
+      data: { orderId, orderTitle, commission: commissionAmount }
+    }));
+    notifications.push(...adminNotifications);
+  }
   
   return createBulkNotifications(notifications);
 };

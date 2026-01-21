@@ -5,10 +5,11 @@ import { Star, Quote } from 'lucide-react';
 
 interface Review {
   _id: string;
-  userId: {
+  user: {
     username: string;
+    fullName: string;
     profilePicture?: string;
-  } | string;
+  };
   star: number;
   desc: string;
   createdAt: string;
@@ -61,9 +62,9 @@ const ProfileReviews: React.FC<ProfileReviewsProps> = ({ reviews }) => {
       {/* Reviews List */}
       <div className="space-y-4">
         {reviews.map((review) => {
-          const username = typeof review.userId === 'object' ? review.userId.username : 'Anonymous';
-          const fullName = typeof review.userId === 'object' ? (review.userId as any).fullName : username;
-          const profilePic = typeof review.userId === 'object' ? review.userId.profilePicture : null;
+          const username = review.user?.username || 'Anonymous';
+          const fullName = review.user?.fullName || username;
+          const profilePic = review.user?.profilePicture || null;
           const gigTitle = typeof review.gigId === 'object' ? review.gigId.title : null;
 
           return (

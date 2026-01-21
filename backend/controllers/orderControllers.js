@@ -780,11 +780,16 @@ const acceptOrder = async (req, res) => {
       const gig = await Job.findById(order.gigId);
       const seller = await User.findById(order.sellerId);
       
+      // Calculate platform commission (5% of total amount)
+      const totalCapturedAmount = order.paymentBreakdown.totalReleasedAmount || 0;
+      const platformCommission = totalCapturedAmount * PLATFORM_FEE_RATE;
+      
       await notificationService.notifyOrderCompleted(
         order.buyerId,
         order.sellerId,
         order._id.toString(),
-        gig?.title || 'Order'
+        gig?.title || 'Order',
+        platformCommission
       );
       
       if (seller && seller.email) {
@@ -1250,6 +1255,7 @@ const updateOrderPaymentStatus = async (req, res) => {
 const getSingleOrderDetail = async (req, res) => {
   const { id } = req.params;
   const { userId } = req;
+  const { lang } = req.query;
 
   try {
     const order = await Order.findById(id).exec();
@@ -1258,7 +1264,17 @@ const getSingleOrderDetail = async (req, res) => {
     }
 
     const job = await Job.findOne({ _id: order.gigId }).exec();
-    const gigTitle = job ? job.title : null;
+    let gigTitle = job ? job.title : null;
+    
+    // Translate gig title if language is specified and not English
+    if (lang && lang !== 'en' && gigTitle) {
+      const { translateText } = require('../services/translateService');
+      try {
+        gigTitle = await translateText(gigTitle, 'en', lang);
+      } catch (err) {
+        console.log('Translation error for gig title:', err);
+      }
+    }
 
     let userDetails = null; // Initialize to null
     let otherPartyDetails = null;

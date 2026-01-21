@@ -35,6 +35,59 @@
   "details": {
     "title": "Order Details",
     "notFound": "Order not found.",
+    "orderProgress": "Order Progress",
+    "completion": "Completion",
+    "orderSteps": {
+      "orderPlaced": "Order Placed",
+      "orderPlacedDesc": "Order created, pending freelancer acceptance",
+      "accepted": "Accepted",
+      "acceptedDesc": "Freelancer accepted, ready for payment",
+      "inEscrow": "In Escrow",
+      "inEscrowDesc": "Payment secured, project started",
+      "delivered": "Delivered",
+      "deliveredDesc": "Freelancer submitted work for review",
+      "reviewed": "Reviewed",
+      "reviewedDesc": "Client is reviewing the deliverables",
+      "completed": "Completed",
+      "completedDesc": "Order finished and funds released"
+    },
+    "statusLabels": {
+      "accepted": "Payment Confirmed",
+      "completed": "Order Completed",
+      "waitingReview": "Awaiting Review",
+      "requestedRevision": "Revision Requested",
+      "delivered": "Delivery Submitted",
+      "started": "Order In Progress",
+      "requirementsSubmitted": "Requirements Submitted",
+      "created": "Order Created"
+    },
+    "statusDescriptions": {
+      "accepted": "Payment received and order has been accepted",
+      "completed": "All deliverables have been completed and accepted",
+      "waitingReview": "Waiting for buyer to leave a review",
+      "requestedRevision": "Buyer has requested changes to the delivery",
+      "delivered": "Seller has submitted deliverables for review",
+      "started": "Seller is actively working on your order",
+      "requirementsSubmitted": "Project specifications have been provided",
+      "created": "Initial order has been placed"
+    },
+    "timeline": {
+      "title": "Order Timeline",
+      "active": "Active",
+      "trackOrder": "Track your order from start to finish",
+      "dueDate": "Due Date",
+      "done": "Done",
+      "current": "Current"
+    },
+    "metrics": {
+      "title": "Order Metrics",
+      "timeElapsed": "Time Elapsed",
+      "timeRemaining": "Time Remaining",
+      "totalRevisions": "Total Revisions",
+      "dueDate": "Due Date",
+      "days": "days",
+      "day": "day"
+    },
     "status": {
       "title": "Status",
       "pending": "Pending",

@@ -85,7 +85,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         );
 
         setReviewsProps(
-          reviews?.map((review: any) => ({
+          reviews?.slice(0, 2).map((review: any) => ({
             sellerImage: review.user?.profilePicture || '/images/placeholder-avatar.png',
             name: review.user?.fullName || review.user?.username || t('gigs:single.reviews.anonymous'),
             clientType: 'Client',

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { SkeletonDashboard } from '@/components/shared/Skeletons';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface SellerLevel {
   level: string;
@@ -49,6 +50,7 @@ interface DashboardData {
 }
 
 const SellerDashboard = () => {
+  const { t } = useTranslations('seller-board');
   const [loading, setLoading] = useState(true);
   const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
@@ -199,7 +201,7 @@ const SellerDashboard = () => {
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Seller Dashboard
+                    {t('dashboard.title')}
                   </h1>
                   {/* Seller Level Badge */}
                   <div
@@ -209,7 +211,7 @@ const SellerDashboard = () => {
                   </div>
                 </div>
                 <p className="text-gray-500">
-                  Welcome back, {user?.name}! Here's your performance overview.
+                  {t('dashboard.welcome', { name: user?.name })}
                 </p>
               </div>
             </div>
@@ -222,7 +224,7 @@ const SellerDashboard = () => {
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
               >
-                Withdraw Funds
+                {t('dashboard.withdrawFunds')}
               </button>
             </div>
           </div>
@@ -236,7 +238,7 @@ const SellerDashboard = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-500" />
-                <span className="font-semibold text-gray-800">Progress to {dashboardData.sellerLevel.nextLevel}</span>
+                <span className="font-semibold text-gray-800">{t('dashboard.progressTo', { level: dashboardData.sellerLevel.nextLevel })}</span>
               </div>
               <span className="text-sm text-gray-500">{dashboardData.sellerLevel.progress}%</span>
             </div>
@@ -247,7 +249,7 @@ const SellerDashboard = () => {
               />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Complete more orders, maintain high ratings, and deliver on time to level up!
+              {t('dashboard.levelUpMessage')}
             </p>
           </div>
         )}
@@ -256,29 +258,29 @@ const SellerDashboard = () => {
         <div className="bg-orange-600 rounded-xl shadow-lg p-6 mb-6 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold opacity-90">Success Score</h2>
+              <h2 className="text-lg font-semibold opacity-90">{t('dashboard.successScore')}</h2>
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-bold">{dashboardData.successScore}</span>
                 <span className="text-xl opacity-80">/100</span>
               </div>
-              <p className="text-sm opacity-80 mt-1">Based on your overall performance metrics</p>
+              <p className="text-sm opacity-80 mt-1">{t('dashboard.successScoreDescription')}</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold">{dashboardData.rating}</div>
-                <div className="text-xs opacity-80">Rating</div>
+                <div className="text-xs opacity-80">{t('dashboard.rating')}</div>
               </div>
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold">{dashboardData.completionRate}%</div>
-                <div className="text-xs opacity-80">Completion</div>
+                <div className="text-xs opacity-80">{t('dashboard.completion')}</div>
               </div>
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold">{dashboardData.onTimeDeliveryRate}%</div>
-                <div className="text-xs opacity-80">On-time</div>
+                <div className="text-xs opacity-80">{t('dashboard.onTime')}</div>
               </div>
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold">{dashboardData.responseRate}%</div>
-                <div className="text-xs opacity-80">Response</div>
+                <div className="text-xs opacity-80">{t('dashboard.response')}</div>
               </div>
             </div>
           </div>
@@ -295,7 +297,7 @@ const SellerDashboard = () => {
             </div>
             <div className="px-6 py-5">
               <div className="text-sm font-medium text-gray-500 mb-1">
-                Available for Withdrawal
+                {t('dashboard.availableForWithdrawal')}
               </div>
               <div className="flex items-end">
                 <span className="text-3xl font-bold text-gray-800">
@@ -304,12 +306,12 @@ const SellerDashboard = () => {
               </div>
               {dashboardData.pendingClearance > 0 && (
                 <div className="mt-2 text-xs text-blue-600">
-                  ${dashboardData.pendingClearance.toFixed(2)} pending clearance
+                  {t('dashboard.pendingClearance', { amount: `$${dashboardData.pendingClearance.toFixed(2)}` })}
                 </div>
               )}
               {!withdrawalAllowed && (
                 <div className="mt-2 text-xs text-gray-500">
-                  Need minimum $20 to withdraw
+                  {t('dashboard.minimumWithdraw', { amount: '20' })}
                 </div>
               )}
             </div>
@@ -324,7 +326,7 @@ const SellerDashboard = () => {
             </div>
             <div className="px-6 py-5">
               <div className="text-sm font-medium text-gray-500 mb-1">
-                Total Earnings
+                {t('dashboard.totalEarnings')}
               </div>
               <div className="flex items-end">
                 <span className="text-3xl font-bold text-gray-800">
@@ -332,7 +334,7 @@ const SellerDashboard = () => {
                 </span>
               </div>
               <div className="mt-2 text-xs text-orange-600">
-                {dashboardData.currentMonth}: ${dashboardData.currentMonthEarnings.toFixed(2)}
+                {t('dashboard.currentMonth')}: ${dashboardData.currentMonthEarnings.toFixed(2)}
               </div>
             </div>
           </div>
@@ -346,7 +348,7 @@ const SellerDashboard = () => {
             </div>
             <div className="px-6 py-5">
               <div className="text-sm font-medium text-gray-500 mb-1">
-                Active Orders
+                {t('dashboard.activeOrders')}
               </div>
               <div className="flex items-end">
                 <span className="text-3xl font-bold text-gray-800">
@@ -357,9 +359,9 @@ const SellerDashboard = () => {
                 </span>
               </div>
               <div className="mt-2 flex gap-2 text-xs">
-                <span className="text-orange-600">{dashboardData.completedOrders} completed</span>
+                <span className="text-orange-600">{dashboardData.completedOrders} {t('dashboard.completedOrders').toLowerCase()}</span>
                 <span className="text-gray-400">•</span>
-                <span className="text-red-500">{dashboardData.cancelledOrders} cancelled</span>
+                <span className="text-red-500">{dashboardData.cancelledOrders} {t('dashboard.cancelled').toLowerCase()}</span>
               </div>
             </div>
           </div>
@@ -373,7 +375,7 @@ const SellerDashboard = () => {
             </div>
             <div className="px-6 py-5">
               <div className="text-sm font-medium text-gray-500 mb-1">
-                Avg. Selling Price
+                {t('dashboard.avgSellingPrice')}
               </div>
               <div className="flex items-end">
                 <span className="text-3xl font-bold text-gray-800">

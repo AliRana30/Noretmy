@@ -38,12 +38,14 @@ const MessageContent = ({ conversationId }: { conversationId: string }) => {
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-[calc(100vh-160px)]">
           <div className="flex h-full">
-            {/* Chat List - Hidden on mobile when viewing a message */}
-            <div className="hidden md:block">
+            {/* Chat List - Smaller width */}
+            <div className="hidden md:block md:w-64 lg:w-72 flex-shrink-0 border-r border-gray-200">
               <ChatScreen />
             </div>
-            {/* Message Area */}
-            <MessageScreen />
+            {/* Message Area - Larger space */}
+            <div className="flex-1 min-w-0">
+              <MessageScreen />
+            </div>
           </div>
         </div>
       </div>

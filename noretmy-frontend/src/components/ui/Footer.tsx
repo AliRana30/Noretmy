@@ -17,14 +17,11 @@ const Footer = () => {
   const footerLinks = {
     company: [
       { label: t('footer:aboutUs'), href: '/about' },
-      { label: t('footer:services'), href: '/#services' },
-      { label: t('footer:industries'), href: '/#industries' },
-      { label: t('footer:caseStudies'), href: '/#case-studies' },
+      { label: t('footer:services'), href: '/search-gigs' },
     ],
     support: [
       { label: t('footer:contactUs'), href: '/contact-us' },
       { label: t('footer:faqs'), href: '/faqs' },
-      { label: t('footer:trustSafety'), href: '/#why-tags' },
     ],
     legal: [
       { label: t('footer:privacyPolicy'), href: '/privacy-policy' },

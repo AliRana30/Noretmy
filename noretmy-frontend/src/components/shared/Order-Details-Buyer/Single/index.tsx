@@ -33,6 +33,7 @@ import { useCountdown } from '@/util/time';
 import { startOrFetchConversation } from '@/util/chat';
 import { useRouter } from 'next/navigation';
 import OrderTimeline from '../../OrderTimeline';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface SingleOrderSectionProps {
   sellerName: string;
@@ -57,6 +58,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   onOperationComplete,
 }) => {
 
+  const { t } = useTranslations('orders');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showRequestRevision, setShowRequestRevision] = useState(false);
   const [activeTab, setActiveTab] = useState<'order' | 'chat'>('order');
@@ -79,68 +81,68 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
 
   const statusConfig = {
     accepted: {
-      label: 'Payment Confirmed',
+      label: t('details.statusLabels.accepted'),
       icon: <FaCheckCircle className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Payment received and order has been accepted',
+      description: t('details.statusDescriptions.accepted'),
     },
     completed: {
-      label: 'Order Completed',
+      label: t('details.statusLabels.completed'),
       icon: <FaCheckCircle className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'All deliverables have been completed and accepted',
+      description: t('details.statusDescriptions.completed'),
     },
     waitingReview: {
-      label: 'Awaiting Review',
+      label: t('details.statusLabels.waitingReview'),
       icon: <FaStar className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Waiting for buyer to leave a review',
+      description: t('details.statusDescriptions.waitingReview'),
     },
     requestedRevision: {
-      label: 'Revision Requested',
+      label: t('details.statusLabels.requestedRevision'),
       icon: <FaSync className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Buyer has requested changes to the delivery',
+      description: t('details.statusDescriptions.requestedRevision'),
     },
     delivered: {
-      label: 'Delivery Submitted',
+      label: t('details.statusLabels.delivered'),
       icon: <FaTruck className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Seller has submitted deliverables for review',
+      description: t('details.statusDescriptions.delivered'),
     },
     started: {
-      label: 'Order In Progress',
+      label: t('details.statusLabels.started'),
       icon: <FaPlayCircle className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Seller is actively working on your order',
+      description: t('details.statusDescriptions.started'),
     },
     requirementsSubmitted: {
-      label: 'Requirements Submitted',
+      label: t('details.statusLabels.requirementsSubmitted'),
       icon: <FaFileAlt className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
-      description: 'Project specifications have been provided',
+      description: t('details.statusDescriptions.requirementsSubmitted'),
     },
     created: {
-      label: 'Order Created',
+      label: t('details.statusLabels.created'),
       icon: <FaPlusCircle className="w-5 h-5" />,
       color: 'text-black',
       bgColor: 'bg-card',
       borderColor: 'border-gray-200',
-      description: 'Initial order has been placed',
+      description: t('details.statusDescriptions.created'),
     },
   };
 
@@ -740,7 +742,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         <div className="flex p-6">
           <div className="flex-1">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-800">Order Details</h1>
+              <h1 className="text-2xl font-bold text-gray-800">{t('details.title')}</h1>
               <div
                 className={`ml-4 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700`}
               >
@@ -928,7 +930,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             <div className="bg-gray-100 p-2 rounded-full mr-3 text-black">
               <FaHistory className="w-5 h-5" />
             </div>
-            Order Timeline
+            {t('details.timeline.title')}
           </h2>
           <div className="relative">
             {/* Vertical line with gradient */}
@@ -1000,7 +1002,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                             </span>
                             {isCurrentStatus && (
                               <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-gray-800 shadow-sm">
-                                Active
+                                {t('details.timeline.active')}
                               </span>
                             )}
                             {currentStatusData && currentStatusData.date && (
@@ -1044,7 +1046,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
         <div className="mt-10 p-5 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-lg">
           <h3 className="text-gray-800 font-medium mb-4 flex items-center">
             <FaChartLine className="mr-2 text-gray-600" />
-            Order Metrics
+            {t('details.metrics.title')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Time Elapsed Card */}
@@ -1054,9 +1056,9 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                   <FaCalendarAlt className="text-gray-600 h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Time Elapsed</div>
+                  <div className="text-sm text-gray-500">{t('details.metrics.timeElapsed')}</div>
                   <div className="font-semibold text-gray-800">
-                    {metrics.daysSinceCreation} {metrics.daysSinceCreation === 1 ? 'day' : 'days'}
+                    {metrics.daysSinceCreation} {metrics.daysSinceCreation === 1 ? t('details.metrics.day') : t('details.metrics.days')}
                   </div>
                 </div>
               </div>
@@ -1069,7 +1071,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                   <FaClock className="text-gray-600 h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500 mb-1">Time Remaining</div>
+                  <div className="text-sm text-gray-500 mb-1">{t('details.metrics.timeRemaining')}</div>
                   <div className="flex items-center gap-1 flex-wrap">
                     <span className="font-bold text-base sm:text-lg text-gray-800">{timeLeft.days}</span>
                     <span className="text-xs text-gray-500">DAYS</span>
@@ -1093,7 +1095,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                   <FaSync className="text-gray-600 h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Total Revisions</div>
+                  <div className="text-sm text-gray-500">{t('details.metrics.totalRevisions')}</div>
                   <div className="font-semibold text-gray-800">
                     {metrics.totalRevisions}
                   </div>
@@ -1108,7 +1110,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
                   <FaPercent className="text-gray-600 h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Completion</div>
+                  <div className="text-sm text-gray-500">{t('details.completion')}</div>
                   <div className="font-semibold text-gray-800">
                     {progressPercentage}%
                   </div>

@@ -1,0 +1,25 @@
+{
+  "dashboard": {
+    "title": "Seller Dashboard",
+    "welcome": "Welcome back, {{name}}! Here's your performance overview.",
+    "withdrawFunds": "Withdraw Funds",
+    "progressTo": "Progress to {{level}}",
+    "levelUpMessage": "Complete more orders, maintain high ratings, and deliver on time to level up!",
+    "successScore": "Success Score",
+    "successScoreDescription": "Based on your overall performance metrics",
+    "rating": "Rating",
+    "completion": "Completion",
+    "onTime": "On-time",
+    "response": "Response",
+    "availableForWithdrawal": "Available for Withdrawal",
+    "pendingClearance": "{{amount}} pending clearance",
+    "minimumWithdraw": "Need minimum ${{amount}} to withdraw",
+    "totalEarnings": "Total Earnings",
+    "currentMonth": "This Month",
+    "activeOrders": "Active Orders",
+    "avgSellingPrice": "Avg. Selling Price",
+    "completedOrders": "Completed Orders",
+    "inProgress": "In Progress",
+    "cancelled": "Cancelled"
+  }
+}

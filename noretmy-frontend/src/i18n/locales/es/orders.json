@@ -35,6 +35,59 @@
   "details": {
     "title": "Detalles del Pedido",
     "notFound": "Pedido no encontrado.",
+    "orderProgress": "Progreso del Pedido",
+    "completion": "Completado",
+    "orderSteps": {
+      "orderPlaced": "Pedido Realizado",
+      "orderPlacedDesc": "Pedido creado, esperando aceptación del freelancer",
+      "accepted": "Aceptado",
+      "acceptedDesc": "Freelancer aceptó, listo para el pago",
+      "inEscrow": "En Garantía",
+      "inEscrowDesc": "Pago asegurado, proyecto iniciado",
+      "delivered": "Entregado",
+      "deliveredDesc": "Freelancer envió el trabajo para revisión",
+      "reviewed": "Revisado",
+      "reviewedDesc": "El cliente está revisando los entregables",
+      "completed": "Completado",
+      "completedDesc": "Pedido finalizado y fondos liberados"
+    },
+    "statusLabels": {
+      "accepted": "Pago Confirmado",
+      "completed": "Pedido Completado",
+      "waitingReview": "Esperando Revisión",
+      "requestedRevision": "Revisión Solicitada",
+      "delivered": "Entrega Enviada",
+      "started": "Pedido en Progreso",
+      "requirementsSubmitted": "Requisitos Enviados",
+      "created": "Pedido Creado"
+    },
+    "statusDescriptions": {
+      "accepted": "Pago recibido y pedido aceptado",
+      "completed": "Todos los entregables han sido completados y aceptados",
+      "waitingReview": "Esperando que el comprador deje una revisión",
+      "requestedRevision": "El comprador ha solicitado cambios en la entrega",
+      "delivered": "El vendedor ha enviado los entregables para revisión",
+      "started": "El vendedor está trabajando activamente en tu pedido",
+      "requirementsSubmitted": "Las especificaciones del proyecto han sido proporcionadas",
+      "created": "El pedido inicial ha sido realizado"
+    },
+    "timeline": {
+      "title": "Línea de Tiempo del Pedido",
+      "active": "Activo",
+      "trackOrder": "Rastrea tu pedido de principio a fin",
+      "dueDate": "Fecha de Vencimiento",
+      "done": "Hecho",
+      "current": "Actual"
+    },
+    "metrics": {
+      "title": "Métricas del Pedido",
+      "timeElapsed": "Tiempo Transcurrido",
+      "timeRemaining": "Tiempo Restante",
+      "totalRevisions": "Total de Revisiones",
+      "dueDate": "Fecha de Vencimiento",
+      "days": "días",
+      "day": "día"
+    },
     "status": {
       "title": "Estado",
       "pending": "Pendiente",

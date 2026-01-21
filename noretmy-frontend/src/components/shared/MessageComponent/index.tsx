@@ -368,7 +368,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`flex items-start gap-4 my-6 ${isSelf ? 'flex-row' : 'flex-row-reverse'
+      className={`flex items-start gap-4 my-6 ${isSelf ? 'flex-row-reverse' : 'flex-row'
         }`}
     >
       {/* Avatar */}
@@ -380,7 +380,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 
       {/* Message Content */}
       <div
-        className={`flex flex-col ${isSelf ? 'items-start' : 'items-end'
+        className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'
           }`}
       >
         {/* User Name */}
