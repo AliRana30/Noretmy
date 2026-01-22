@@ -11,6 +11,19 @@ const createConverstion = async (req, res,next) => {
   try { 
     const {sellerId, buyerId} = req.body;
 
+    // Check if conversation already exists between these users
+    const existingConversation = await Conversation.findOne({
+      $or: [
+        { sellerId, buyerId },
+        { sellerId: buyerId, buyerId: sellerId }
+      ]
+    });
+
+    // If conversation exists, return it instead of creating new one
+    if (existingConversation) {
+      return res.status(200).json({ conversationId: existingConversation.id });
+    }
+
   const newConversation= new Conversation({
     id: sellerId + buyerId,
     sellerId,

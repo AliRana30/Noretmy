@@ -47,6 +47,9 @@ const GigTop: React.FC<GigTopProps> = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [showFullDescription, setShowFullDescription] = useState<boolean>(false);
   const { t } = useTranslations();
+  const displaySellerName = seller
+    ? seller.replace(/[\d_]+/g, ' ').trim().split(/\s+/)[0] || seller
+    : seller;
 
   const nextImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -160,7 +163,7 @@ const GigTop: React.FC<GigTopProps> = ({
               />
               <div>
                 <p className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
-                  {seller}
+                  {displaySellerName}
                 </p>
                 {sellerLevel && sellerLevel.level !== 'new' ? (
                   <SellerBadge level={sellerLevel.level} label={sellerLevel.label} size="sm" />
@@ -198,7 +201,7 @@ const GigTop: React.FC<GigTopProps> = ({
             {/* Description */}
             <div>
               <h3 className="font-semibold text-slate-900 mb-2">{t('gigs:single.gigTop.aboutThisService') || 'About This Service'}</h3>
-              <p className={`text-slate-600 leading-relaxed ${!showFullDescription && 'line-clamp-4'}`}>
+              <p className={`text-slate-600 leading-relaxed whitespace-pre-wrap ${!showFullDescription && 'line-clamp-4'}`}>
                 {description}
               </p>
               {description && description.length > 200 && (

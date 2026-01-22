@@ -16,7 +16,9 @@ const PromoteGigs = () => {
     const now = new Date();
     if (!Array.isArray(raw)) return [];
 
-    return raw.map((p: any) => {
+    return raw
+      .filter((p: any) => p.status !== 'deleted') // Filter out deleted promotions
+      .map((p: any) => {
       if (p?.planKey && (p?.expiresAt || p?.activatedAt || p?.purchasedAt)) {
         const expiresAt = p.expiresAt ? new Date(p.expiresAt) : null;
         const activatedAt = p.activatedAt ? new Date(p.activatedAt) : null;

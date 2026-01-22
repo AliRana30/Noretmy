@@ -61,10 +61,6 @@ const Sidebar = () => {
       navigate('/profile');
       return;
     }
-    if (id === 'settings') {
-      navigate('/settings');
-      return;
-    }
     if (id === 'system-health') {
       navigate('/system-health');
       return;

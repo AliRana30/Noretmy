@@ -351,7 +351,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       </div>
 
       {/* Input Section */}
-      <div className="bg-white border-t p-3 md:p-4 sticky bottom-0">
+      <div className="bg-white border-t p-6 md:p-6 sticky bottom-0">
         {/* Pending Attachments Preview */}
         {pendingAttachments.length > 0 && (
           <div className="flex gap-2 mb-3 overflow-x-auto pb-2">

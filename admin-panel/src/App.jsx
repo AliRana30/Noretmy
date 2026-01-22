@@ -31,7 +31,6 @@ import { Toaster } from "react-hot-toast";
 import AdminUsersList from "./pages/admin/AdminUsersList";
 
 import Profile from "./pages/profile/Profile";
-import Settings from "./pages/settings/Settings";
 import SystemHealth from "./pages/system/SystemHealth";
 import Logs from "./pages/system/Logs";
 
@@ -68,9 +67,8 @@ function App() {
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route index element={<Home />} />
 
-                {/* Profile & Settings */}
+                {/* Profile */}
                 <Route path="profile" element={<Profile />} />
-                <Route path="settings" element={<Settings />} />
                 <Route path="system-health" element={<SystemHealth />} />
                 <Route path="logs" element={<Logs />} />
 

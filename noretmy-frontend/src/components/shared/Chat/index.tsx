@@ -95,6 +95,9 @@ const ChatScreen: React.FC = () => {
       ? !conversation.readBySeller
       : !conversation.readByBuyer;
 
+    // Extract first name only
+    const displayName = otherParty.username?.split(' ')[0] || otherParty.username;
+
     return (
       <div
         key={conversation._id}
@@ -114,7 +117,7 @@ const ChatScreen: React.FC = () => {
         <div className="relative flex-shrink-0">
           <Image
             src={otherParty.profilePicture || '/api/placeholder/48/48'}
-            alt={t('chat.conversation.aria.userAvatar', { username: otherParty.username })}
+            alt={t('chat.conversation.aria.userAvatar', { username: displayName })}
             width={48}
             height={48}
             className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
@@ -127,7 +130,7 @@ const ChatScreen: React.FC = () => {
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline mb-1">
             <h3 className={`font-medium truncate ${unread ? 'text-gray-900' : 'text-gray-700'}`}>
-              {otherParty.username}
+              {displayName}
             </h3>
             <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
               {moment(conversation.updatedAt).fromNow()}
@@ -171,7 +174,7 @@ const ChatScreen: React.FC = () => {
       </div>
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-scroll">
+      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}>
         {loading ? (
           <div>
             {Array.from({ length: 6 }).map((_, i) => (

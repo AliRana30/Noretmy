@@ -6,9 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import navbarTranslations from '../../localization/navbar.json';
 import LanguageSwitcher from '../languageSwitcher/LanguageSwitcher';
-import axios from 'axios';
-import { API_CONFIG } from '../../config/api';
-import { io } from 'socket.io-client';
+import { useNotifications } from '../../context/NotificationContext';
 
 export default function AppHeader() {
   const { darkMode, dispatch } = useContext(DarkModeContext);
@@ -16,137 +14,17 @@ export default function AppHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
+  // Use NotificationContext for shared state
+  const { notifications, unreadCount, loading: loadingNotifications, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
+  
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
   
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
 
-  const getReadNotificationIds = () => {
-    try {
-      return JSON.parse(localStorage.getItem('readNotificationIds') || '[]');
-    } catch {
-      return [];
-    }
-  };
-
-  const saveReadNotificationIds = (ids) => {
-    localStorage.setItem('readNotificationIds', JSON.stringify(ids));
-  };
-
-  const fetchNotifications = async () => {
-    setLoadingNotifications(true);
-    try {
-      const response = await axios.get(`${API_CONFIG.BASE_URL}/api/admin/notifications?limit=10&read=false`, {
-        withCredentials: true
-      });
-      
-      const readIds = getReadNotificationIds();
-      
-      if (response?.data?.data && response.data.data.length > 0) {
-        const notificationsWithReadState = response.data.data.map(n => ({
-          id: n._id || n.id,
-          type: n.type || 'alert',
-          title: n.title || 'Notification',
-          message: n.message || '',
-          time: getRelativeTime(new Date(n.createdAt)),
-          read: readIds.includes(n._id || n.id) || n.isRead
-        }));
-        setNotifications(notificationsWithReadState);
-      } else {
-        await fetchDynamicNotifications(readIds);
-      }
-    } catch (error) {
-      const readIds = getReadNotificationIds();
-      await fetchDynamicNotifications(readIds);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  };
-
-  const fetchDynamicNotifications = async (readIds = []) => {
-    try {
-      const [usersRes, ordersRes, jobsRes] = await Promise.allSettled([
-        axios.get(`${API_CONFIG.BASE_URL}/api/admin/users?limit=1&sortBy=createdAt&sortOrder=desc`, { withCredentials: true }),
-        axios.get(`${API_CONFIG.BASE_URL}/api/admin/orders?limit=1`, { withCredentials: true }),
-        axios.get(`${API_CONFIG.BASE_URL}/api/job?limit=1`, { withCredentials: true }),
-      ]);
-
-      const dynamicNotifs = [];
-      const now = new Date();
-
-      if (usersRes.status === 'fulfilled' && usersRes.value?.data?.data?.[0]) {
-        const user = usersRes.value.data.data[0];
-        const userDate = new Date(user.createdAt);
-        if ((now - userDate) < 86400000) { // Within 24 hours
-          dynamicNotifs.push({
-            id: 'user-' + user._id,
-            type: 'user',
-            title: 'New User Registered',
-            message: `${user.fullName || user.username} just signed up`,
-            time: getRelativeTime(userDate),
-            read: readIds.includes('user-' + user._id)
-          });
-        }
-      }
-
-      if (ordersRes.status === 'fulfilled' && ordersRes.value?.data?.data?.[0]) {
-        const order = ordersRes.value.data.data[0];
-        const orderDate = new Date(order.createdAt);
-        if ((now - orderDate) < 86400000) {
-          dynamicNotifs.push({
-            id: 'order-' + order._id,
-            type: 'order',
-            title: 'New Order Placed',
-            message: `Order for $${order.price || order.totalPrice || 0}`,
-            time: getRelativeTime(orderDate),
-            read: readIds.includes('order-' + order._id)
-          });
-        }
-      }
-
-      if (jobsRes.status === 'fulfilled' && jobsRes.value?.data?.[0]) {
-        const job = jobsRes.value.data[0];
-        const jobDate = new Date(job.createdAt);
-        if ((now - jobDate) < 86400000) {
-          dynamicNotifs.push({
-            id: 'job-' + job._id,
-            type: 'job',
-            title: 'New Gig Posted',
-            message: job.title || 'A new service was posted',
-            time: getRelativeTime(jobDate),
-            read: readIds.includes('job-' + job._id)
-          });
-        }
-      }
-
-      if (dynamicNotifs.length === 0) {
-        dynamicNotifs.push({
-          id: 'system-welcome',
-          type: 'alert',
-          title: 'Welcome to Admin Panel',
-          message: 'All systems operational',
-          time: 'Just now',
-          read: readIds.includes('system-welcome')
-        });
-      }
-
-      setNotifications(dynamicNotifs);
-    } catch (err) {
-      setNotifications([{
-        id: 'system-fallback',
-        type: 'alert',
-        title: 'Admin Panel Ready',
-        message: 'All systems operational',
-        time: 'Just now',
-        read: true
-      }]);
-    }
-  };
-
+  // Define getRelativeTime BEFORE usage to avoid ReferenceError
   const getRelativeTime = (date) => {
     const now = new Date();
     const diff = Math.floor((now - date) / 1000 / 60);
@@ -156,49 +34,6 @@ export default function AppHeader() {
     if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`;
     return `${Math.floor(diff / 1440)} days ago`;
   };
-
-  useEffect(() => {
-    fetchNotifications();
-    
-    const socket = io(API_CONFIG.BASE_URL, {
-      withCredentials: true,
-      transports: ['websocket', 'polling']
-    });
-
-    if (user?._id) {
-      socket.emit('userOnline', user._id);
-    }
-
-    socket.on('newNotification', (notification) => {
-      console.log('📩 Admin received notification:', notification);
-      setNotifications(prev => [{
-        id: 'new-' + Date.now(),
-        type: notification.type || 'system',
-        title: notification.title || 'New Notification',
-        message: notification.message || '',
-        time: 'Just now',
-        read: false
-      }, ...prev]);
-      
-      if (Notification.permission === 'granted') {
-        new Notification(notification.title || 'New Notification', {
-          body: notification.message,
-          icon: '/favicon.ico'
-        });
-      }
-    });
-
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-    
-    const interval = setInterval(fetchNotifications, 300000);
-    
-    return () => {
-      clearInterval(interval);
-      socket.disconnect();
-    };
-  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -213,44 +48,30 @@ export default function AppHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Transform notifications to display format
+  const displayNotifications = notifications.map(n => ({
+    id: n._id || n.id,
+    type: n.type || 'alert',
+    title: n.title || 'Notification',
+    message: n.message || '',
+    time: getRelativeTime(new Date(n.createdAt)),
+    read: n.isRead
+  }));
+
+  const unreadNotifications = displayNotifications.filter(n => !n.read);
+
+  const handleMarkAsRead = (id) => {
+    markAsRead(id);
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+  };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-
-  const markAsRead = async (id) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-    const readIds = getReadNotificationIds();
-    if (!readIds.includes(id)) {
-      saveReadNotificationIds([...readIds, id]);
-    }
-    try {
-      await axios.put(`${API_CONFIG.BASE_URL}/api/notification/${id}/read`, {}, {
-        withCredentials: true
-      });
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    const allIds = notifications.map(n => n.id);
-    saveReadNotificationIds(allIds);
-    try {
-      await axios.put(`${API_CONFIG.BASE_URL}/api/notification/mark-all-read`, {}, {
-        withCredentials: true
-      });
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const unreadNotifications = notifications.filter(n => !n.read);
 
   const getNotificationIcon = (type) => {
     const icons = {
@@ -355,7 +176,7 @@ export default function AppHeader() {
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button 
-                      onClick={markAllAsRead}
+                      onClick={handleMarkAllAsRead}
                       className="text-xs font-medium text-orange-500 hover:text-orange-600"
                     >
                       Mark all read
@@ -380,7 +201,7 @@ export default function AppHeader() {
                   unreadNotifications.map((notification) => (
                     <div 
                       key={notification.id}
-                      onClick={() => markAsRead(notification.id)}
+                      onClick={() => handleMarkAsRead(notification.id)}
                       className={`px-4 py-3 flex items-start gap-3 cursor-pointer transition-colors ${
                         darkMode ? 'bg-orange-500/5 hover:bg-orange-500/10' : 'bg-orange-50 hover:bg-orange-100'
                       }`}
@@ -470,17 +291,6 @@ export default function AppHeader() {
                 >
                   <User className="w-4 h-4" />
                   Profile
-                </button>
-                <button
-                  onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                    darkMode 
-                      ? 'text-gray-300 hover:bg-white/5' 
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Settings
                 </button>
               </div>
               

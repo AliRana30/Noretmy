@@ -96,12 +96,6 @@ export const SIDEBAR_SERVICE_ITEMS = [
     icon: FolderOpen,
     translationKey: 'logs'
   },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: Settings,
-    translationKey: 'settings'
-  },
 ];
 
 export const SIDEBAR_USER_ITEMS = [

@@ -103,11 +103,27 @@ const NotificationBell: React.FC = () => {
             </button>
 
             {isOpen && (
-                <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: '12px',
+                <>
+                    {/* Backdrop for mobile */}
+                    <div 
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            zIndex: 9998
+                        }}
+                        className="notification-backdrop"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    
+                    <div style={{
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
                     width: '384px',
                     maxWidth: 'calc(100vw - 32px)',
                     maxHeight: '500px',
@@ -116,8 +132,24 @@ const NotificationBell: React.FC = () => {
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                     border: '1px solid #f3f4f6',
                     overflow: 'hidden',
-                    zIndex: 90
-                }}>
+                    zIndex: 9999
+                }}
+                className="notification-dropdown">
+                    <style jsx>{`
+                        @media (min-width: 641px) {
+                            .notification-backdrop {
+                                display: none !important;
+                            }
+                            .notification-dropdown {
+                                position: absolute !important;
+                                top: 100% !important;
+                                left: auto !important;
+                                right: 0 !important;
+                                transform: none !important;
+                                margin-top: 12px !important;
+                            }
+                        }
+                    `}</style>
                     {/* Header */}
                     <div style={{
                         padding: '16px',
@@ -344,6 +376,7 @@ const NotificationBell: React.FC = () => {
                         </div>
                     )}
                 </div>
+                </>
             )}
 
             <style>{`
