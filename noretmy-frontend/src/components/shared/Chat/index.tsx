@@ -145,7 +145,7 @@ const ChatScreen: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white">
+    <div className="w-full h-full flex flex-col bg-white min-h-0">
       {/* Header */}
       <div className="bg-white px-4 py-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
@@ -174,7 +174,10 @@ const ChatScreen: React.FC = () => {
       </div>
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}>
+      <div
+        className="flex-1 overflow-y-auto min-h-0 pb-6"
+        style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}
+      >
         {loading ? (
           <div>
             {Array.from({ length: 6 }).map((_, i) => (
