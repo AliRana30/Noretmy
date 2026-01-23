@@ -85,15 +85,19 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         );
 
         setReviewsProps(
-          reviews?.slice(0, 2).map((review: any) => ({
-            sellerImage: review.user?.profilePicture || '/images/placeholder-avatar.png',
-            name: review.user?.fullName || review.user?.username || t('gigs:single.reviews.anonymous'),
-            clientType: 'Client',
-            location: 'Unknown',
-            rating: review.star || 0,
-            date: review.createdAt || 'N/A',
-            reviewText: review.desc || t('gigs:single.reviews.noReviewText'),
-          })) || []
+          reviews?.slice(0, 2).map((review: any) => {
+            const fullName = review.user?.fullName || review.user?.username || t('gigs:single.reviews.anonymous');
+            const firstName = fullName.split(' ')[0];
+            return {
+              sellerImage: review.user?.profilePicture || '/images/placeholder-avatar.png',
+              name: firstName,
+              clientType: 'Client',
+              location: 'Unknown',
+              rating: review.star || 0,
+              date: review.createdAt || 'N/A',
+              reviewText: review.desc || t('gigs:single.reviews.noReviewText'),
+            };
+          }) || []
         );
 
         setLoading(false);

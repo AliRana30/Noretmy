@@ -610,7 +610,7 @@ export const fetchData = async () => {
 
 export const fetchDocumentsData = async () => {
   try {
-    const response = await axios.get(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_USERS)}?isVerified=false&role=freelancer&limit=1000`, {
+    const response = await axios.get(`${getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_USERS)}?isVerified=false&limit=1000`, {
       withCredentials: true,
       headers: getAuthHeaders()
     });

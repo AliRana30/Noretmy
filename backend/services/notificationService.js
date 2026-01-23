@@ -1,6 +1,12 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
+const emitAdminNotification = (payload) => {
+  const io = global.io;
+  if (!io) return;
+  io.to('admin_room').emit('adminNotification', payload);
+};
+
 /**
  * Create a notification for a user
  */
@@ -250,6 +256,13 @@ const notifyPaymentCompleted = async (freelancerId, adminId, orderId, amount) =>
       type: 'payment',
       data: { orderId, amount, freelancerId }
     });
+
+    emitAdminNotification({
+      title: '💳 Order Payment Completed',
+      message: `An order payment of $${amount} has been completed.`,
+      type: 'payment',
+      link: `/admin/orders/${orderId}`
+    });
   }
   
   return createBulkNotifications(notifications);
@@ -279,6 +292,12 @@ const notifyWithdrawalRequestSubmitted = async (adminIds, freelancerId, amount, 
         type: 'withdrawal',
         link: `/admin/withdrawals`
       });
+    });
+    emitAdminNotification({
+      title: '💸 New Withdrawal Request',
+      message: `A freelancer has requested to withdraw $${amount}. Please review.`,
+      type: 'withdrawal',
+      link: `/admin/withdrawals`
     });
   }
   
@@ -381,6 +400,12 @@ const notifyOrderCompleted = async (buyerId, sellerId, orderId, orderTitle, comm
           data: { orderId, orderTitle, commission: commissionAmount }
         });
       });
+      emitAdminNotification({
+        title: '💰 Order Completed',
+        message: `Order "${orderTitle}" completed. Commission earned: $${commissionAmount.toFixed(2)}`,
+        type: 'order',
+        link: `/admin/orders/${orderId}`
+      });
     }
   }
   
@@ -442,6 +467,12 @@ const notifyAdminOrderAccepted = async (orderId, orderTitle, sellerId, sellerNam
         link: `/admin/orders/${orderId}`
       });
     });
+    emitAdminNotification({
+      title: '✅ Order Accepted',
+      message: `${sellerName} accepted order "${orderTitle}" ($${amount})`,
+      type: 'order',
+      link: `/admin/orders/${orderId}`
+    });
   }
 
   return created;
@@ -474,6 +505,12 @@ const notifyAdminOrderRejected = async (orderId, orderTitle, sellerId, sellerNam
         type: 'order',
         link: `/admin/orders/${orderId}`
       });
+    });
+    emitAdminNotification({
+      title: '❌ Order Rejected',
+      message: `${sellerName} rejected order "${orderTitle}"`,
+      type: 'order',
+      link: `/admin/orders/${orderId}`
     });
   }
 
@@ -508,6 +545,12 @@ const notifyAdminPaymentReceived = async (orderId, orderTitle, buyerName, amount
         link: `/admin/orders/${orderId}`
       });
     });
+    emitAdminNotification({
+      title: '💰 Payment Received',
+      message: `${buyerName} paid $${amount} for "${orderTitle}"`,
+      type: 'payment',
+      link: `/admin/orders/${orderId}`
+    });
   }
 
   return created;
@@ -540,6 +583,12 @@ const notifyAdminPromotionPurchased = async (userId, userName, promotionName, am
         type: 'promotion',
         link: '/admin/promotions'
       });
+    });
+    emitAdminNotification({
+      title: '🎯 Promotion Purchased',
+      message: `${userName} purchased "${promotionName}" promotion ($${amount})`,
+      type: 'promotion',
+      link: '/admin/promotions'
     });
   }
 

@@ -39,9 +39,20 @@ const getUserNotifications = async (req, res) => {
         }
 
         const notifications = await Notification.find({
-            $or: [
-                { userId },   // User-specific notifications
-                { isGlobal: true } // Global notifications
+            $and: [
+                {
+                    $or: [
+                        { userId },   // User-specific notifications
+                        { isGlobal: true } // Global notifications
+                    ]
+                },
+                {
+                    $or: [
+                        { link: { $exists: false } },
+                        { link: null },
+                        { link: { $not: /^\/admin/ } }
+                    ]
+                }
             ]
         }).sort({ createdAt: -1 });
 
@@ -61,9 +72,20 @@ const getUnreadNotificationCount = async (req, res) => {
         }
 
         const count = await Notification.countDocuments({
-            $or: [
-                { userId, isRead: false },   // User-specific unread notifications
-                { isGlobal: true, isRead: false } // Global unread notifications
+            $and: [
+                {
+                    $or: [
+                        { userId, isRead: false },   // User-specific unread notifications
+                        { isGlobal: true, isRead: false } // Global unread notifications
+                    ]
+                },
+                {
+                    $or: [
+                        { link: { $exists: false } },
+                        { link: null },
+                        { link: { $not: /^\/admin/ } }
+                    ]
+                }
             ]
         });
 

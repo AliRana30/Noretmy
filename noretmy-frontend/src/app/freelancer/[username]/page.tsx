@@ -104,6 +104,11 @@ const FreelancerProfileContent = () => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const { badge: sellerBadge, loading: badgeLoading } = useSellerBadge(freelancer?.user._id);
+  const showSellerBadge = sellerBadge && sellerBadge.level !== 'new';
+  const responseRateValue = sellerBadge?.metrics?.responseRate;
+  const responseRateLabel = typeof responseRateValue === 'number'
+    ? `${Math.round(responseRateValue)}%`
+    : 'N/A';
 
   useEffect(() => {
     const fetchFreelancerProfile = async () => {
@@ -199,7 +204,7 @@ const FreelancerProfileContent = () => {
               <div className="flex-1 md:pb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold text-slate-900">{user.fullName}</h1>
-                  {sellerBadge && (
+                  {showSellerBadge && (
                     <SellerBadge
                       level={sellerBadge.level as 'new' | 'level_1' | 'level_2' | 'top_rated'}
                       showTooltip
@@ -214,7 +219,7 @@ const FreelancerProfileContent = () => {
                   <div className="mt-2">
                     <ReliabilityIndicators
                       onTimeRate={sellerBadge.metrics.onTimeDeliveryRate}
-                      responseTime={sellerBadge.metrics.responseRate >= 90 ? '< 1 hr' : '< 24 hrs'}
+                      responseTime={responseRateLabel}
                       completionRate={sellerBadge.metrics.completionRate}
                     />
                   </div>

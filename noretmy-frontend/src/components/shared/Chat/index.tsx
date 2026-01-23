@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import axios from 'axios';
 import moment from 'moment';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import {
   EllipsisVerticalIcon,
@@ -17,15 +17,18 @@ import { Button } from '@/components/ui/Button';
 import { useTranslations } from '@/hooks/useTranslations';
 import { Conversation, ChatUser } from '@/types/chat';
 import { SkeletonChatListItem } from '@/components/shared/Skeletons';
+import { io as createSocket } from 'socket.io-client';
 
 const ChatScreen: React.FC = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useSelector((state: RootState) => state.auth);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslations();
+  const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -51,6 +54,47 @@ const ChatScreen: React.FC = () => {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  useEffect(() => {
+    if (!user?._id || !BACKEND_URL) return;
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    const socket = createSocket(BACKEND_URL, {
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('[Chat] Socket connected - user:', user._id);
+      socket.emit('userOnline', String(user._id));
+    });
+
+    const handleRealtimeUpdate = (payload: any) => {
+      console.log('[Chat] Real-time update received:', payload);
+      fetchConversations();
+    };
+
+    socket.on('newMessageNotification', handleRealtimeUpdate);
+    socket.on('receiveMessage', handleRealtimeUpdate);
+
+    return () => {
+      socket.off('newMessageNotification', handleRealtimeUpdate);
+      socket.off('receiveMessage', handleRealtimeUpdate);
+      socket.disconnect();
+    };
+  }, [BACKEND_URL, fetchConversations, user?._id]);
+
+  const activeConversationId = useMemo(() => {
+    if (!pathname?.startsWith('/message/')) return null;
+    const parts = pathname.split('/message/');
+    return parts[1] || null;
+  }, [pathname]);
 
   const markAsRead = useCallback(async (conversationId: string) => {
     try {
@@ -94,6 +138,8 @@ const ChatScreen: React.FC = () => {
     const unread = user?.isSeller
       ? !conversation.readBySeller
       : !conversation.readByBuyer;
+    const isActive = !!activeConversationId &&
+      (conversation._id === activeConversationId || conversation.id === activeConversationId);
 
     // Extract first name only
     const displayName = otherParty.username?.split(' ')[0] || otherParty.username;
@@ -101,7 +147,12 @@ const ChatScreen: React.FC = () => {
     return (
       <div
         key={conversation._id}
-        className={`relative flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100 ${unread ? 'bg-orange-50/50' : 'bg-white'
+        className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${
+          isActive
+            ? 'bg-orange-50/70 border-orange-200'
+            : unread
+              ? 'bg-orange-100 hover:bg-orange-100 font-semibold'
+              : 'bg-white hover:bg-gray-50'
           }`}
         onClick={() => {
           handleSelectConversation(
@@ -176,7 +227,12 @@ const ChatScreen: React.FC = () => {
       {/* Conversation List */}
       <div
         className="flex-1 overflow-y-auto min-h-0 pb-6"
-        style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}
+        style={{ 
+          height: 'calc(100vh - 220px)', 
+          minHeight: '300px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#ea580c #f3f4f6'
+        }}
       >
         {loading ? (
           <div>

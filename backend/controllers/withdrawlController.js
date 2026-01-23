@@ -435,7 +435,8 @@ const approveWithdrawRequest = async (req, res) => {
         if (method === 'stripe' && !freelancer.stripeAccountId) {
             return res.status(400).json({
                 success: false,
-                message: 'Cannot process Stripe withdrawal: The freelancer has not completed Stripe onboarding. Please ask them to complete Stripe setup in their payout settings.'
+                message: 'Cannot process Stripe withdrawal: The freelancer has not completed Stripe onboarding. Please ask them to complete Stripe setup in their payout settings.',
+                blockingReason: 'stripe_not_connected'
             });
         }
 
@@ -443,7 +444,8 @@ const approveWithdrawRequest = async (req, res) => {
             if (!process.env.STRIPE_SECRET_KEY) {
                 return res.status(503).json({
                     success: false,
-                    message: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).'
+                    message: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).',
+                    blockingReason: 'stripe_verification_failed'
                 });
             }
             let transfer;
@@ -463,7 +465,8 @@ const approveWithdrawRequest = async (req, res) => {
                 console.error('❌ [Withdrawal Approval] Stripe transfer failed:', stripeErr?.message);
                 return res.status(502).json({
                     success: false,
-                    message: stripeErr?.message || 'Failed to process the Stripe transfer.'
+                    message: stripeErr?.message || 'Failed to process the Stripe transfer.',
+                    blockingReason: 'stripe_verification_failed'
                 });
             }
 

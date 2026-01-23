@@ -59,7 +59,6 @@ const LoginPage = () => {
 
     try {
       await dispatch(loginUser({ email: data.email, password: data.password })).unwrap();
-      toast.success(t('auth:login.success') || 'Login successful!');
       router.push('/');
     } catch (error: any) {
       const errorMessage = typeof error === 'string' ? error : (error?.response?.data?.message || error?.message || t('auth:login.error') || 'Login failed. Please check your credentials.');

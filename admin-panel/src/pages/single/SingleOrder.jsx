@@ -1,12 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
-import { getAdminOrderDetail, updateOrderStatus } from "../../utils/adminApi";
+import { getAdminOrderDetail } from "../../utils/adminApi";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { useLocalization } from "../../context/LocalizationContext";
 import singleTranslations from "../../localization/single.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
 import { ArrowLeft, Package, User, Calendar, DollarSign, Clock, CheckCircle, AlertCircle, XCircle } from "lucide-react";
-import toast from "react-hot-toast";
 
 const SingleOrder = () => {
   const { orderId } = useParams();
@@ -17,7 +16,6 @@ const SingleOrder = () => {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     const loadOrderData = async () => {
@@ -49,22 +47,6 @@ const SingleOrder = () => {
     }
   }, [orderId]);
 
-  const handleStatusUpdate = async (newStatus) => {
-    setUpdatingStatus(true);
-    try {
-      await updateOrderStatus(orderId, newStatus, `Status changed to ${newStatus} by admin`);
-      setOrderData(prev => ({
-        ...prev,
-        order: { ...prev.order, status: newStatus }
-      }));
-      toast.success(`Order status updated to ${newStatus}`);
-    } catch (err) {
-      console.error("Error updating status:", err);
-      toast.error("Failed to update order status");
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -148,26 +130,7 @@ const SingleOrder = () => {
               </div>
             </div>
             
-            {/* Quick Status Actions */}
-            <div className="flex gap-2">
-              <select
-                value={order?.status || ''}
-                onChange={(e) => handleStatusUpdate(e.target.value)}
-                disabled={updatingStatus}
-                className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                  darkMode 
-                    ? 'bg-black/30 border border-white/20 text-white' 
-                    : 'bg-white border border-gray-200 text-gray-700'
-                } focus:outline-none focus:ring-2 focus:ring-orange-500`}
-              >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="delivered">Delivered</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="disputed">Disputed</option>
-              </select>
-            </div>
+            {/* Status is read-only */}
           </div>
 
           {/* Order Details */}

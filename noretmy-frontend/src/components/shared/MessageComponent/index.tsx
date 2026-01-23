@@ -12,7 +12,9 @@ import {
   Package,
   ExternalLink,
   User,
-  Loader2
+  Loader2,
+  Check,
+  CheckCheck
 } from 'lucide-react';
 import MessageAttachmentDisplay from '../MessageAttachmentDisplay';
 
@@ -394,10 +396,13 @@ const MessageComponent: React.FC<MessageProps> = ({
         {/* Message Content */}
         {renderMessageContent()}
 
-        {/* Timestamp */}
-        <span className="text-xs text-gray-500 mt-2">
-          {moment(item.createdAt).format('h:mm A')}
-        </span>
+        {/* Timestamp with read status */}
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+          <span>{moment(item.createdAt).format('h:mm A')}</span>
+          {isSelf && (
+            <CheckCheck className="w-3 h-3 text-blue-500" />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -160,22 +160,22 @@ export const ReliabilityIndicators: React.FC<ReliabilityIndicatorsProps> = ({
     className = '',
 }) => {
     return (
-        <div className={`flex flex-wrap gap-3 text-sm text-gray-600 ${className}`}>
+        <div className={`flex flex-wrap gap-3 text-sm text-slate-600 ${className}`}>
             {onTimeRate !== undefined && (
                 <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-orange-500" />
+                    <Clock className="w-4 h-4 text-slate-500" />
                     <span>{onTimeRate}% On-time</span>
                 </div>
             )}
             {responseTime && (
                 <div className="flex items-center gap-1">
-                    <Zap className="w-4 h-4 text-blue-500" />
-                    <span>{responseTime} response</span>
+                    <Zap className="w-4 h-4 text-slate-500" />
+                    <span>{responseTime} Response rate</span>
                 </div>
             )}
             {completionRate !== undefined && (
                 <div className="flex items-center gap-1">
-                    <CheckCircle className="w-4 h-4 text-purple-500" />
+                    <CheckCircle className="w-4 h-4 text-slate-500" />
                     <span>{completionRate}% Completed</span>
                 </div>
             )}

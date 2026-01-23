@@ -8,6 +8,7 @@ import ChatFileUpload from '../ChatFileUpload';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Menu, PlusCircle, Send, ChevronDown, Paperclip } from 'lucide-react';
 import { useUserRole } from '@/util/basic';
+import { io as createSocket } from 'socket.io-client';
 
 import { ShoppingBagIcon, ClipboardDocumentListIcon, SparklesIcon, TrophyIcon } from '@heroicons/react/24/outline'
 
@@ -48,7 +49,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
   const isSeller = useUserRole();
   const userProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
-  const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
+  const authUser = useSelector((state: RootState) => state?.auth?.user);
+  const userId = (authUser as { _id?: string })?._id || authUser?.id;
   const receiverId = userId === sellerId ? buyerId : sellerId;
 
   useEffect(() => {
@@ -88,9 +90,25 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           { withCredentials: true },
         );
 
-        setMessages(response.data.length > 0 ? response.data : []);
+        const messageData = response.data.length > 0 ? response.data : [];
+        setMessages(messageData);
         setIsLoading(false);
         setTimeout(scrollToBottom, 100); // Scroll after render
+
+        // Mark messages as read
+        if (messageData.length > 0 && socketRef.current) {
+          const unreadMessageIds = messageData
+            .filter((msg: any) => msg.userId !== userId)
+            .map((msg: any) => msg._id);
+          
+          if (unreadMessageIds.length > 0) {
+            socketRef.current.emit('messagesRead', {
+              conversationId,
+              userId,
+              messageIds: unreadMessageIds
+            });
+          }
+        }
       } catch (error) {
         console.error('Error fetching initial messages:', error);
         setIsLoading(false);
@@ -130,6 +148,54 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     fetchConversation();
 
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!BACKEND_URL || !conversationId || !userId) return;
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    const socket = createSocket(BACKEND_URL, {
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      socket.emit('userOnline', String(userId));
+      socket.emit('joinRoom', conversationId);
+    });
+
+    const handleReceiveMessage = (payload: any) => {
+      if (!payload || payload.conversationId !== conversationId) return;
+
+      setMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === payload._id);
+        if (exists) return prev;
+        return [...prev, payload];
+      });
+      setTimeout(scrollToBottom, 50);
+    };
+
+    const handleMessagesMarkedRead = (payload: any) => {
+      if (!payload || payload.conversationId !== conversationId) return;
+      // Update messages read status in UI if needed
+      console.log('Messages marked as read:', payload);
+    };
+
+    socket.on('receiveMessage', handleReceiveMessage);
+    socket.on('messagesMarkedRead', handleMessagesMarkedRead);
+
+    return () => {
+      socket.emit('leaveRoom', conversationId);
+      socket.off('receiveMessage', handleReceiveMessage);
+      socket.off('messagesMarkedRead', handleMessagesMarkedRead);
+      socket.disconnect();
+    };
+  }, [BACKEND_URL, conversationId, userId]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -209,6 +275,13 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
             msg._id === optimisticMessage._id ? response.data : msg
           )
         );
+
+        socketRef.current?.emit('sendMessage', {
+          conversationId,
+          message: response.data,
+          senderId: userId,
+          receiverId: receiverId
+        });
       } catch (err) {
         console.error('Error sending message to the server:', err);
         setMessages((prevMessages) =>
@@ -271,7 +344,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       {/* Chat Header */}
       <div className="p-3 md:p-4 bg-white shadow-md border-b flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="block lg:hidden mr-1 flex items-center gap-2">
+          <div className="flex lg:hidden mr-1 items-center gap-2">
             <button onClick={() => router.push('/chat')} className="p-1 hover:bg-gray-100 rounded-full">
               <ChevronDown className="rotate-90 text-gray-600" size={24} />
             </button>

@@ -268,7 +268,7 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
                 size="sm"
               />
               <span className="text-sm text-slate-600 font-medium truncate">
-                {gig.seller.username}
+                {(gig.seller.name || gig.seller.username || '').split(' ')[0]}
               </span>
             </div>
           )}

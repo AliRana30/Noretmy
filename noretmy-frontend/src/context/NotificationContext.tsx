@@ -1,8 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { io as createSocket } from 'socket.io-client';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
 interface Notification {
     _id: string;
@@ -31,6 +34,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+    const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
+    const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
 
     const fetchUnreadCount = useCallback(async () => {
         try {
@@ -120,7 +125,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             await axios.delete(`${BACKEND_URL}/notification/${id}`, {
                 withCredentials: true,
             });
-            toast.success('Notification deleted');
         } catch (error) {
             setNotifications(previousNotifications);
             setUnreadCount(previousUnreadCount);
@@ -143,6 +147,42 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             window.removeEventListener('notifications_updated', handleSync);
         };
     }, [fetchUnreadCount, fetchFullNotifications]);
+
+    useEffect(() => {
+        if (!userId || !BACKEND_URL) return;
+
+        if (socketRef.current) {
+            socketRef.current.disconnect();
+            socketRef.current = null;
+        }
+
+        const socket = createSocket(BACKEND_URL, {
+            withCredentials: true,
+            transports: ['websocket', 'polling']
+        });
+
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+            socket.emit('userOnline', String(userId));
+        });
+
+        const handleNotification = () => {
+            console.log('[NotificationContext] Received notification event - fetching updates');
+            fetchUnreadCount();
+            fetchFullNotifications();
+            window.dispatchEvent(new Event('notifications_updated'));
+        };
+
+        socket.on('notification', handleNotification);
+        socket.on('newNotification', handleNotification);
+
+        return () => {
+            socket.off('notification', handleNotification);
+            socket.off('newNotification', handleNotification);
+            socket.disconnect();
+        };
+    }, [BACKEND_URL, fetchFullNotifications, fetchUnreadCount, userId]);
 
     return (
         <NotificationContext.Provider
