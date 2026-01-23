@@ -112,14 +112,11 @@ const ClientProfilePage = ({ params }: { params: { userId: string } }) => {
 
         {/* Main Profile Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Header Banner */}
-          <div className="h-32 bg-gradient-to-r from-orange-400 to-orange-600" />
-          
           {/* Profile Content */}
-          <div className="px-8 pb-8">
+          <div className="px-8 py-8">
             {/* Avatar */}
-            <div className="relative -mt-16 mb-4">
-              <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white shadow-lg">
+            <div className="relative mb-4">
+              <div className="w-32 h-32 rounded-full border-4 border-gray-100 overflow-hidden bg-white shadow-lg">
                 {client.profilePicture ? (
                   <Image
                     src={client.profilePicture}
@@ -134,17 +131,15 @@ const ClientProfilePage = ({ params }: { params: { userId: string } }) => {
                   </div>
                 )}
               </div>
-              {client.isVerified && (
-                <div className="absolute bottom-2 right-2 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white">
-                  <CheckCircle className="w-5 h-5 text-white" />
-                </div>
-              )}
             </div>
 
-            {/* Name and Username */}
+            {/* Name and Username with verified checkmark */}
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-1">
+              <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold text-gray-900">{client.fullName}</h1>
+                {client.isVerified && (
+                  <CheckCircle className="w-6 h-6 text-orange-500" />
+                )}
                 {client.isCompany && (
                   <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full flex items-center gap-1">
                     <Building2 className="w-4 h-4" />
@@ -158,17 +153,11 @@ const ClientProfilePage = ({ params }: { params: { userId: string } }) => {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mx-auto mb-2">
-                  <ShoppingBag className="w-5 h-5 text-orange-500" />
-                </div>
                 <p className="text-2xl font-bold text-gray-900">{client.totalOrdersPlaced || 0}</p>
                 <p className="text-sm text-gray-500">Orders Placed</p>
               </div>
               
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mx-auto mb-2">
-                  <CheckCircle className="w-5 h-5 text-orange-500" />
-                </div>
                 <p className="text-2xl font-bold text-gray-900">
                   ${(client.totalSpent || 0).toLocaleString()}
                 </p>
@@ -176,42 +165,13 @@ const ClientProfilePage = ({ params }: { params: { userId: string } }) => {
               </div>
               
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mx-auto mb-2">
-                  <Calendar className="w-5 h-5 text-blue-500" />
-                </div>
                 <p className="text-sm font-bold text-gray-900">{memberSince}</p>
                 <p className="text-sm text-gray-500">Member Since</p>
               </div>
               
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mx-auto mb-2">
-                  <MapPin className="w-5 h-5 text-purple-500" />
-                </div>
                 <p className="text-sm font-bold text-gray-900">{client.country || 'Not specified'}</p>
                 <p className="text-sm text-gray-500">Location</p>
-              </div>
-            </div>
-
-            {/* Verification Status */}
-            <div className={`p-4 rounded-xl ${client.isVerified ? 'bg-orange-50 border border-orange-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-              <div className="flex items-center gap-3">
-                {client.isVerified ? (
-                  <>
-                    <CheckCircle className="w-6 h-6 text-orange-500" />
-                    <div>
-                      <p className="font-medium text-orange-800">Verified Client</p>
-                      <p className="text-sm text-orange-600">This client's identity has been verified</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Clock className="w-6 h-6 text-yellow-500" />
-                    <div>
-                      <p className="font-medium text-yellow-800">Unverified Client</p>
-                      <p className="text-sm text-yellow-600">This client has not completed verification</p>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           </div>

@@ -141,8 +141,8 @@ const ChatScreen: React.FC = () => {
     const isActive = !!activeConversationId &&
       (conversation._id === activeConversationId || conversation.id === activeConversationId);
 
-    // Extract first name only
-    const displayName = otherParty.username?.split(' ')[0] || otherParty.username;
+    // Use full username
+    const displayName = otherParty.username || 'Unknown';
 
     return (
       <div
@@ -155,14 +155,26 @@ const ChatScreen: React.FC = () => {
               : 'bg-white hover:bg-gray-50'
           }`}
         onClick={() => {
+          // Clear unread status immediately for instant UI feedback
+          if (unread) {
+            setConversations((prev) =>
+              prev.map((conv) =>
+                conv._id === conversation._id
+                  ? {
+                    ...conv,
+                    readByBuyer: user?.isSeller ? conv.readByBuyer : true,
+                    readBySeller: user?.isSeller ? true : conv.readBySeller,
+                  }
+                  : conv
+              )
+            );
+            markAsRead(conversation._id);
+          }
           handleSelectConversation(
             conversation.id,
             conversation.sellerId,
             conversation.buyerId
           );
-          if (unread) {
-            markAsRead(conversation._id);
-          }
         }}
       >
         <div className="relative flex-shrink-0">
@@ -226,14 +238,30 @@ const ChatScreen: React.FC = () => {
 
       {/* Conversation List */}
       <div
-        className="flex-1 overflow-y-auto min-h-0 pb-6"
-        style={{ 
-          height: 'calc(100vh - 220px)', 
+        className="flex-1 overflow-y-auto min-h-0 custom-scrollbar"
+        style={{
+          height: 'calc(100vh - 220px)',
           minHeight: '300px',
           scrollbarWidth: 'thin',
           scrollbarColor: '#ea580c #f3f4f6'
         }}
       >
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f3f4f6;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #ea580c;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #c2410c;
+        }
+      `}</style>
         {loading ? (
           <div>
             {Array.from({ length: 6 }).map((_, i) => (

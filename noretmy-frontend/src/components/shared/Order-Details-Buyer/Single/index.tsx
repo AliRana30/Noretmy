@@ -766,7 +766,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
 
       <div className="p-6">
         {/* Order Summary - Card with improved design */}
-        <div className="mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
+        <div className="relative mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
           <OrderCard
             orderId={orderDetails.orderId}
             gigTitle={orderDetails.gigTitle}
@@ -776,6 +776,24 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             createdAt={orderDetails.createdAt || orderDetails.orderDate}
             dueDate={orderDetails.deliveryDate}
           />
+          
+          {/* Profile Link - small orange button at top right */}
+          {isOrderBuyer && orderDetails?.sellerId && (
+            <button
+              onClick={() => router.push(`/freelancer/${sellerUsername}`)}
+              className="absolute top-4 right-4 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-all shadow-sm"
+            >
+              View Seller
+            </button>
+          )}
+          {isOrderSeller && orderDetails?.buyerId && (
+            <button
+              onClick={() => router.push(`/client/${orderDetails.buyerId}`)}
+              className="absolute top-4 right-4 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-all shadow-sm"
+            >
+              View Client
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-8">

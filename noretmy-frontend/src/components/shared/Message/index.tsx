@@ -165,25 +165,52 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      console.log('[Message] Socket connected - user:', userId, 'conversation:', conversationId);
       socket.emit('userOnline', String(userId));
       socket.emit('joinRoom', conversationId);
+      console.log('[Message] Joined room:', conversationId);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('[Message] Socket connection error:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('[Message] Socket disconnected:', reason);
     });
 
     const handleReceiveMessage = (payload: any) => {
-      if (!payload || payload.conversationId !== conversationId) return;
+      console.log('[Message] Received message:', payload);
+      if (!payload || payload.conversationId !== conversationId) {
+        console.log('[Message] Ignoring message - wrong conversation');
+        return;
+      }
 
       setMessages((prev) => {
         const exists = prev.some((msg) => msg._id === payload._id);
-        if (exists) return prev;
+        if (exists) {
+          console.log('[Message] Message already exists');
+          return prev;
+        }
+        console.log('[Message] Adding new message to state');
         return [...prev, payload];
       });
       setTimeout(scrollToBottom, 50);
     };
 
     const handleMessagesMarkedRead = (payload: any) => {
+      console.log('[Message] Messages marked as read:', payload);
       if (!payload || payload.conversationId !== conversationId) return;
-      // Update messages read status in UI if needed
-      console.log('Messages marked as read:', payload);
+      // Update messages read status in UI
+      if (payload.messageIds && payload.messageIds.length > 0) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            payload.messageIds.includes(msg._id)
+              ? { ...msg, isRead: true }
+              : msg
+          )
+        );
+      }
     };
 
     socket.on('receiveMessage', handleReceiveMessage);
@@ -352,10 +379,18 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           </div>
           {/* Other user avatar and name with profile link */}
           <div
-            className={`flex items-center gap-2 transition-opacity ${isOtherUserSeller ? 'cursor-pointer hover:opacity-80' : ''}`}
+            className="flex items-center gap-2 transition-opacity cursor-pointer hover:opacity-80"
             onClick={() => {
-              if (otherUserName && isOtherUserSeller) {
-                router.push(`/freelancer/${otherUserName}`);
+              if (otherUserName) {
+                if (isOtherUserSeller) {
+                  router.push(`/freelancer/${otherUserName}`);
+                } else {
+                  // Buyer/client - navigate to client profile
+                  const clientId = isSeller ? buyerId : sellerId;
+                  if (clientId) {
+                    router.push(`/client/${clientId}`);
+                  }
+                }
               }
             }}
           >
@@ -367,12 +402,12 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
               />
             )}
             <div>
-              <h2 className={`text-base md:text-lg font-bold text-gray-700 ${isOtherUserSeller ? 'hover:text-orange-600 transition-colors' : ''}`}>
+              <h2 className="text-base md:text-lg font-bold text-gray-700 hover:text-orange-600 transition-colors">
                 {otherUserName || 'Chat'}
               </h2>
-              {isOtherUserSeller && (
-                <span className="text-xs text-gray-400">View freelancer profile</span>
-              )}
+              <span className="text-xs text-gray-400">
+                {isOtherUserSeller ? 'View freelancer profile' : 'View client profile'}
+              </span>
             </div>
           </div>
         </div>

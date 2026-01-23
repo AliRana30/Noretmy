@@ -107,22 +107,20 @@ const ProfileOrders: React.FC<ProfileOrdersProps> = ({ isSeller }) => {
       <div className="flex gap-4 border-b border-white/10 pb-4">
         <button
           onClick={() => setActiveTab('active')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'active'
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'active'
             ? 'bg-orange-500 text-white'
             : 'bg-white/10 text-black hover:bg-white/20'
             }`}
         >
-          <Clock className="w-4 h-4" />
           Active ({activeOrders.length})
         </button>
         <button
           onClick={() => setActiveTab('completed')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'completed'
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'completed'
             ? 'bg-orange-500 text-white'
             : 'bg-white/10 text-black hover:bg-white/20'
             }`}
         >
-          <CheckCircle className="w-4 h-4" />
           Completed ({completedOrders.length})
         </button>
       </div>

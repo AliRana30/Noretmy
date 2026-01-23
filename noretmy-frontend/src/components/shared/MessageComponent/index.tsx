@@ -399,8 +399,11 @@ const MessageComponent: React.FC<MessageProps> = ({
         {/* Timestamp with read status */}
         <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
           <span>{moment(item.createdAt).format('h:mm A')}</span>
-          {isSelf && (
+          {isSelf && item.isRead && (
             <CheckCheck className="w-3 h-3 text-blue-500" />
+          )}
+          {isSelf && !item.isRead && (
+            <Check className="w-3 h-3 text-gray-400" />
           )}
         </div>
       </div>
