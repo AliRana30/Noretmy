@@ -173,7 +173,7 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
             src={imageError ? '/placeholder.jpg' : (gig.image || gig.photos?.[0] || '/placeholder.jpg')}
             alt={gig.title}
             fill
-            className="object-cover  transition-transform duration-500"
+            className="object-contain transition-transform duration-500"
             onError={() => setImageError(true)}
           />
 
@@ -208,7 +208,7 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
             {/* Like Button */}
             <button
               onClick={handleFavoriteClick}
-              className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+              className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10"
             >
               <Heart
                 className={`w-5 h-5 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : 'text-slate-600'}`}

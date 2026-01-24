@@ -738,8 +738,8 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 transition-all">
       {/* Header with Progress Bar */}
-      <div className="border-b border-gray-200 bg-gradient-to-r from-orange-50 via-white to-orange-50">
-        <div className="flex p-6">
+      <div className="border-b border-gray-200 bg-gray-50">
+        <div className="flex p-6 items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-800">{t('details.title')}</h1>
@@ -759,14 +759,30 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
               }
             </div>
           </div>
+          
+          {/* View Profile Button */}
+          {isOrderBuyer && orderDetails?.sellerId && (
+            <button
+              onClick={() => router.push(`/freelancer/${sellerUsername}`)}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
+            >
+              View Seller
+            </button>
+          )}
+          {isOrderSeller && orderDetails?.buyerId && (
+            <button
+              onClick={() => router.push(`/client/${orderDetails.buyerId}`)}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
+            >
+              View Client
+            </button>
+          )}
         </div>
-
-
       </div>
 
       <div className="p-6">
         {/* Order Summary - Card with improved design */}
-        <div className="relative mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
+        <div className="mb-8 p-6 border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-all">
           <OrderCard
             orderId={orderDetails.orderId}
             gigTitle={orderDetails.gigTitle}
@@ -776,24 +792,6 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
             createdAt={orderDetails.createdAt || orderDetails.orderDate}
             dueDate={orderDetails.deliveryDate}
           />
-          
-          {/* Profile Link - small orange button at top right */}
-          {isOrderBuyer && orderDetails?.sellerId && (
-            <button
-              onClick={() => router.push(`/freelancer/${sellerUsername}`)}
-              className="absolute top-4 right-4 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-all shadow-sm"
-            >
-              View Seller
-            </button>
-          )}
-          {isOrderSeller && orderDetails?.buyerId && (
-            <button
-              onClick={() => router.push(`/client/${orderDetails.buyerId}`)}
-              className="absolute top-4 right-4 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition-all shadow-sm"
-            >
-              View Client
-            </button>
-          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-8">

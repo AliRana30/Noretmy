@@ -14,7 +14,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { PackageIcon, SearchIcon, Heart } from 'lucide-react';
+import { PackageIcon, SearchIcon, Heart, ChevronDown } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '@/store/authSlice';
@@ -29,6 +29,9 @@ const Navbar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [searchType, setSearchType] = useState<'services' | 'freelancers'>('services');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   const { t } = useTranslations();
 
@@ -62,39 +65,60 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    const path = searchType === 'services'
+      ? `/search-gigs?q=${encodeURIComponent(searchQuery.trim())}`
+      : `/freelancer?q=${encodeURIComponent(searchQuery.trim())}`;
+    
+    // Delay navigation slightly for loading bar animation
+    setTimeout(() => {
+      router.push(path);
+      setSearchQuery('');
+      // Reset after navigation
+      setTimeout(() => setIsSearching(false), 800);
+    }, 150);
+  };
+
   const ProfileModal = () => {
+    const [onlineForMessages, setOnlineForMessages] = useState(true);
+
     const profileModalList = [
       {
-        icon: <UserCircleIcon className="h-5 w-5 mr-3 text-orange-500" />,
+        icon: <UserCircleIcon className="h-5 w-5" />,
         text: t('navbar:profile.title'),
         href: '/profile',
       },
       {
-        icon: <Heart className="h-5 w-5 mr-3 text-red-500" />,
+        icon: <Heart className="h-5 w-5" />,
         text: t('navbar:profile.favorites'),
         href: '/favorites',
       },
       {
-        icon: <CreditCardIcon className="h-5 w-5 mr-3 text-blue-500" />,
+        icon: <CreditCardIcon className="h-5 w-5" />,
         text: t('navbar:profile.payments'),
         href: '/seller-board',
         showForSeller: true,
       },
       {
-        icon: <PackageIcon className="h-5 w-5 mr-3 text-orange-500" />,
+        icon: <PackageIcon className="h-5 w-5" />,
         text: t('navbar:navigation.orders'),
         href: '/orders',
       },
       {
-        icon: <BellIcon className="h-5 w-5 mr-3 text-blue-500" />,
+        icon: <BellIcon className="h-5 w-5" />,
         text: t('navbar:profile.notifications'),
         href: '/notifications',
       },
       {
-        icon: <MegaphoneIcon className="h-5 w-5 mr-3 text-orange-500" />,
+        icon: <MegaphoneIcon className="h-5 w-5" />,
         text: t('navbar:profile.promote'),
         href: '/promote-gigs',
-        showForSeller: true, // <-- only show if NOT seller
+        showForSeller: true,
       }
     ];
 
@@ -106,51 +130,64 @@ const Navbar: React.FC = () => {
         onClick={() => setIsModalOpen(false)}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/30" />
 
-        {/* Modal */}
+        {/* Modal - Reference Style */}
         <div
-          className="relative bg-white rounded-3xl shadow-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-sm overflow-hidden transform transition-all duration-300"
+          className="relative bg-white rounded-2xl shadow-xl w-full max-w-[360px] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Profile Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
-            <div className="flex items-center space-x-4">
+          {/* Profile Header - Clean White Background */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
               <div className="relative flex-shrink-0">
                 {user?.profilePicture ? (
                   <img
                     src={user.profilePicture}
                     alt="Profile"
-                    className="h-16 w-16 rounded-full object-cover border-4 border-white shadow-lg"
+                    className="h-12 w-12 rounded-full object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
                   />
                 ) : (
-                  <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center shadow-lg">
-                    <img src={DEFAULT_AVATAR} alt="Default Avatar" className="h-10 w-10 text-orange-500" />
+                  <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <img src={DEFAULT_AVATAR} alt="Default Avatar" className="h-7 w-7" />
                   </div>
                 )}
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-orange-400 rounded-full border-3 border-white"></div>
               </div>
-              <div className="flex-1 text-white min-w-0">
-                <h2 className="text-lg font-bold truncate">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-gray-900 truncate">
                   {user?.fullName || user?.username || 'User'}
-                </h2>
-                <p className="text-sm text-orange-100 truncate">
-                  {user?.email || ''}
+                </h3>
+                <p className="text-sm text-gray-500 truncate">
+                  {user?.isSeller ? 'Freelancer' : 'Client'}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Online Toggle */}
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-normal text-gray-900">Online for messages</span>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-white/80 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20"
-                aria-label={t('navbar:aria.closeModal')}
+                onClick={() => setOnlineForMessages(!onlineForMessages)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  onlineForMessages ? 'bg-orange-500' : 'bg-gray-300'
+                }`}
+                role="switch"
+                aria-checked={onlineForMessages}
               >
-                <XMarkIcon className="w-5 h-5" />
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    onlineForMessages ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
               </button>
             </div>
           </div>
 
-          {/* Profile Actions */}
-          <div className="p-4 space-y-1 max-h-[50vh] overflow-y-auto">
+          {/* Profile Actions - Outline Icons */}
+          <div className="py-2">
             {profileModalList.map((item, index) => {
               if (!user?.isSeller && item.showForSeller === true) {
                 return null;
@@ -160,10 +197,12 @@ const Navbar: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   key={index}
                   href={item.href}
-                  className="flex items-center p-3 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors group"
                 >
-                  {item.icon}
-                  <span className="text-gray-700 group-hover:text-gray-900 font-medium">
+                  <div className="text-gray-700 group-hover:text-orange-600 transition-colors">
+                    {item.icon}
+                  </div>
+                  <span className="text-sm font-normal text-gray-900 group-hover:text-orange-600 transition-colors">
                     {item.text}
                   </span>
                 </Link>
@@ -172,10 +211,10 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Language Switcher */}
-          <div className="px-4 pb-4">
-            <div className="flex items-center p-3 bg-gray-50 rounded-xl">
-              <LanguageIcon className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-gray-700 font-medium mr-3">{t('navbar:profile.language')}:</span>
+          <div className="border-t border-gray-100">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <LanguageIcon className="h-5 w-5 text-gray-700" />
+              <span className="text-sm font-normal text-gray-900">{t('navbar:profile.language')}:</span>
               <div className="ml-auto">
                 <LanguageSwitcher />
               </div>
@@ -183,26 +222,30 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Logout/Login Action */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="border-t border-gray-100">
             {user ? (
               <button
                 onClick={() => {
                   handleLogout();
                   setIsModalOpen(false);
                 }}
-                className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all duration-200 font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors group"
               >
-                <UserCircleIcon className="h-5 w-5 mr-2" />
-                {t('navbar:auth.logout')}
+                <UserCircleIcon className="h-5 w-5 text-gray-700 group-hover:text-red-600 transition-colors" />
+                <span className="text-sm font-normal text-gray-900 group-hover:text-red-600 transition-colors">
+                  {t('navbar:auth.logout')}
+                </span>
               </button>
             ) : (
               <Link
                 onClick={() => setIsModalOpen(false)}
                 href="/login"
-                className="w-full flex items-center justify-center p-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-all duration-200 font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors group"
               >
-                <UserCircleIcon className="h-5 w-5 mr-2" />
-                {t('navbar:auth.signIn')}
+                <UserCircleIcon className="h-5 w-5 text-gray-700 group-hover:text-orange-600 transition-colors" />
+                <span className="text-sm font-normal text-gray-900 group-hover:text-orange-600 transition-colors">
+                  {t('navbar:auth.signIn')}
+                </span>
               </Link>
             )}
           </div>
@@ -212,11 +255,6 @@ const Navbar: React.FC = () => {
   };
 
   const navigationItems = [
-    {
-      icon: <HomeIcon className="h-5 w-5 mr-1" />,
-      text: t('navbar:navigation.home'),
-      href: '/',
-    },
     {
       icon: <UserCircleIcon className="h-5 w-5 mr-1" />,
       text: t('navbar:navigation.about') || 'About',
@@ -244,10 +282,17 @@ const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Loading Bar */}
+      {isSearching && (
+        <div className="fixed top-0 left-0 right-0 z-[70] h-1 bg-gray-200 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 animate-progress" />
+        </div>
+      )}
+      
       <nav className="bg-white shadow-md h-16 sm:h-20 flex items-center w-full sticky top-0 z-[60]">
-        <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 flex justify-between items-center gap-4">
           {/* Logo */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center flex-shrink-0">
             <Link href="/">
               <Image
                 src="/logo/tagslogo.png"
@@ -258,20 +303,53 @@ const Navbar: React.FC = () => {
                 priority
               />
             </Link>
+          </div>
 
-            {/* Navigation Links - Desktop */}
-            <div className="hidden lg:flex items-center space-x-4">
-              {navigationItems.map((item, index) => (
-                <Link
-                  key={index}
-                  href={item.href}
-                  className="flex items-center text-gray-600 hover:text-orange-600 transition-colors px-3 py-2 rounded-lg"
+          {/* Search Bar - Desktop Only - Upwork Style */}
+          <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+            <form onSubmit={handleSearch} className="flex items-center w-full bg-white border border-gray-300 rounded-full overflow-hidden hover:border-gray-400 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
+              {/* Search Icon + Input */}
+              <div className="flex items-center flex-1 pl-4">
+                <SearchIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search"
+                  className="w-full py-2.5 text-sm text-gray-900 placeholder-gray-500 bg-transparent outline-none"
+                />
+              </div>
+
+              {/* Vertical Divider */}
+              <div className="h-8 w-px bg-gray-300 mx-2"></div>
+
+              {/* Dropdown Selector */}
+              <div className="relative flex-shrink-0">
+                <select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value as 'services' | 'freelancers')}
+                  className="appearance-none bg-transparent pl-3 pr-10 py-2.5 text-sm font-medium text-gray-700 cursor-pointer outline-none hover:text-gray-900 transition-colors"
                 >
-                  {item.icon}
-                  {item.text}
-                </Link>
-              ))}
-            </div>
+                  <option value="services">Jobs</option>
+                  <option value="freelancers">Freelancers</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+              </div>
+            </form>
+          </div>
+
+          {/* Navigation Links - Desktop */}
+          <div className="hidden lg:flex items-center space-x-2">
+            {navigationItems.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="flex items-center text-gray-600 hover:text-orange-600 transition-colors px-3 py-2 rounded-lg text-sm"
+              >
+                {item.icon}
+                {item.text}
+              </Link>
+            ))}
           </div>
 
           {/* Profile and Actions */}
@@ -393,6 +471,19 @@ const Navbar: React.FC = () => {
 
       {/* Profile Modal */}
       <ProfileModal />
+      
+      {/* CSS Animation for Loading Bar */}
+      <style jsx>{`
+        @keyframes progress {
+          0% { width: 0%; }
+          50% { width: 50%; }
+          80% { width: 80%; }
+          100% { width: 95%; }
+        }
+        .animate-progress {
+          animation: progress 1.5s ease-out forwards;
+        }
+      `}</style>
     </>
   );
 };

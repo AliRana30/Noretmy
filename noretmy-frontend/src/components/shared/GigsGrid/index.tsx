@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Gig from '../Gig';
-import Loader from '../Loader';
+import { SkeletonGigGrid } from '../Skeletons';
 import axios from 'axios';
 import { useTranslations } from '@/hooks/useTranslations';
 import { ArrowRight, TrendingUp, Sparkles } from 'lucide-react';
@@ -69,7 +69,12 @@ const HomeGigs = () => {
     return (
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Loader />
+          <div className="mb-12">
+            <div className="skeleton h-8 w-48 mb-4" />
+            <div className="skeleton h-10 w-96 mb-2" />
+            <div className="skeleton h-6 w-64" />
+          </div>
+          <SkeletonGigGrid count={8} />
         </div>
       </section>
     );

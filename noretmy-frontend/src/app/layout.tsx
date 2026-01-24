@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import i18next from 'i18next';
 import { Toaster } from 'react-hot-toast';
 import { NotificationProvider } from '@/context/NotificationContext';
+import { OnlineStatusProvider } from '@/context/OnlineStatusContext';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -43,8 +44,9 @@ export default function RootLayout({
       </head>
       <body className={poppins.className}>
         <ReduxProvider store={store}>
-          <NotificationProvider>
-            <div className="flex flex-col min-h-screen w-full relative">
+          <OnlineStatusProvider>
+            <NotificationProvider>
+              <div className="flex flex-col min-h-screen w-full relative">
               <Navbar />
               <main className="flex-grow w-full relative">
                 {children}
@@ -82,7 +84,8 @@ export default function RootLayout({
                 },
               }}
             />
-          </NotificationProvider>
+            </NotificationProvider>
+          </OnlineStatusProvider>
         </ReduxProvider>
       </body>
     </html>

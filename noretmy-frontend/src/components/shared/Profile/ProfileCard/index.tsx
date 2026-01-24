@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserRole } from '@/util/basic';
 import { useTranslations } from '@/hooks/useTranslations';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 interface ProfileCardProps {
   isOnline?: boolean;
@@ -108,10 +109,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               className="relative group"
             >
               <div className="rounded-full p-1 bg-gradient-to-r from-black-400 to-black-500 shadow-sm">
-                <img
+                <FallbackAvatar
                   src={profilePicture}
                   alt={t('profile:profileCard.aria.profilePicture')}
-                  className="w-20 h-20 rounded-full object-cover border border-white"
+                  name={name}
+                  className="border border-white"
+                  size="lg"
                 />
               </div>
               {isUploading && (

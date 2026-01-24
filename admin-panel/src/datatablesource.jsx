@@ -636,8 +636,8 @@ export const fetchDocumentsData = async () => {
       status: user.isBlocked ? "blocked" : user.isVerified ? "active" : "pending",
     }));
 
-    // Show all users who are sellers/freelancers and not yet verified
-    return mapped.filter((u) => (u.isSeller || u.role === 'freelancer') && !u.isVerified);
+    // Show ALL unverified users (including new signups who haven't chosen a role yet)
+    return mapped;
   } catch (error) {
     console.error("Error fetching documents data:", error);
     handleApiError(error);

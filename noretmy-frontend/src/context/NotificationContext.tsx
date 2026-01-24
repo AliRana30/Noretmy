@@ -103,7 +103,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 {},
                 { withCredentials: true }
             );
-            toast.success('All notifications marked as read');
         } catch (error) {
             setNotifications(previousNotifications);
             setUnreadCount(previousUnreadCount);
@@ -158,26 +157,56 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         const socket = createSocket(BACKEND_URL, {
             withCredentials: true,
-            transports: ['websocket', 'polling']
+            transports: ['websocket', 'polling'],
+            path: '/socket.io/',  // Explicit path
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 20000
         });
 
         socketRef.current = socket;
 
         socket.on('connect', () => {
+            console.log('[NotificationContext] ✅ Socket connected');
             socket.emit('userOnline', String(userId));
         });
 
+        socket.on('connect_error', (error) => {
+            console.error('[NotificationContext] ❌ Socket error:', error.message);
+        });
+
+        socket.on('reconnect', () => {
+            console.log('[NotificationContext] ♻️ Reconnected');
+            socket.emit('userOnline', String(userId));
+        });
+
+        // Debounce notification handlers to prevent performance violations
+        let notificationTimer: NodeJS.Timeout | null = null;
         const handleNotification = () => {
-            console.log('[NotificationContext] Received notification event - fetching updates');
-            fetchUnreadCount();
-            fetchFullNotifications();
-            window.dispatchEvent(new Event('notifications_updated'));
+            console.log('[NotificationContext] Received notification event');
+            
+            // Clear existing timer
+            if (notificationTimer) {
+                clearTimeout(notificationTimer);
+            }
+            
+            // Debounce: wait 300ms before fetching to batch rapid notifications
+            notificationTimer = setTimeout(() => {
+                fetchUnreadCount();
+                fetchFullNotifications();
+                window.dispatchEvent(new Event('notifications_updated'));
+                notificationTimer = null;
+            }, 300);
         };
 
         socket.on('notification', handleNotification);
         socket.on('newNotification', handleNotification);
 
         return () => {
+            if (notificationTimer) {
+                clearTimeout(notificationTimer);
+            }
             socket.off('notification', handleNotification);
             socket.off('newNotification', handleNotification);
             socket.disconnect();

@@ -15,7 +15,6 @@ import {
   Plus,
   Megaphone,
   Edit3,
-  Circle,
 } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
 
@@ -97,17 +96,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
           <div className="px-5 pb-5">
             {/* Avatar */}
             <div className="relative -mt-10 mb-3">
-              <div className="relative w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-100">
-                <Image
-                  src={profileData.profilePicture || '/images/placeholder-avatar.png'}
+              <div className="relative">
+                <FallbackAvatar
+                  src={profileData.profilePicture}
                   alt={profileData.fullName || 'User'}
-                  fill
-                  className="object-cover"
+                  name={profileData.fullName}
+                  className="border-4 border-white shadow-md"
+                  size="lg"
                 />
               </div>
-              {/* Online Status Indicator */}
-              <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${profileData.isOnline ? 'bg-orange-500' : 'bg-gray-400'
-                }`} />
             </div>
 
             {/* User Info */}
@@ -116,14 +113,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 {profileData.fullName || 'User'}
               </h3>
               <p className="text-sm text-gray-500 truncate">@{profileData.username || 'username'}</p>
-
-              {/* Online Status Text */}
-              <div className="flex items-center gap-1.5 text-sm">
-                <Circle className={`w-2.5 h-2.5 ${profileData.isOnline ? 'text-orange-500 fill-orange-500' : 'text-gray-400 fill-gray-400'}`} />
-                <span className={profileData.isOnline ? 'text-orange-600' : 'text-gray-500'}>
-                  {profileData.isOnline ? t('profile:sidebar.status.online', 'Online') : t('profile:sidebar.status.offline', 'Offline')}
-                </span>
-              </div>
 
               {/* Member Since */}
               <p className="text-xs text-gray-400 pt-1">

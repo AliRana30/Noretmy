@@ -129,9 +129,20 @@ const FavoritesPage = () => {
 
           {/* Content */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24">
-              <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-              <p className="text-slate-400">{t('favorites:loading')}</p>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-slate-800/50 rounded-xl p-4 animate-pulse">
+                    <div className="skeleton h-48 w-full rounded-lg mb-4 bg-slate-700" />
+                    <div className="skeleton h-5 w-3/4 mb-2 bg-slate-700" />
+                    <div className="skeleton h-4 w-1/2 mb-3 bg-slate-700" />
+                    <div className="flex justify-between items-center">
+                      <div className="skeleton h-4 w-16 bg-slate-700" />
+                      <div className="skeleton h-8 w-8 rounded-full bg-slate-700" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : favorites.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">

@@ -18,6 +18,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 import { Conversation, ChatUser } from '@/types/chat';
 import { SkeletonChatListItem } from '@/components/shared/Skeletons';
 import { io as createSocket } from 'socket.io-client';
+import { useOnlineStatus } from '@/context/OnlineStatusContext';
 
 const ChatScreen: React.FC = () => {
   const router = useRouter();
@@ -29,6 +30,7 @@ const ChatScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslations();
   const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
+  const { isUserOnline } = useOnlineStatus();
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -64,8 +66,12 @@ const ChatScreen: React.FC = () => {
     }
 
     const socket = createSocket(BACKEND_URL, {
+      path: '/socket.io/',
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     socketRef.current = socket;
@@ -75,15 +81,30 @@ const ChatScreen: React.FC = () => {
       socket.emit('userOnline', String(user._id));
     });
 
+    // Debounce real-time updates to prevent performance violations
+    let updateTimer: NodeJS.Timeout | null = null;
     const handleRealtimeUpdate = (payload: any) => {
       console.log('[Chat] Real-time update received:', payload);
-      fetchConversations();
+      
+      // Clear existing timer
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+      }
+      
+      // Debounce: wait 300ms before fetching to batch rapid updates
+      updateTimer = setTimeout(() => {
+        fetchConversations();
+        updateTimer = null;
+      }, 300);
     };
 
     socket.on('newMessageNotification', handleRealtimeUpdate);
     socket.on('receiveMessage', handleRealtimeUpdate);
 
     return () => {
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+      }
       socket.off('newMessageNotification', handleRealtimeUpdate);
       socket.off('receiveMessage', handleRealtimeUpdate);
       socket.disconnect();
@@ -150,13 +171,19 @@ const ChatScreen: React.FC = () => {
         className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${
           isActive
             ? 'bg-orange-50/70 border-orange-200'
-            : unread
-              ? 'bg-orange-100 hover:bg-orange-100 font-semibold'
-              : 'bg-white hover:bg-gray-50'
+            : 'bg-white hover:bg-gray-50'
           }`}
         onClick={() => {
-          // Clear unread status immediately for instant UI feedback
+          // Navigate first
+          handleSelectConversation(
+            conversation.id,
+            conversation.sellerId,
+            conversation.buyerId
+          );
+          
+          // Only mark as read when user explicitly clicks (not on page load/reload)
           if (unread) {
+            // Optimistically update UI immediately
             setConversations((prev) =>
               prev.map((conv) =>
                 conv._id === conversation._id
@@ -168,13 +195,9 @@ const ChatScreen: React.FC = () => {
                   : conv
               )
             );
+            // Then persist to backend
             markAsRead(conversation._id);
           }
-          handleSelectConversation(
-            conversation.id,
-            conversation.sellerId,
-            conversation.buyerId
-          );
         }}
       >
         <div className="relative flex-shrink-0">
@@ -185,21 +208,27 @@ const ChatScreen: React.FC = () => {
             height={48}
             className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
           />
-          {unread && (
-            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-orange-500 ring-2 ring-white" />
-          )}
+          {/* Single indicator: Orange for online, Gray for offline, Red dot for unread */}
+          <span 
+            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${
+              unread ? 'bg-red-500' : isUserOnline(otherParty._id || otherParty.id) ? 'bg-orange-500' : 'bg-gray-400'
+            }`}
+            title={
+              unread ? 'Unread messages' : isUserOnline(otherParty._id || otherParty.id) ? 'Online' : 'Offline'
+            }
+          />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline mb-1">
-            <h3 className={`font-medium truncate ${unread ? 'text-gray-900' : 'text-gray-700'}`}>
+            <h3 className="font-medium truncate text-gray-900">
               {displayName}
             </h3>
             <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
               {moment(conversation.updatedAt).fromNow()}
             </span>
           </div>
-          <p className={`text-sm truncate ${unread ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
+          <p className={`text-sm truncate ${unread ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
             {conversation.lastMessage || t('chat.conversation.noMessages')}
           </p>
         </div>
@@ -237,31 +266,29 @@ const ChatScreen: React.FC = () => {
       </div>
 
       {/* Conversation List */}
-      <div
-        className="flex-1 overflow-y-auto min-h-0 custom-scrollbar"
-        style={{
-          height: 'calc(100vh - 220px)',
-          minHeight: '300px',
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#ea580c #f3f4f6'
-        }}
-      >
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+      <style jsx global>{`
+        .chat-scrollbar::-webkit-scrollbar {
+          width: 10px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
+        .chat-scrollbar::-webkit-scrollbar-track {
           background: #f3f4f6;
-          border-radius: 4px;
+          border-radius: 5px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
+        .chat-scrollbar::-webkit-scrollbar-thumb {
           background: #ea580c;
-          border-radius: 4px;
+          border-radius: 5px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        .chat-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #c2410c;
         }
       `}</style>
+      <div
+        className="flex-1 overflow-y-scroll min-h-0 chat-scrollbar"
+        style={{
+          height: 'calc(100vh - 220px)',
+          minHeight: '300px'
+        }}
+      >
         {loading ? (
           <div>
             {Array.from({ length: 6 }).map((_, i) => (

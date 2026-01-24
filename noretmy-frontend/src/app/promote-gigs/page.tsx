@@ -89,10 +89,28 @@ const PromoteGigs = () => {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
-          <p className="text-gray-500">Loading your promotions...</p>
+      <main className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="skeleton h-10 w-64 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse">
+                <div className="skeleton h-6 w-32 mb-4" />
+                <div className="skeleton h-10 w-24 mb-4" />
+                <div className="skeleton h-4 w-full mb-2" />
+                <div className="skeleton h-4 w-3/4 mb-4" />
+                <div className="skeleton h-10 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="skeleton h-8 w-48 mb-6" />
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton h-20 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     );
