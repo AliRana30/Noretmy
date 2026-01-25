@@ -109,24 +109,25 @@ export const useSellerBadge = (sellerId: string | undefined) => {
         console.error('Error fetching seller badge:', err);
         setError(err.response?.data?.message || 'Failed to fetch badge');
         
+        // Fallback to default values when API fails - use 0/N/A not 100%
         setBadge({
           level: 'new',
           label: 'New Seller',
-          trustScore: 50,
+          trustScore: 0,
           displayBadge: { label: 'New Seller', emoji: '🆕', color: '#4CAF50' },
           metrics: {
             completedOrders: 0,
             averageRating: 0,
             totalReviews: 0,
-            completionRate: 100,
-            onTimeDeliveryRate: 100,
-            responseRate: 100
+            completionRate: 0,
+            onTimeDeliveryRate: 0,
+            responseRate: 0
           },
           achievements: [],
           reliabilityIndicators: {
-            showOnTimeRate: true,
-            showResponseTime: true,
-            showCompletionRate: true
+            showOnTimeRate: false,
+            showResponseTime: false,
+            showCompletionRate: false
           }
         });
       } finally {

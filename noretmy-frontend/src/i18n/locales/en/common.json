@@ -27,5 +27,14 @@
     "good": "Good",
     "strong": "Strong",
     "veryStrong": "Very Strong"
+  },
+  "time": {
+    "today": "Today",
+    "oneDay": "1 day",
+    "days": "{{count}} days",
+    "oneMonth": "1 month",
+    "months": "{{count}} months",
+    "oneYear": "1 year",
+    "years": "{{count}} years"
   }
 } 

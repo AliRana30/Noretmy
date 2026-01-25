@@ -254,18 +254,6 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Forgot Password */}
-              <div className="flex justify-end items-center">
-                <a href="/forgot-password" 
-                  className="text-sm font-medium transition-colors"
-                  style={{ color: '#f97316' }}
-                  onMouseEnter={(e) => e.target.style.color = '#fb923c'}
-                  onMouseLeave={(e) => e.target.style.color = '#f97316'}
-                >
-                  {getTranslation(loginTranslations, "forgotPassword") || "Forgot password?"}
-                </a>
-              </div>
-
               {/* Submit Button */}
               <button
                 type="submit"

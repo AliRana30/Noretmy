@@ -112,15 +112,6 @@ const LoginPage = () => {
               control={control}
               watch={watch}
             />
-
-            <div className="text-right">
-              <Link
-                href="/forget-password"
-                className="text-sm text-neutral-900 hover:text-neutral-700 font-medium transition-colors"
-              >
-                {t('auth:login.forgotPassword')}
-              </Link>
-            </div>
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-6 px-8 pb-8">

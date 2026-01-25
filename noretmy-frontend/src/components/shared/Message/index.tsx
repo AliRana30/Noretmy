@@ -47,6 +47,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const socketRef = useRef<any>(null);
   const actionsMenuRef = useRef<HTMLDivElement | null>(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+  // Socket.io needs the root server URL, not the /api path
+  const SOCKET_URL = BACKEND_URL?.replace(/\/api\/?$/, '') || '';
 
   const isSeller = useUserRole();
   const userProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
@@ -151,7 +153,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   }, [conversationId]);
 
   useEffect(() => {
-    if (!BACKEND_URL || !conversationId || !userId) return;
+    if (!SOCKET_URL || !conversationId || !userId) return;
 
     if (socketRef.current) {
       socketRef.current.disconnect();
@@ -197,9 +199,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
      * - Real-time features work seamlessly without user intervention
      * - Comprehensive error logging helps diagnose future issues
      */
-    const socket = createSocket(BACKEND_URL, {
+    const socket = createSocket(SOCKET_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],  // ✅ Polling first for reliability, then upgrade
       path: '/socket.io/',         // ✅ FIX #1: Explicit path matches backend namespace
       reconnection: true,           // ✅ FIX #2: Enable auto-reconnection
       reconnectionAttempts: 5,      // ✅ FIX #3: Try 5 times before giving up
@@ -286,7 +288,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       socket.off('messagesMarkedRead', handleMessagesMarkedRead);
       socket.disconnect();
     };
-  }, [BACKEND_URL, conversationId, userId]);
+  }, [SOCKET_URL, conversationId, userId]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {

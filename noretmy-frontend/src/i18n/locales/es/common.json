@@ -27,5 +27,14 @@
     "good": "Buena",
     "strong": "Fuerte",
     "veryStrong": "Muy Fuerte"
+  },
+  "time": {
+    "today": "Hoy",
+    "oneDay": "1 día",
+    "days": "{{count}} días",
+    "oneMonth": "1 mes",
+    "months": "{{count}} meses",
+    "oneYear": "1 año",
+    "years": "{{count}} años"
   }
 } 

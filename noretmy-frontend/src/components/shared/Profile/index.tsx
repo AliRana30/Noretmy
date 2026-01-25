@@ -17,21 +17,21 @@ import toast from 'react-hot-toast';
 import { Briefcase, FolderOpen, Star, ShoppingBag, DollarSign, User } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
 
-const calculateMemberSince = (createdAt: string): string => {
-  if (!createdAt) return 'Recently';
+const createCalculateMemberSince = (t: any) => (createdAt: string): string => {
+  if (!createdAt) return t('profile:sidebar.recently', 'Recently');
   const now = new Date();
   const created = new Date(createdAt);
   const diffMs = now.getTime() - created.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays < 1) return 'Today';
-  if (diffDays === 1) return '1 day';
-  if (diffDays < 30) return `${diffDays} days`;
+  if (diffDays < 1) return t('common:time.today', 'Today');
+  if (diffDays === 1) return t('common:time.oneDay', '1 day');
+  if (diffDays < 30) return t('common:time.days', '{{count}} days', { count: diffDays });
   const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths === 1) return '1 month';
-  if (diffMonths < 12) return `${diffMonths} months`;
+  if (diffMonths === 1) return t('common:time.oneMonth', '1 month');
+  if (diffMonths < 12) return t('common:time.months', '{{count}} months', { count: diffMonths });
   const diffYears = Math.floor(diffMonths / 12);
-  if (diffYears === 1) return '1 year';
-  return `${diffYears} years`;
+  if (diffYears === 1) return t('common:time.oneYear', '1 year');
+  return t('common:time.years', '{{count}} years', { count: diffYears });
 };
 
 const SectionSkeleton = ({ type }: { type: string }) => {
@@ -298,9 +298,10 @@ const ProfileSection = () => {
 
   useEffect(() => {
     if (profileData.createdAt) {
+      const calculateMemberSince = createCalculateMemberSince(t);
       setMemberSince(calculateMemberSince(profileData.createdAt));
     }
-  }, [profileData.createdAt]);
+  }, [profileData.createdAt, t]);
 
   const renderSectionContent = () => {
     if (sectionLoading) {

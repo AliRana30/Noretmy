@@ -155,10 +155,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             socketRef.current = null;
         }
 
-        const socket = createSocket(BACKEND_URL, {
+        // Strip /api suffix for socket connection
+        const SOCKET_URL = BACKEND_URL.replace(/\/api\/?$/, '');
+
+        const socket = createSocket(SOCKET_URL, {
             withCredentials: true,
-            transports: ['websocket', 'polling'],
-            path: '/socket.io/',  // Explicit path
+            transports: ['polling', 'websocket'],
+            path: '/socket.io/',
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,

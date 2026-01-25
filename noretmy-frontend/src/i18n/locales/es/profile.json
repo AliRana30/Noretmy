@@ -143,5 +143,26 @@
       "from": "De",
       "memberSince": "Miembro desde"
     }
+  },
+  "sidebar": {
+    "memberSince": "Miembro desde",
+    "recently": "Recientemente",
+    "navigation": "Navegación",
+    "quickActions": "Acciones Rápidas",
+    "nav": {
+      "profile": "Perfil",
+      "messages": "Mensajes",
+      "orders": "Pedidos",
+      "gigs": "Servicios",
+      "portfolio": "Portafolio",
+      "reviews": "Reseñas",
+      "earnings": "Ganancias"
+    },
+    "actions": {
+      "createGig": "Crear Nuevo Servicio",
+      "addProject": "Añadir Proyecto",
+      "promoteGigs": "Promocionar Servicios",
+      "editProfile": "Editar Perfil"
+    }
   }
 } 

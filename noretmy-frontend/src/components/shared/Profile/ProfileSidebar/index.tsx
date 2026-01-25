@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 import {
   User,
   MessageSquare,
@@ -58,10 +58,13 @@ const getQuickActions = (isSeller: boolean, t: any) => {
   ];
 };
 
-const formatMemberSince = (createdAt: string): string => {
-  if (!createdAt) return 'Recently';
+// Moved inside component to have access to t function
+const createFormatMemberSince = (t: any) => (createdAt: string): string => {
+  if (!createdAt) return t('profile:sidebar.recently', 'Recently');
   const date = new Date(createdAt);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  // Use navigator.language for locale-aware formatting
+  const locale = typeof window !== 'undefined' ? navigator.language : 'en-US';
+  return date.toLocaleDateString(locale, { month: 'short', year: 'numeric' });
 };
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
@@ -75,6 +78,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 
   const navigationItems = getNavigationItems(isSeller, t);
   const quickActions = getQuickActions(isSeller, t);
+  const formatMemberSince = createFormatMemberSince(t);
 
   const handleNavClick = (item: any) => {
     if (item.href) {

@@ -20,6 +20,32 @@ import { SkeletonChatListItem } from '@/components/shared/Skeletons';
 import { io as createSocket } from 'socket.io-client';
 import { useOnlineStatus } from '@/context/OnlineStatusContext';
 
+// Session storage key for tracking read conversations
+const READ_CONVERSATIONS_KEY = 'chat_read_conversations';
+
+// Helper to get read conversations from session storage
+const getSessionReadConversations = (): Set<string> => {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const stored = sessionStorage.getItem(READ_CONVERSATIONS_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+// Helper to mark a conversation as read in session storage
+const markSessionRead = (conversationId: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getSessionReadConversations();
+    current.add(conversationId);
+    sessionStorage.setItem(READ_CONVERSATIONS_KEY, JSON.stringify(Array.from(current)));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 const ChatScreen: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -31,8 +57,16 @@ const ChatScreen: React.FC = () => {
   const { t } = useTranslations();
   const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
   const { isUserOnline } = useOnlineStatus();
+  const sessionReadRef = useRef<Set<string>>(new Set());
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+  // Socket.io needs the root server URL, not the /api path
+  const SOCKET_URL = BACKEND_URL?.replace(/\/api\/?$/, '') || '';
+
+  // Initialize session read set on mount
+  useEffect(() => {
+    sessionReadRef.current = getSessionReadConversations();
+  }, []);
 
   const fetchConversations = useCallback(async () => {
     if (!user) {
@@ -45,7 +79,21 @@ const ChatScreen: React.FC = () => {
         `${BACKEND_URL}/conversations`,
         { withCredentials: true }
       );
-      setConversations(response.data);
+      
+      // Apply session-based read status to prevent re-highlighting after reload
+      const sessionRead = getSessionReadConversations();
+      const conversationsWithSessionRead = response.data.map((conv) => {
+        if (sessionRead.has(conv._id)) {
+          return {
+            ...conv,
+            readByBuyer: user?.isSeller ? conv.readByBuyer : true,
+            readBySeller: user?.isSeller ? true : conv.readBySeller,
+          };
+        }
+        return conv;
+      });
+      
+      setConversations(conversationsWithSessionRead);
     } catch (err) {
       setError(t('chat.errors.fetchFailed'));
     } finally {
@@ -58,17 +106,17 @@ const ChatScreen: React.FC = () => {
   }, [fetchConversations]);
 
   useEffect(() => {
-    if (!user?._id || !BACKEND_URL) return;
+    if (!user?._id || !SOCKET_URL) return;
 
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
 
-    const socket = createSocket(BACKEND_URL, {
+    const socket = createSocket(SOCKET_URL, {
       path: '/socket.io/',
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],  // Polling first for reliability
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
@@ -109,7 +157,7 @@ const ChatScreen: React.FC = () => {
       socket.off('receiveMessage', handleRealtimeUpdate);
       socket.disconnect();
     };
-  }, [BACKEND_URL, fetchConversations, user?._id]);
+  }, [SOCKET_URL, fetchConversations, user?._id]);
 
   const activeConversationId = useMemo(() => {
     if (!pathname?.startsWith('/message/')) return null;
@@ -118,6 +166,9 @@ const ChatScreen: React.FC = () => {
   }, [pathname]);
 
   const markAsRead = useCallback(async (conversationId: string) => {
+    // Mark in session storage to prevent re-highlighting on reload
+    markSessionRead(conversationId);
+    
     try {
       await axios.put(
         `${BACKEND_URL}/conversations/${conversationId}`,
@@ -267,6 +318,10 @@ const ChatScreen: React.FC = () => {
 
       {/* Conversation List */}
       <style jsx global>{`
+        .chat-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #ea580c #f3f4f6;
+        }
         .chat-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
@@ -277,6 +332,7 @@ const ChatScreen: React.FC = () => {
         .chat-scrollbar::-webkit-scrollbar-thumb {
           background: #ea580c;
           border-radius: 5px;
+          min-height: 40px;
         }
         .chat-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #c2410c;
@@ -286,7 +342,8 @@ const ChatScreen: React.FC = () => {
         className="flex-1 overflow-y-scroll min-h-0 chat-scrollbar"
         style={{
           height: 'calc(100vh - 220px)',
-          minHeight: '300px'
+          minHeight: '300px',
+          overflowY: 'scroll'
         }}
       >
         {loading ? (

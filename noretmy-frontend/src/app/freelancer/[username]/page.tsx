@@ -104,9 +104,16 @@ const FreelancerProfileContent = () => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const { badge: sellerBadge, loading: badgeLoading } = useSellerBadge(freelancer?.user._id);
-  const showSellerBadge = sellerBadge && sellerBadge.level !== 'new';
+  // Only show seller level if they have a level above 'new'
+  const showSellerLevel = sellerBadge && sellerBadge.level !== 'new';
+  // Only show reliability indicators if they have real data (not 0 or fallback)
+  const hasRealMetrics = sellerBadge?.metrics && (
+    sellerBadge.metrics.onTimeDeliveryRate > 0 ||
+    sellerBadge.metrics.responseRate > 0 ||
+    sellerBadge.metrics.completionRate > 0
+  );
   const responseRateValue = sellerBadge?.metrics?.responseRate;
-  const responseRateLabel = typeof responseRateValue === 'number'
+  const responseRateLabel = typeof responseRateValue === 'number' && responseRateValue > 0
     ? `${Math.round(responseRateValue)}%`
     : 'N/A';
 
@@ -204,18 +211,25 @@ const FreelancerProfileContent = () => {
               <div className="flex-1 md:pb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold text-slate-900">{user.fullName}</h1>
-                  {showSellerBadge && (
-                    <SellerBadge
-                      level={sellerBadge.level as 'new' | 'level_1' | 'level_2' | 'top_rated'}
-                      showTooltip
-                    />
+                  {showSellerLevel && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                      {sellerBadge.level === 'level_1' && 'Level 1 Seller'}
+                      {sellerBadge.level === 'level_2' && 'Level 2 Seller'}
+                      {sellerBadge.level === 'top_rated' && 'Top Rated Seller'}
+                    </span>
                   )}
                 </div>
                 {profile.profileHeadline && (
                   <p className="text-slate-700 mt-1">{profile.profileHeadline}</p>
                 )}
                 {/* Reliability Indicators */}
-                {sellerBadge && (
+                {badgeLoading ? (
+                  <div className="mt-2 flex gap-4">
+                    <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                  </div>
+                ) : hasRealMetrics && sellerBadge && (
                   <div className="mt-2">
                     <ReliabilityIndicators
                       onTimeRate={sellerBadge.metrics.onTimeDeliveryRate}

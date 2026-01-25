@@ -143,5 +143,26 @@
       "from": "From",
       "memberSince": "Member since"
     }
+  },
+  "sidebar": {
+    "memberSince": "Member since",
+    "recently": "Recently",
+    "navigation": "Navigation",
+    "quickActions": "Quick Actions",
+    "nav": {
+      "profile": "Profile",
+      "messages": "Messages",
+      "orders": "Orders",
+      "gigs": "Gigs",
+      "portfolio": "Portfolio",
+      "reviews": "Reviews",
+      "earnings": "Earnings"
+    },
+    "actions": {
+      "createGig": "Create New Gig",
+      "addProject": "Add Project",
+      "promoteGigs": "Promote Gigs",
+      "editProfile": "Edit Profile"
+    }
   }
 } 

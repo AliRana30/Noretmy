@@ -105,9 +105,12 @@ export const NotificationProvider = ({ children }) => {
       console.warn('[Admin Notifications] Missing admin id; socket will not register userOnline');
     }
 
-    const socket = createSocket(API_CONFIG.BASE_URL, {
+    // Strip /api suffix for socket connection (if present)
+    const SOCKET_URL = API_CONFIG.BASE_URL.replace(/\/api\/?$/, '');
+    
+    const socket = createSocket(SOCKET_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['polling', 'websocket']
     });
 
     socket.on('connect', () => {

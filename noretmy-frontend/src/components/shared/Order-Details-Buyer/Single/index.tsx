@@ -739,24 +739,26 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 transition-all">
       {/* Header with Progress Bar */}
       <div className="border-b border-gray-200 bg-gray-50">
-        <div className="flex p-6 items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-800">{t('details.title')}</h1>
+        <div className="flex flex-col sm:flex-row p-4 sm:p-6 gap-4 items-start sm:justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{t('details.title')}</h1>
               <div
-                className={`ml-4 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700`}
+                className={`px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700 whitespace-nowrap`}
               >
                 {statusConfig[orderStatus as keyof typeof statusConfig]?.label}
               </div>
             </div>
-            <div className="text-sm text-gray-500 mt-2 flex items-center">
-              <span className="mr-2 text-orange-500">
+            <div className="text-sm text-gray-500 mt-2 flex items-start">
+              <span className="mr-2 text-orange-500 flex-shrink-0 mt-0.5">
                 {statusConfig[orderStatus as keyof typeof statusConfig]?.icon}
               </span>
+              <span className="break-words">
               {
                 statusConfig[orderStatus as keyof typeof statusConfig]
                   ?.description
               }
+              </span>
             </div>
           </div>
           
@@ -764,7 +766,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
           {isOrderBuyer && orderDetails?.sellerId && (
             <button
               onClick={() => router.push(`/freelancer/${sellerUsername}`)}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
             >
               View Seller
             </button>
@@ -772,7 +774,7 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
           {isOrderSeller && orderDetails?.buyerId && (
             <button
               onClick={() => router.push(`/client/${orderDetails.buyerId}`)}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-all shadow-sm flex-shrink-0"
             >
               View Client
             </button>
