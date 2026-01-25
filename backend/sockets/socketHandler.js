@@ -37,15 +37,24 @@ const socketHandler = (io) => {
       });
       
       socket.on('getOnlineUsers', (userIds) => {
-        const statuses = {};
-        userIds.forEach(userId => {
-          const user = onlineUsers.get(userId);
-          statuses[userId] = {
-            isOnline: !!user,
-            lastSeen: user?.lastSeen || null
-          };
-        });
-        socket.emit('onlineUsersStatus', statuses);
+        try {
+          const statuses = {};
+          if (Array.isArray(userIds)) {
+            userIds.forEach(userId => {
+              const user = onlineUsers.get(userId);
+              statuses[userId] = {
+                isOnline: !!user,
+                lastSeen: user?.lastSeen || null
+              };
+            });
+          } else {
+            console.warn('[Socket] getOnlineUsers called with invalid data:', typeof userIds);
+          }
+          socket.emit('onlineUsersStatus', statuses);
+        } catch (err) {
+          console.error('[Socket] Error in getOnlineUsers:', err.message);
+          socket.emit('onlineUsersStatus', {});
+        }
       });
   
       socket.on('joinRoom', (conversationId) => {
@@ -62,26 +71,35 @@ const socketHandler = (io) => {
         });
   
       socket.on('sendMessage', (messageData) => {
-        const { conversationId, message, senderId, receiverId } = messageData;
-        
-        io.to(conversationId).emit('receiveMessage', {
-          ...message,
-          senderId,
-          receiverId,
-          conversationId,
-          timestamp: new Date()
-        });
-        
-        const receiver = onlineUsers.get(receiverId);
-        if (receiver && receiver.socketId) {
-          io.to(receiver.socketId).emit('newMessageNotification', {
-            conversationId,
+        try {
+          if (!messageData || !messageData.conversationId) {
+            console.warn('[Socket] sendMessage called with invalid data');
+            return;
+          }
+          
+          const { conversationId, message, senderId, receiverId } = messageData;
+          
+          io.to(conversationId).emit('receiveMessage', {
+            ...message,
             senderId,
-            message: {
-              text: message.text?.substring(0, 100),
-              timestamp: new Date()
-            }
+            receiverId,
+            conversationId,
+            timestamp: new Date()
           });
+          
+          const receiver = onlineUsers.get(receiverId);
+          if (receiver && receiver.socketId) {
+            io.to(receiver.socketId).emit('newMessageNotification', {
+              conversationId,
+              senderId,
+              message: {
+                text: message.text?.substring(0, 100),
+                timestamp: new Date()
+              }
+            });
+          }
+        } catch (err) {
+          console.error('[Socket] Error in sendMessage:', err.message);
         }
       });
       

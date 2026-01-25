@@ -75,8 +75,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-
-
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
 
 app.use('/api/webhook', webhookRoutes);
 
@@ -154,7 +154,16 @@ const io = require('socket.io')(server, {
     origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST'],
-  }
+  },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ['polling', 'websocket'],
+  allowUpgrades: true
+});
+
+// Handle socket.io errors at the server level
+io.engine.on('connection_error', (err) => {
+  console.error('Socket.IO connection error:', err.message);
 });
 
 socketHandler(io);
@@ -165,7 +174,18 @@ console.log('🔌 Socket.IO initialized and attached to Express app');
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
   initBadgeCronJobs();
   initDeadlineCronJobs();
   initPromotionExpirationCron();
+});
+
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err.message);
+  console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
