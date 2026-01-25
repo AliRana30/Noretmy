@@ -43,6 +43,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const [pendingAttachments, setPendingAttachments] = useState<AttachmentData[]>([]);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<any>(null);
   const actionsMenuRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +105,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           const unreadMessageIds = messageData
             .filter((msg: any) => msg.userId !== userId)
             .map((msg: any) => msg._id);
-          
+
           if (unreadMessageIds.length > 0) {
             socketRef.current.emit('messagesRead', {
               conversationId,
@@ -255,7 +257,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         console.log('[Message] 📊 Total messages now:', newMessages.length);
         return newMessages;
       });
-      
+
       // Use requestAnimationFrame instead of setTimeout to prevent performance violations
       requestAnimationFrame(() => {
         setForceUpdate(prev => prev + 1);
@@ -279,13 +281,38 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       }
     };
 
+    const handleUserTyping = (payload: any) => {
+      console.log('[Message] User typing event:', payload);
+      if (!payload || payload.conversationId !== conversationId) return;
+
+      // Only show typing indicator if it's the other user
+      if (payload.userId !== userId) {
+        setIsOtherUserTyping(payload.isTyping);
+
+        // Auto-hide typing indicator after 3 seconds
+        if (payload.isTyping) {
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherUserTyping(false);
+          }, 3000);
+        }
+      }
+    };
+
     socket.on('receiveMessage', handleReceiveMessage);
     socket.on('messagesMarkedRead', handleMessagesMarkedRead);
+    socket.on('userTyping', handleUserTyping);
 
     return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       socket.emit('leaveRoom', conversationId);
       socket.off('receiveMessage', handleReceiveMessage);
       socket.off('messagesMarkedRead', handleMessagesMarkedRead);
+      socket.off('userTyping', handleUserTyping);
       socket.disconnect();
     };
   }, [SOCKET_URL, conversationId, userId]);
@@ -313,6 +340,16 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       const attachmentsToSend = [...pendingAttachments];
       setNewMessage('');
       setPendingAttachments([]);
+
+      // Stop typing indicator when sending message
+      if (socketRef.current && conversationId && userId) {
+        socketRef.current.emit('typing', {
+          conversationId,
+          userId,
+          isTyping: false
+        });
+      }
+
       setTimeout(scrollToBottom, 50);
 
       try {
@@ -519,6 +556,19 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
                 otherUserId={receiverId ?? ''}
               />
             ))}
+            {/* Typing Indicator */}
+            {isOtherUserTyping && (
+              <div className="flex items-center gap-2 px-4 py-2">
+                <div className="flex items-center gap-1 bg-gray-200 rounded-full px-4 py-2">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                  <span className="ml-2 text-xs text-gray-600">{otherUserName} is typing...</span>
+                </div>
+              </div>
+            )}
             {/* Bottom spacer to ensure messages don't get cut off */}
             <div className="h-2"></div>
           </>
@@ -629,8 +679,29 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
             <textarea
               className="w-full p-2 md:p-3 bg-transparent resize-none focus:outline-none min-h-10 max-h-32"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+
+                // Emit typing event
+                if (socketRef.current && conversationId && userId) {
+                  socketRef.current.emit('typing', {
+                    conversationId,
+                    userId,
+                    isTyping: e.target.value.length > 0
+                  });
+                }
+              }}
               onKeyDown={handleKeyPress}
+              onBlur={() => {
+                // Stop typing when user leaves input
+                if (socketRef.current && conversationId && userId) {
+                  socketRef.current.emit('typing', {
+                    conversationId,
+                    userId,
+                    isTyping: false
+                  });
+                }
+              }}
               placeholder={pendingAttachments.length > 0 ? "Add a message or send files..." : "Type a message..."}
               rows={1}
               style={{ height: 'auto', maxHeight: '8rem' }}

@@ -27,11 +27,15 @@ const socketHandler = (io) => {
           
           console.log('🟢 [Socket] userOnline:', { userId, socketId: socket.id, room: userRoom });
           
+          // Broadcast to all clients that this user is online
           io.emit('userStatusChange', {
             userId,
             status: 'online',
             lastSeen: new Date()
           });
+          
+          // Also emit specific events for compatibility
+          io.emit('userOnline', userId);
           
           }
       });
@@ -104,11 +108,23 @@ const socketHandler = (io) => {
       });
       
       socket.on('typing', ({ conversationId, userId, isTyping }) => {
-        socket.to(conversationId).emit('userTyping', {
-          userId,
-          isTyping,
-          conversationId
-        });
+        try {
+          if (!conversationId || !userId) {
+            console.warn('[Socket] typing event called with invalid data');
+            return;
+          }
+          
+          // Emit to all users in the conversation room
+          socket.to(conversationId).emit('userTyping', {
+            userId,
+            isTyping,
+            conversationId
+          });
+          
+          console.log(`[Socket] User ${userId} ${isTyping ? 'started' : 'stopped'} typing in ${conversationId}`);
+        } catch (err) {
+          console.error('[Socket] Error in typing event:', err.message);
+        }
       });
       
       socket.on('messagesRead', ({ conversationId, userId, messageIds }) => {
@@ -126,11 +142,15 @@ const socketHandler = (io) => {
         if (userId && onlineUsers.has(userId)) {
           onlineUsers.delete(userId);
           
+          // Broadcast to all clients that this user is offline
           io.emit('userStatusChange', {
             userId,
             status: 'offline',
             lastSeen: new Date()
           });
+          
+          // Also emit specific events for compatibility
+          io.emit('userOffline', userId);
 
           console.log('🔴 [Socket] Disconnected:', { userId, socketId: socket.id });
         } else {
