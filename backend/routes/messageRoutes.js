@@ -7,7 +7,7 @@
 
 const express = require('express');
 const { verifyToken, requireAdmin } = require('../middleware/jwt');
-const { createMessage, getMessages, searchSensitiveMessages, setSocketIO } = require('../controllers/messageController');
+const { createMessage, getMessages, searchSensitiveMessages, setSocketIO, markMessagesAsRead } = require('../controllers/messageController');
 
 const router = express.Router();
 
@@ -21,6 +21,7 @@ router.get('/sensitive-messages', verifyToken, ...requireAdmin, searchSensitiveM
 
 router.post('/', verifyToken, createMessage);
 router.get('/:id', verifyToken, getMessages);
+router.put('/mark-read', verifyToken, markMessagesAsRead);
 
 module.exports = router;
 

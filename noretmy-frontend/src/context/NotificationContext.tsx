@@ -171,29 +171,25 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         socketRef.current = socket;
 
         socket.on('connect', () => {
-            console.log('[NotificationContext] ✅ Socket connected');
             socket.emit('userOnline', String(userId));
         });
 
         socket.on('connect_error', (error) => {
-            console.error('[NotificationContext] ❌ Socket error:', error.message);
         });
 
         socket.on('reconnect', () => {
-            console.log('[NotificationContext] ♻️ Reconnected');
             socket.emit('userOnline', String(userId));
         });
 
         // Debounce notification handlers to prevent performance violations
         let notificationTimer: NodeJS.Timeout | null = null;
         const handleNotification = () => {
-            console.log('[NotificationContext] Received notification event');
-            
+
             // Clear existing timer
             if (notificationTimer) {
                 clearTimeout(notificationTimer);
             }
-            
+
             // Debounce: wait 300ms before fetching to batch rapid notifications
             notificationTimer = setTimeout(() => {
                 fetchUnreadCount();

@@ -241,4 +241,28 @@ const searchSensitiveMessages = async (req, res) => {
   }
 };
 
-module.exports = { setSocketIO, createMessage, getMessages, searchSensitiveMessages };
+const markMessagesAsRead = async (req, res, next) => {
+  try {
+    const { messageIds, conversationId } = req.body;
+    
+    if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
+      return res.status(400).json({ message: 'Message IDs are required' });
+    }
+
+    // Update all specified messages to mark them as read
+    await Message.updateMany(
+      { 
+        _id: { $in: messageIds },
+        conversationId: conversationId,
+        userId: { $ne: req.userId } // Only mark messages from other users as read
+      },
+      { $set: { isRead: true } }
+    );
+
+    res.status(200).json({ success: true, message: 'Messages marked as read' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { setSocketIO, createMessage, getMessages, searchSensitiveMessages, markMessagesAsRead };

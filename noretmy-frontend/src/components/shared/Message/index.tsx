@@ -54,8 +54,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
   const isSeller = useUserRole();
   const userProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
-  const authUser = useSelector((state: RootState) => state?.auth?.user);
-  const userId = (authUser as { _id?: string })?._id || authUser?.id;
+  const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
   const receiverId = userId === sellerId ? buyerId : sellerId;
 
   useEffect(() => {
@@ -100,18 +99,32 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         setIsLoading(false);
         setTimeout(scrollToBottom, 100); // Scroll after render
 
-        // Mark messages as read
-        if (messageData.length > 0 && socketRef.current) {
+        // Mark messages as read - both socket and API
+        if (messageData.length > 0) {
           const unreadMessageIds = messageData
-            .filter((msg: any) => msg.userId !== userId)
+            .filter((msg: any) => msg.userId !== userId && !msg.isRead)
             .map((msg: any) => msg._id);
 
           if (unreadMessageIds.length > 0) {
-            socketRef.current.emit('messagesRead', {
-              conversationId,
-              userId,
-              messageIds: unreadMessageIds
-            });
+            // Emit socket event for real-time update
+            if (socketRef.current) {
+              socketRef.current.emit('messagesRead', {
+                conversationId,
+                userId,
+                messageIds: unreadMessageIds
+              });
+            }
+
+            // Call API to persist in database
+            try {
+              await axios.put(
+                `${BACKEND_URL}/messages/mark-read`,
+                { messageIds: unreadMessageIds, conversationId },
+                { withCredentials: true }
+              );
+            } catch (error) {
+              console.error('Error marking messages as read:', error);
+            }
           }
         }
       } catch (error) {
@@ -263,11 +276,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         setForceUpdate(prev => prev + 1);
         requestAnimationFrame(scrollToBottom);
       });
-      console.log('[Message] 🔄 State updated, UI should refresh');
     };
 
     const handleMessagesMarkedRead = (payload: any) => {
-      console.log('[Message] Messages marked as read:', payload);
       if (!payload || payload.conversationId !== conversationId) return;
       // Update messages read status in UI
       if (payload.messageIds && payload.messageIds.length > 0) {
@@ -282,7 +293,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     };
 
     const handleUserTyping = (payload: any) => {
-      console.log('[Message] User typing event:', payload);
       if (!payload || payload.conversationId !== conversationId) return;
 
       // Only show typing indicator if it's the other user
@@ -508,9 +518,15 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
               <h2 className="text-base md:text-lg font-bold text-gray-700 hover:text-orange-600 transition-colors">
                 {otherUserName || 'Chat'}
               </h2>
-              <span className="text-xs text-gray-400">
-                {isOtherUserSeller ? 'View freelancer profile' : 'View client profile'}
-              </span>
+              {isOtherUserTyping ? (
+                <span className="text-xs font-bold text-orange-600 animate-pulse">
+                  Typing...
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">
+                  {isOtherUserSeller ? 'View freelancer profile' : 'View client profile'}
+                </span>
+              )}
             </div>
           </div>
         </div>
