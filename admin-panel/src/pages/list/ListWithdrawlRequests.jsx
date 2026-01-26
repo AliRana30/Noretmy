@@ -106,17 +106,29 @@ const ListWithdrawlRequests = () => {
     } catch (error) {
       const errorMsg = error?.response?.data?.message || error?.message || `Failed to ${actionType} withdrawal`;
       const blockingReason = error?.response?.data?.blockingReason;
+      const technicalError = error?.response?.data?.technicalError;
+      const suggestedAction = error?.response?.data?.action;
+      
+      // Build comprehensive error message
+      let fullErrorMessage = errorMsg;
+      if (technicalError && technicalError !== errorMsg) {
+        fullErrorMessage += `\n\nTechnical Details: ${technicalError}`;
+      }
+      if (suggestedAction) {
+        fullErrorMessage += `\n\n${suggestedAction}`;
+      }
       
       if (blockingReason) {
         const reasonMessages = {
           'stripe_not_connected': 'Freelancer has not connected their Stripe account yet.',
           'stripe_payouts_disabled': 'Stripe payouts are not enabled for this freelancer.',
           'stripe_onboarding_incomplete': 'Freelancer must complete Stripe onboarding first.',
+          'stripe_transfer_failed': fullErrorMessage,
           'stripe_verification_failed': 'Unable to verify Stripe account status.'
         };
-        toast.error(reasonMessages[blockingReason] || errorMsg);
+        toast.error(reasonMessages[blockingReason] || errorMsg, { duration: 6000 });
       } else {
-        toast.error(errorMsg);
+        toast.error(fullErrorMessage, { duration: 6000 });
       }
     } finally {
       setProcessingId(null);
