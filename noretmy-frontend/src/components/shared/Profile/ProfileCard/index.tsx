@@ -140,18 +140,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <h2 className="text-lg font-semibold text-gray-800">{name}</h2>
           <p className="text-black-500 text-xs mb-3">@{username}</p>
 
-          {/* Rating */}
-          <div className="flex items-center text-yellow-400 mb-1">
-            {[...Array(5)].map((_, index) => (
-              <StarIcon
-                key={index}
-                className={`h-3 w-3 ${index < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-200'}`}
-              />
-            ))}
-            <span className="text-xs text-gray-500 ml-1">
-              {rating.toFixed(1)} ({reviews} {t('profile:profileCard.stats.reviews')})
-            </span>
-          </div>
+          {/* Rating - Only show for sellers/freelancers */}
+          {isSeller && (
+            <div className="flex items-center text-yellow-400 mb-1">
+              {[...Array(5)].map((_, index) => (
+                <StarIcon
+                  key={index}
+                  className={`h-3 w-3 ${index < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-200'}`}
+                />
+              ))}
+              <span className="text-xs text-gray-500 ml-1">
+                {rating.toFixed(1)} ({reviews} {t('profile:profileCard.stats.reviews')})
+              </span>
+            </div>
+          )}
 
           {/* Location and Member Since */}
           <div className="mt-3 w-full">

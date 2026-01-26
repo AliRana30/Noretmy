@@ -87,16 +87,26 @@ const SearchGigs: React.FC = () => {
     const type = searchParams.get('type');
 
     if (categorySlug) {
+      // Get the English category name from the slug
       const categoryName = slugToCategoryMap[categorySlug] || categorySlug;
 
       let matchedFilter = categoryName;
+
+      // Try to match with FiverrCategories (which are in English)
+      // We'll match case-insensitively to handle any variations
       for (const cat of FiverrCategories) {
-        if (cat.name?.toLowerCase() === categoryName?.toLowerCase()) {
+        const catNameLower = cat.name?.toLowerCase();
+        const categoryNameLower = categoryName?.toLowerCase();
+
+        if (catNameLower === categoryNameLower) {
+          // Found exact category match - use the actual category name from FiverrCategories
           matchedFilter = cat.name;
           break;
         }
+
+        // Check subcategories
         const matchedSubcat = cat.subcategories.find(
-          sub => sub?.toLowerCase() === categoryName?.toLowerCase()
+          sub => sub?.toLowerCase() === categoryNameLower
         );
         if (matchedSubcat) {
           matchedFilter = `${cat.name} › ${matchedSubcat}`;

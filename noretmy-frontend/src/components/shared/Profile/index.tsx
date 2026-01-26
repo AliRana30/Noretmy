@@ -384,7 +384,10 @@ const ProfileSection = () => {
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
               <Star className="w-5 h-5 text-orange-500" />
-              {t('profile:sections.reviews.title', 'Client Reviews')} ({profileData.reviews?.length || 0})
+              {isSeller
+                ? t('profile:sections.reviews.title', 'Client Reviews')
+                : t('profile:sections.reviews.givenTitle', 'Reviews Given')
+              } ({profileData.reviews?.length || 0})
             </h2>
             {profileData.reviews?.length > 0 ? (
               <ProfileReviews reviews={profileData.reviews} />
