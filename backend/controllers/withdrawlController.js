@@ -490,12 +490,7 @@ const approveWithdrawRequest = async (req, res) => {
             withdrawalRequest.status = 'approved';
             await withdrawalRequest.save();
 
-            freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
-            freelancer.revenue.available = Math.max(0, (freelancer.revenue.available || 0) - withdrawalRequest.amount);
-            freelancer.revenue.withdrawn = (freelancer.revenue.withdrawn || 0) + withdrawalRequest.amount;
-            freelancer.availableBalance = freelancer.revenue.available;
-            await freelancer.save();
-
+            // Update User balance FIRST (primary source of truth)
             try {
                 const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
                 if (user) {
@@ -503,6 +498,19 @@ const approveWithdrawRequest = async (req, res) => {
                     user.revenue.available = Math.max(0, (user.revenue.available || 0) - withdrawalRequest.amount);
                     user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawalRequest.amount;
                     await user.save();
+                    console.log('✅ [Withdrawal Approval] User balance updated:', {
+                        userId: user._id,
+                        newAvailable: user.revenue.available,
+                        withdrawn: user.revenue.withdrawn
+                    });
+
+                    // Sync Freelancer balance with User balance
+                    freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
+                    freelancer.revenue.available = user.revenue.available;
+                    freelancer.revenue.withdrawn = user.revenue.withdrawn;
+                    freelancer.availableBalance = freelancer.revenue.available;
+                    await freelancer.save();
+                    console.log('✅ [Withdrawal Approval] Freelancer balance synced with User');
 
                     if (user.email) {
                         await sendWithdrawalSuccessEmail(user.email, withdrawalRequest.amount);
@@ -545,12 +553,7 @@ const approveWithdrawRequest = async (req, res) => {
             withdrawalRequest.status = 'approved';
             await withdrawalRequest.save();
 
-            freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
-            freelancer.revenue.available = Math.max(0, (freelancer.revenue.available || 0) - withdrawalRequest.amount);
-            freelancer.revenue.withdrawn = (freelancer.revenue.withdrawn || 0) + withdrawalRequest.amount;
-            freelancer.availableBalance = freelancer.revenue.available;
-            await freelancer.save();
-
+            // Update User balance FIRST (primary source of truth)
             try {
                 const user = await User.findById(withdrawalRequest.userId).select('_id email revenue');
                 if (user) {
@@ -558,6 +561,19 @@ const approveWithdrawRequest = async (req, res) => {
                     user.revenue.available = Math.max(0, (user.revenue.available || 0) - withdrawalRequest.amount);
                     user.revenue.withdrawn = (user.revenue.withdrawn || 0) + withdrawalRequest.amount;
                     await user.save();
+                    console.log('✅ [Withdrawal Approval - PayPal] User balance updated:', {
+                        userId: user._id,
+                        newAvailable: user.revenue.available,
+                        withdrawn: user.revenue.withdrawn
+                    });
+
+                    // Sync Freelancer balance with User balance
+                    freelancer.revenue = freelancer.revenue || { total: 0, pending: 0, available: 0, withdrawn: 0, inTransit: 0 };
+                    freelancer.revenue.available = user.revenue.available;
+                    freelancer.revenue.withdrawn = user.revenue.withdrawn;
+                    freelancer.availableBalance = freelancer.revenue.available;
+                    await freelancer.save();
+                    console.log('✅ [Withdrawal Approval - PayPal] Freelancer balance synced with User');
 
                     if (user.email) {
                         await sendWithdrawalSuccessEmail(user.email, withdrawalRequest.amount);
@@ -600,14 +616,15 @@ const getUserWithdrawalRequest = async (req, res) => {
             return res.status(401).json({ error: "You are not authenticated!" });
         }
 
-        const withdrawRequests = await WithdrawRequest.find({ userId });
+        const withdrawRequests = await WithdrawRequest.find({ userId }).sort({ createdAt: -1 });
 
         const [freelancer, user] = await Promise.all([
             Freelancer.findOne({ userId }).select('_id onboardingStatus availableBalance revenue email withdrawalMethod'),
             User.findById(userId).select('_id email revenue')
         ]);
 
-        const availableBalance = computeAvailableForWithdrawal({ user, freelancer });
+        // Use the actual user revenue available balance, not the computed max
+        const availableBalance = user?.revenue?.available || 0;
 
 
 
