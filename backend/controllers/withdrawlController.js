@@ -463,10 +463,27 @@ const approveWithdrawRequest = async (req, res) => {
                 });
             } catch (stripeErr) {
                 console.error('❌ [Withdrawal Approval] Stripe transfer failed:', stripeErr?.message);
+                
+                // Provide more specific error messages based on Stripe error
+                let errorMessage = stripeErr?.message || 'Failed to process the Stripe transfer.';
+                let userFriendlyMessage = errorMessage;
+                
+                if (errorMessage.includes('not properly configured for payouts') || 
+                    errorMessage.includes('charges_enabled') ||
+                    errorMessage.includes('payouts_enabled')) {
+                    userFriendlyMessage = 'The freelancer\'s Stripe account is not fully set up for payouts. They need to complete their Stripe onboarding and verification. Please ask them to check their Stripe dashboard and complete any pending requirements.';
+                } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('balance')) {
+                    userFriendlyMessage = 'Insufficient funds in the platform Stripe account to process this payout. Please contact support.';
+                } else if (errorMessage.includes('account') && errorMessage.includes('invalid')) {
+                    userFriendlyMessage = 'The freelancer\'s Stripe account ID is invalid or has been disconnected. They may need to reconnect their Stripe account.';
+                }
+                
                 return res.status(502).json({
                     success: false,
-                    message: stripeErr?.message || 'Failed to process the Stripe transfer.',
-                    blockingReason: 'stripe_verification_failed'
+                    message: userFriendlyMessage,
+                    technicalError: errorMessage,
+                    blockingReason: 'stripe_transfer_failed',
+                    action: 'Ask the freelancer to complete Stripe verification in their payout settings, or contact Stripe support if the issue persists.'
                 });
             }
 
