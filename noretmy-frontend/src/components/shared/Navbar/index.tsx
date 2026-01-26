@@ -68,13 +68,13 @@ const Navbar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+
     setIsSearching(true);
-    
+
     const path = searchType === 'services'
       ? `/search-gigs?q=${encodeURIComponent(searchQuery.trim())}`
       : `/freelancer?q=${encodeURIComponent(searchQuery.trim())}`;
-    
+
     // Delay navigation slightly for loading bar animation
     setTimeout(() => {
       router.push(path);
@@ -171,16 +171,14 @@ const Navbar: React.FC = () => {
               <span className="text-sm font-normal text-gray-900">Online for messages</span>
               <button
                 onClick={() => setOnlineForMessages(!onlineForMessages)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  onlineForMessages ? 'bg-orange-500' : 'bg-gray-300'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${onlineForMessages ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}
                 role="switch"
                 aria-checked={onlineForMessages}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    onlineForMessages ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${onlineForMessages ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                 />
               </button>
             </div>
@@ -288,7 +286,7 @@ const Navbar: React.FC = () => {
           <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 animate-progress" />
         </div>
       )}
-      
+
       <nav className="bg-white shadow-md h-16 sm:h-20 flex items-center w-full sticky top-0 z-[60]">
         <div className="container mx-auto px-4 flex justify-between items-center gap-4">
           {/* Logo */}
@@ -317,6 +315,10 @@ const Navbar: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search"
                   className="w-full py-2.5 text-sm text-gray-900 placeholder-gray-500 bg-transparent outline-none"
+                  autoComplete="new-password"
+                  name="header_search_query"
+                  data-form-type="other"
+                  data-lpignore="true"
                 />
               </div>
 
@@ -471,7 +473,7 @@ const Navbar: React.FC = () => {
 
       {/* Profile Modal */}
       <ProfileModal />
-      
+
       {/* CSS Animation for Loading Bar */}
       <style jsx>{`
         @keyframes progress {

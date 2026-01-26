@@ -31,7 +31,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [mobileFiltersVisible, setMobileFiltersVisible] = useState(false);
-  
+
   const transformedCategories: Record<string, string[]> = FiverrCategories.reduce(
     (acc, category) => {
       acc[category.name] = category.subcategories;
@@ -84,10 +84,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search for gigs..."
               className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 transition-colors text-gray-800 placeholder:text-gray-400 text-sm"
-              autoComplete="off"
+              autoComplete="new-password"
               data-form-type="other"
               data-lpignore="true"
-              name="gig-search"
+              name="gig_search_input_field"
             />
           </div>
 
@@ -96,28 +96,25 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             {/* Categories Pill */}
             <button
               onClick={() => toggleDropdown('categories')}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${
-                activeDropdown === 'categories'
+              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${activeDropdown === 'categories'
                   ? 'bg-orange-50 text-orange-600 border border-orange-200'
                   : 'bg-gray-50 text-gray-700 border border-gray-100 hover:border-gray-200'
-              }`}
+                }`}
             >
               Categories
               <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  activeDropdown === 'categories' ? 'rotate-180' : ''
-                }`}
+                className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''
+                  }`}
               />
             </button>
 
             {/* Filters Pill */}
             <button
               onClick={() => setShowAllFilters(!showAllFilters)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${
-                showAllFilters
+              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${showAllFilters
                   ? 'bg-orange-50 text-orange-600 border border-orange-200'
                   : 'bg-gray-50 text-gray-700 border border-gray-100 hover:border-gray-200'
-              }`}
+                }`}
             >
               <Sliders className="w-4 h-4" />
               Filters
@@ -128,9 +125,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               )}
             </button>
           </div>
-          
+
           {/* Mobile Filter Button */}
-          <button 
+          <button
             onClick={toggleMobileFilters}
             className="md:hidden flex items-center justify-center w-10 h-10 bg-gray-50 border border-gray-100 rounded-full hover:border-gray-200 transition-colors"
           >
@@ -160,7 +157,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 </button>
               </span>
             ))}
-            
+
             {selectedFilters.length > 1 && (
               <button
                 onClick={() => setSelectedFilters([])}
@@ -178,37 +175,33 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             {/* Mobile Categories Button */}
             <button
               onClick={() => toggleDropdown('categories')}
-              className={`flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeDropdown === 'categories'
+              className={`flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeDropdown === 'categories'
                   ? 'bg-orange-50 text-orange-600 border border-orange-200'
                   : 'bg-white border border-gray-100 text-gray-700 hover:border-gray-200'
-              }`}
+                }`}
             >
               <span>Categories</span>
               <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  activeDropdown === 'categories' ? 'rotate-180' : ''
-                }`}
+                className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''
+                  }`}
               />
             </button>
 
             {/* Mobile All Filters Button */}
             <button
               onClick={() => setShowAllFilters(!showAllFilters)}
-              className={`flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                showAllFilters
+              className={`flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${showAllFilters
                   ? 'bg-orange-50 text-orange-600 border border-orange-200'
                   : 'bg-white border border-gray-100 text-gray-700 hover:border-gray-200'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4" />
                 <span>Filters</span>
               </div>
               <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  showAllFilters ? 'rotate-180' : ''
-                }`}
+                className={`w-4 h-4 transition-transform duration-200 ${showAllFilters ? 'rotate-180' : ''
+                  }`}
               />
             </button>
           </div>
@@ -234,7 +227,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           ) : (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={() => setSelectedCategory(null)}
                   className="flex items-center gap-1 text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
                 >
@@ -244,24 +237,22 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 <span className="text-gray-400 hidden sm:inline">/</span>
                 <h3 className="font-medium text-gray-900 text-sm truncate">{selectedCategory}</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {transformedCategories[selectedCategory].map((subcategory) => (
                   <button
                     key={subcategory}
                     onClick={() => toggleFilter(`${selectedCategory} › ${subcategory}`)}
-                    className={`group flex items-center w-full gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
-                      selectedFilters.includes(`${selectedCategory} › ${subcategory}`)
+                    className={`group flex items-center w-full gap-2 px-3 py-2 rounded-lg text-sm transition-all ${selectedFilters.includes(`${selectedCategory} › ${subcategory}`)
                         ? 'bg-orange-50 text-orange-600 border border-orange-100'
                         : 'hover:bg-gray-50 text-gray-600 border border-transparent'
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-4 h-4 rounded-sm flex items-center justify-center transition-colors ${
-                        selectedFilters.includes(`${selectedCategory} › ${subcategory}`)
+                      className={`w-4 h-4 rounded-sm flex items-center justify-center transition-colors ${selectedFilters.includes(`${selectedCategory} › ${subcategory}`)
                           ? 'bg-orange-500'
                           : 'border border-gray-300 group-hover:border-orange-200'
-                      }`}
+                        }`}
                     >
                       {selectedFilters.includes(`${selectedCategory} › ${subcategory}`) && (
                         <Check className="w-3 h-3 text-white" />
@@ -287,11 +278,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 <button
                   key={price}
                   onClick={() => toggleFilter(price)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all ${
-                    selectedFilters.includes(price)
+                  className={`px-4 py-2 rounded-full text-sm transition-all ${selectedFilters.includes(price)
                       ? 'bg-orange-50 text-orange-600 border border-orange-200'
                       : 'bg-gray-50 text-gray-700 border border-gray-100 hover:border-gray-200'
-                  }`}
+                    }`}
                 >
                   {price}
                 </button>
@@ -307,11 +297,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 <button
                   key={time}
                   onClick={() => toggleFilter(time)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all ${
-                    selectedFilters.includes(time)
+                  className={`px-4 py-2 rounded-full text-sm transition-all ${selectedFilters.includes(time)
                       ? 'bg-orange-50 text-orange-600 border border-orange-200'
                       : 'bg-gray-50 text-gray-700 border border-gray-100 hover:border-gray-200'
-                  }`}
+                    }`}
                 >
                   {time}
                 </button>

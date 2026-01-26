@@ -299,10 +299,11 @@ const SearchGigs: React.FC = () => {
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Search freelancers by name..."
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 transition-colors text-gray-800 placeholder:text-gray-400 text-sm"
-                autoComplete="off"
+                autoComplete="new-password"
                 inputMode="search"
-                name="freelancer-search"
+                name="freelancer_search_input_field"
                 data-form-type="other"
+                data-lpignore="true"
               />
             </div>
           </div>
