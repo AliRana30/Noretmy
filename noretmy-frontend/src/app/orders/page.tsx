@@ -14,6 +14,7 @@ import { Package, Plus } from 'lucide-react';
 const OrdersPage: React.FC = () => {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [currentFilters, setCurrentFilters] = useState<Filters | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isChecking, setIsChecking] = useState(true);
   const { t, getCurrentLanguage } = useTranslations();
@@ -99,6 +100,7 @@ const OrdersPage: React.FC = () => {
   };
 
   const handleFilterApply = (filters: Filters) => {
+    setCurrentFilters(filters);
     const newFilteredOrders = filterOrders(allOrders, filters);
     setFilteredOrders(newFilteredOrders);
   };
@@ -121,8 +123,18 @@ const OrdersPage: React.FC = () => {
         { withCredentials: true },
       )
       .then((response) => {
-        setAllOrders(response.data);
-        setFilteredOrders(response.data);
+        const orders = response.data;
+        setAllOrders(orders);
+
+        // Apply default filters (Last 7 Days) immediately
+        const defaultFilters: Filters = {
+          status: 'All',
+          dateRange: 'last7',
+          priceRange: 'All',
+          orderType: 'All',
+        };
+        const initialFiltered = filterOrders(orders, currentFilters || defaultFilters);
+        setFilteredOrders(initialFiltered);
         setLoading(false);
       })
       .catch((error) => {

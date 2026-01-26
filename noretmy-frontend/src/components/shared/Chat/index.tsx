@@ -58,6 +58,7 @@ const ChatScreen: React.FC = () => {
   const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
   const { isUserOnline } = useOnlineStatus();
   const sessionReadRef = useRef<Set<string>>(new Set());
+  const [typingConversations, setTypingConversations] = useState<Record<string, boolean>>({});
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   // Socket.io needs the root server URL, not the /api path
@@ -79,7 +80,7 @@ const ChatScreen: React.FC = () => {
         `${BACKEND_URL}/conversations`,
         { withCredentials: true }
       );
-      
+
       // Apply session-based read status to prevent re-highlighting after reload
       const sessionRead = getSessionReadConversations();
       const conversationsWithSessionRead = response.data.map((conv) => {
@@ -92,7 +93,7 @@ const ChatScreen: React.FC = () => {
         }
         return conv;
       });
-      
+
       setConversations(conversationsWithSessionRead);
     } catch (err) {
       setError(t('chat.errors.fetchFailed'));
@@ -133,12 +134,12 @@ const ChatScreen: React.FC = () => {
     let updateTimer: NodeJS.Timeout | null = null;
     const handleRealtimeUpdate = (payload: any) => {
       console.log('[Chat] Real-time update received:', payload);
-      
+
       // Clear existing timer
       if (updateTimer) {
         clearTimeout(updateTimer);
       }
-      
+
       // Debounce: wait 300ms before fetching to batch rapid updates
       updateTimer = setTimeout(() => {
         fetchConversations();
@@ -149,12 +150,22 @@ const ChatScreen: React.FC = () => {
     socket.on('newMessageNotification', handleRealtimeUpdate);
     socket.on('receiveMessage', handleRealtimeUpdate);
 
+    socket.on('userTyping', (payload: { conversationId: string; userId: string; isTyping: boolean }) => {
+      if (payload.userId !== user?._id) {
+        setTypingConversations(prev => ({
+          ...prev,
+          [payload.conversationId]: payload.isTyping
+        }));
+      }
+    });
+
     return () => {
       if (updateTimer) {
         clearTimeout(updateTimer);
       }
       socket.off('newMessageNotification', handleRealtimeUpdate);
       socket.off('receiveMessage', handleRealtimeUpdate);
+      socket.off('userTyping');
       socket.disconnect();
     };
   }, [SOCKET_URL, fetchConversations, user?._id]);
@@ -168,7 +179,7 @@ const ChatScreen: React.FC = () => {
   const markAsRead = useCallback(async (conversationId: string) => {
     // Mark in session storage to prevent re-highlighting on reload
     markSessionRead(conversationId);
-    
+
     try {
       await axios.put(
         `${BACKEND_URL}/conversations/${conversationId}`,
@@ -219,10 +230,9 @@ const ChatScreen: React.FC = () => {
     return (
       <div
         key={conversation._id}
-        className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${
-          isActive
-            ? 'bg-orange-50/70 border-orange-200'
-            : 'bg-white hover:bg-gray-50'
+        className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${isActive
+          ? 'bg-orange-50/70 border-orange-200'
+          : 'bg-white hover:bg-gray-50'
           }`}
         onClick={() => {
           // Navigate first
@@ -231,7 +241,7 @@ const ChatScreen: React.FC = () => {
             conversation.sellerId,
             conversation.buyerId
           );
-          
+
           // Only mark as read when user explicitly clicks (not on page load/reload)
           if (unread) {
             // Optimistically update UI immediately
@@ -260,10 +270,9 @@ const ChatScreen: React.FC = () => {
             className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
           />
           {/* Single indicator: Orange for online, Gray for offline, Red dot for unread */}
-          <span 
-            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${
-              unread ? 'bg-red-500' : isUserOnline(otherParty._id || otherParty.id) ? 'bg-orange-500' : 'bg-gray-400'
-            }`}
+          <span
+            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${unread ? 'bg-red-500' : isUserOnline(otherParty._id || otherParty.id) ? 'bg-orange-500' : 'bg-gray-400'
+              }`}
             title={
               unread ? 'Unread messages' : isUserOnline(otherParty._id || otherParty.id) ? 'Online' : 'Offline'
             }
@@ -280,7 +289,11 @@ const ChatScreen: React.FC = () => {
             </span>
           </div>
           <p className={`text-sm truncate ${unread ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
-            {conversation.lastMessage || t('chat.conversation.noMessages')}
+            {typingConversations[conversation._id] || typingConversations[conversation.id] ? (
+              <span className="text-orange-600 font-bold animate-pulse">Typing...</span>
+            ) : (
+              conversation.lastMessage || t('chat.conversation.noMessages')
+            )}
           </p>
         </div>
       </div>
@@ -317,33 +330,11 @@ const ChatScreen: React.FC = () => {
       </div>
 
       {/* Conversation List */}
-      <style jsx global>{`
-        .chat-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #ea580c #f3f4f6;
-        }
-        .chat-scrollbar::-webkit-scrollbar {
-          width: 10px;
-        }
-        .chat-scrollbar::-webkit-scrollbar-track {
-          background: #f3f4f6;
-          border-radius: 5px;
-        }
-        .chat-scrollbar::-webkit-scrollbar-thumb {
-          background: #ea580c;
-          border-radius: 5px;
-          min-height: 40px;
-        }
-        .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #c2410c;
-        }
-      `}</style>
       <div
-        className="flex-1 overflow-y-scroll min-h-0 chat-scrollbar"
+        className="flex-1 overflow-y-auto min-h-0 chat-scrollbar"
         style={{
           height: 'calc(100vh - 220px)',
           minHeight: '300px',
-          overflowY: 'scroll'
         }}
       >
         {loading ? (

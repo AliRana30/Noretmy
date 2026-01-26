@@ -110,7 +110,10 @@ function FreelancerSearchContent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('freelancers:searchPlaceholder') || 'Search...'}
                 className="flex-1 min-w-0 py-3 sm:py-4 px-2 sm:px-4 text-sm sm:text-base text-slate-900 placeholder-slate-400 bg-transparent outline-none"
-                autoComplete="off"
+                autoComplete="new-password"
+                name="freelancer_main_search_query"
+                data-form-type="other"
+                data-lpignore="true"
               />
               <button
                 type="button"
@@ -141,6 +144,10 @@ function FreelancerSearchContent() {
                     onChange={(e) => setSkillFilter(e.target.value)}
                     placeholder="e.g. React, Python, Design"
                     className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 outline-none focus:border-orange-500"
+                    autoComplete="new-password"
+                    name="skill_filter_search_field"
+                    data-form-type="other"
+                    data-lpignore="true"
                   />
                 </div>
               </div>
