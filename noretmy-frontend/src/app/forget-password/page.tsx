@@ -1,14 +1,5 @@
-import ForgotPasswordScreen from '@/components/shared/ForgotPassword';
-import { StoreProvider } from '@/store/StoreProvider';
-const ForgetPassowrd = () => {
-    return (
-        <StoreProvider>
-            <main className="overflow-x-hidden">
+import ForgotPasswordPage from '@/components/shared/forgot-password';
 
-                <ForgotPasswordScreen />
-            </main>
-        </StoreProvider>
-    );
-};
-
-export default ForgetPassowrd;
+export default function ForgetPassword() {
+    return <ForgotPasswordPage />;
+}

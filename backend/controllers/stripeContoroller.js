@@ -195,25 +195,22 @@ const createStripeTransfer = async (amount, destination, description) => {
             return mockPayout;
         }
         
-        const payout = await stripe.payouts.create({
+        const transfer = await stripe.transfers.create({
             amount, // Amount in cents
             currency: 'usd',
-            description, // Description for the payout
-            method: 'standard', // or 'instant' for instant payouts (higher fees)
-        }, {
-            stripeAccount: destination // Execute payout on the connected account
+            destination: destination, // The connected account ID
+            description, // Description for the transfer
         });
         
-        console.log('[Stripe Payout] Success:', {
-            payoutId: payout.id,
-            amount: payout.amount / 100,
+        console.log('[Stripe Transfer] Success:', {
+            transferId: transfer.id,
+            amount: transfer.amount / 100,
             destination,
-            status: payout.status
         });
         
-        return payout;
+        return transfer;
     } catch (error) {
-        console.error('[Stripe Payout] Error:', {
+        console.error('[Stripe Transfer] Error:', {
             message: error.message,
             type: error.type,
             code: error.code,
@@ -221,14 +218,14 @@ const createStripeTransfer = async (amount, destination, description) => {
         });
         
         if (error.code === 'insufficient_funds') {
-            throw new Error('Insufficient funds in connected Stripe account for this payout.');
+            throw new Error('Insufficient funds in the platform Stripe account to process this transfer.');
         } else if (error.code === 'account_invalid') {
-            throw new Error('The Stripe account is not properly configured for payouts. Please complete Stripe onboarding.');
+            throw new Error('The destination Stripe account is invalid or not properly configured.');
         } else if (error.code === 'payouts_not_allowed') {
-            throw new Error('Payouts are not enabled on this Stripe account. Please complete account verification.');
+            throw new Error('The destination Stripe account cannot receive transfers at this time.');
         }
         
-        throw new Error(error.message || 'Failed to process the Stripe payout.');
+        throw new Error(error.message || 'Failed to process the Stripe transfer.');
     }
 };
 

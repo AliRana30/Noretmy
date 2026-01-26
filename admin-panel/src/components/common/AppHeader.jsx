@@ -201,7 +201,7 @@ export default function AppHeader() {
                   unreadNotifications.map((notification) => (
                     <div 
                       key={notification.id}
-                      onClick={() => handleMarkAsRead(notification.id)}
+                      onClick={() => markAsRead(notification.id)}
                       className={`px-4 py-3 flex items-start gap-3 cursor-pointer transition-colors ${
                         darkMode ? 'bg-orange-500/5 hover:bg-orange-500/10' : 'bg-orange-50 hover:bg-orange-100'
                       }`}

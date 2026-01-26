@@ -36,7 +36,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         const response = await fetch(`${BACKEND_URL}/job/single/${id}?lang=${currentLanguage}`);
         const data = await response.json();
 
-        const { gig, seller, reviews, orders, sales } = data;
+        const { gig, seller, reviews, orders } = data;
 
         setGig(gig);
 
@@ -49,7 +49,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
           images: gig?.photos || [],
           category: gig?.cat || [],
           upgradeOption: gig?.upgradeOption,
-          sales: sales || 0,
+          sales: data?.sales || 0,
           sellerBadge: seller?.sellerLevel?.label || null,
           sellerLevel: seller?.sellerLevel || null,
           successScore: seller?.successScore ?? null,

@@ -36,14 +36,14 @@ const MessageContent = ({ conversationId }: { conversationId: string }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-[calc(100vh-160px)]">
-          <div className="flex h-full min-h-0">
-            {/* Chat List - Smaller width */}
-            <div className="hidden md:block md:w-64 lg:w-72 flex-shrink-0 border-r border-gray-200 min-h-0">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-[calc(100vh-160px)]">
+          <div className="flex h-full">
+            {/* Chat List Sidebar - Smaller width */}
+                <div className="hidden md:block md:w-64 lg:w-72 flex-shrink-0 border-r border-gray-200 min-h-0">
               <ChatScreen />
             </div>
-            {/* Message Area - Larger space */}
-            <div className="flex-1 min-w-0 min-h-0">
+            {/* Message Area - Takes remaining space (larger) */}
+                <div className="flex-1 min-w-0 min-h-0">
               <MessageScreen />
             </div>
           </div>
@@ -55,7 +55,7 @@ const MessageContent = ({ conversationId }: { conversationId: string }) => {
 
 const Message = ({ params }: { params: { conversationId: string } }) => {
   const { conversationId } = params;
-  
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 py-6 px-4">
