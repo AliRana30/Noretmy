@@ -19,28 +19,40 @@ const createTransporter = () => {
   const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
   const smtpPort = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '465', 10);
   const smtpService = process.env.SMTP_SERVICE;
-  const smtpUser = process.env.SMTP_MAIL || process.env.EMAIL_USER;
-  const smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
+  
+  // Get credentials and strip any quotes that might be accidentally included
+  let smtpUser = process.env.SMTP_MAIL || process.env.EMAIL_USER;
+  let smtpPass = process.env.SMTP_PASSWORD || process.env.EMAIL_PASS;
+  
+  // Strip quotes and trim whitespace (common issue in production env vars)
+  if (smtpUser) smtpUser = smtpUser.trim().replace(/^["']|["']$/g, '');
+  if (smtpPass) smtpPass = smtpPass.trim().replace(/^["']|["']$/g, '');
+  
   const smtpSecure = (process.env.SMTP_SECURE || '').toLowerCase() === 'true' || smtpPort === 465;
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  console.log(`📧 Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}`);
+  console.log(`📧 Configuring SMTP: ${smtpHost}:${smtpPort}, secure=${smtpSecure}, user=${smtpUser}, env=${process.env.NODE_ENV}`);
 
   if (!smtpUser || !smtpPass) {
+    console.error('❌ Email credentials missing!');
+    console.error('SMTP_MAIL/EMAIL_USER:', smtpUser ? 'Set' : 'Missing');
+    console.error('SMTP_PASSWORD/EMAIL_PASS:', smtpPass ? 'Set (length: ' + smtpPass.length + ')' : 'Missing');
     throw new Error('Email configuration missing: set SMTP_MAIL/SMTP_PASSWORD (preferred) or EMAIL_USER/EMAIL_PASS.');
   }
 
-  return nodemailer.createTransport({
-    service: smtpService,
+  // Gmail-specific configuration for production
+  const transportConfig = {
     host: smtpHost,
     port: smtpPort,
-    secure: smtpSecure,
+    secure: smtpSecure, // true for 465, false for other ports
     auth: {
       user: smtpUser,
       pass: smtpPass,
     },
     tls: {
-      rejectUnauthorized: false,
-      minVersion: 'TLSv1.2'
+      rejectUnauthorized: isProduction, // More strict in production
+      minVersion: 'TLSv1.2',
+      ciphers: 'HIGH:!aNULL:!MD5:!RC4'
     },
     pool: true,
     maxConnections: 5,
@@ -48,9 +60,17 @@ const createTransporter = () => {
     connectionTimeout: 60000, // 60 seconds
     greetingTimeout: 30000,   // 30 seconds
     socketTimeout: 60000,     // 60 seconds
-    debug: process.env.NODE_ENV !== 'production',
-    logger: process.env.NODE_ENV !== 'production'
-  });
+    debug: !isProduction,
+    logger: !isProduction
+  };
+
+  // Add service if specified (helps with Gmail)
+  if (smtpService) {
+    transportConfig.service = smtpService;
+    console.log(`📧 Using email service: ${smtpService}`);
+  }
+
+  return nodemailer.createTransport(transportConfig);
 };
 
 const getFrontendBaseUrl = () => {
@@ -66,11 +86,19 @@ const getFrontendBaseUrl = () => {
 
 const verifyEmailConnection = async () => {
   try {
+    console.log('🔍 Verifying email connection...');
     const transporter = createTransporter();
     await transporter.verify();
+    console.log('✅ Email service connected successfully');
     return { success: true, message: 'Email service connected' };
   } catch (error) {
     console.error('❌ Email service connection failed:', error.message);
+    console.error('Error details:', {
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode
+    });
     return { success: false, error: error.message };
   }
 };

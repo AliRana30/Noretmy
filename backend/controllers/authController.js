@@ -67,7 +67,9 @@ const handleSignup = async (req, res, next) => {
 const handleLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await signIn(email, password);
+    // Block admin access on main platform (pass true to block admins)
+    const blockAdminAccess = true;
+    const user = await signIn(email, password, blockAdminAccess);
 
     const token= sign({
       id:user.id,
@@ -87,6 +89,8 @@ const handleLogin = async (req, res) => {
       code: 'LOGIN_SUCCESS',
       message: 'Login successful',
       ...user,
+      role: user.role || 'client',
+      isAdmin: user.isAdmin || user.role === 'admin',
       token
     }); 
 

@@ -65,12 +65,19 @@ export const AuthProvider = ({ children }) => {
         ...data,
         role: data.role || (data.isAdmin ? ROLES.ADMIN : (data.isSeller ? ROLES.FREELANCER : ROLES.CLIENT)),
         permissions: data.permissions || [],
-        isAdmin: data.isAdmin || data.role === ROLES.ADMIN,
+        isAdmin: data.isAdmin === true || data.role === ROLES.ADMIN || data.role === 'admin',
         img: data.profilePicture || data.img || "https://via.placeholder.com/150",
         token: data.token || data.accessToken || null
       };
       
-      if (enhancedUserData.role !== ROLES.ADMIN && !enhancedUserData.isAdmin) {
+      console.log('Admin login check:', {
+        role: enhancedUserData.role,
+        isAdmin: enhancedUserData.isAdmin,
+        rawRole: data.role,
+        rawIsAdmin: data.isAdmin
+      });
+      
+      if (enhancedUserData.role !== ROLES.ADMIN && enhancedUserData.role !== 'admin' && !enhancedUserData.isAdmin) {
         setErrorKey('accessDenied');
         setError('Login unsuccessful - Admin access required');
         return { success: false, error: 'Login unsuccessful - Admin access required' };

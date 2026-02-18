@@ -199,7 +199,7 @@ const AddJobScreen: React.FC = () => {
 
         router.push(`/checkout?${query}`);
       } else {
-        router.push('/dashboard/gigs');
+        router.push('/');
       }
     } catch (error) {
       console.error('Error posting job:', error);

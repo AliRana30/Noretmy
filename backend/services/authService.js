@@ -99,6 +99,15 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
       userRole = 'freelancer';
     }
 
+    // Prevent admin role signup through public API
+    if (userRole === 'admin') {
+      return {
+        success: false,
+        code: 'INVALID_ROLE',
+        message: 'Invalid account type. Please contact support for admin access.'
+      };
+    }
+
     const user = new User({
       email,
       password, // Will be hashed by the pre-save hook
@@ -232,7 +241,7 @@ const verifyEmail = async (email, token) => {
   }
 };
 
-const signIn = async (email, password) => {
+const signIn = async (email, password, blockAdminAccess = false) => {
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -242,6 +251,13 @@ const signIn = async (email, password) => {
     throw error;
   }
 
+  // Block admin users from accessing main platform (noretmy)
+  if (blockAdminAccess && user.role === 'admin') {
+    const error = new Error('Admin accounts can only access the admin panel.');
+    error.statusCode = 403;
+    error.code = 'ADMIN_ACCESS_DENIED';
+    throw error;
+  }
 
   if (user.isBlocked) {
     const error = new Error(`Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}. Please contact support.`);

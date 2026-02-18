@@ -340,7 +340,7 @@ const getAllJobs = async (req, res) => {
     if (uniqueSellerIds.length > 0) {
       try {
         const [sellers, profiles] = await Promise.all([
-          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
+          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName email').lean(),
           UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
         ]);
         
@@ -348,10 +348,19 @@ const getAllJobs = async (req, res) => {
         profiles.forEach(p => profileMap.set(p.userId.toString(), p.profilePicture));
 
         sellers.forEach(seller => {
+          const displayName = seller.fullName || seller.username || seller.email?.split('@')[0] || 'Freelancer';
+          const displayUsername = seller.username || seller.fullName || seller.email?.split('@')[0] || 'user';
+          
           sellerMap.set(seller._id.toString(), {
-            username: seller.username || seller.fullName || 'Unknown',
+            name: displayName,
+            username: displayUsername,
             profilePicture: profileMap.get(seller._id.toString()) || '/default-avatar.png'
           });
+          
+          // Debug log for troubleshooting
+          if (!seller.fullName && !seller.username) {
+            console.log(`⚠️  Seller ${seller._id} missing both fullName and username`);
+          }
         });
       } catch (sellerErr) {
         console.error("Error fetching seller info:", sellerErr);
@@ -360,7 +369,11 @@ const getAllJobs = async (req, res) => {
 
     const response = boostedSortedJobs.map(job => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
-      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
+      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { 
+        name: 'Freelancer', 
+        username: 'user', 
+        profilePicture: '/default-avatar.png' 
+      };
       
       return {
         _id: job._id,
@@ -382,6 +395,7 @@ const getAllJobs = async (req, res) => {
           ? +(job.totalStars / job.starNumber).toFixed(1)
           : 0,
         seller: {
+          name: sellerInfo.name,
           username: sellerInfo.username,
           profilePicture: sellerInfo.profilePicture
         },
@@ -536,7 +550,7 @@ const getFeaturedJobs = async (req, res) => {
         });
 
         const [sellers, profiles] = await Promise.all([
-          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName').lean(),
+          User.find({ _id: { $in: uniqueSellerIds } }).select('username fullName email').lean(),
           UserProfile.find({ userId: { $in: uniqueSellerIds } }).select('userId profilePicture').lean()
         ]);
         
@@ -544,8 +558,12 @@ const getFeaturedJobs = async (req, res) => {
         profiles.forEach(p => profileMap.set(p.userId.toString(), p.profilePicture));
 
         sellers.forEach(seller => {
+          const displayName = seller.fullName || seller.username || seller.email?.split('@')[0] || 'Freelancer';
+          const displayUsername = seller.username || seller.fullName || seller.email?.split('@')[0] || 'user';
+          
           sellerMap.set(seller._id.toString(), {
-            username: seller.username || seller.fullName || 'Unknown',
+            name: displayName,
+            username: displayUsername,
             profilePicture: profileMap.get(seller._id.toString()) || '/default-avatar.png'
           });
         });
@@ -602,7 +620,11 @@ const getFeaturedJobs = async (req, res) => {
 
     const jobsWithExtras = convertedJobs.map(job => {
       const sellerBadge = badgeMap.get(job.sellerId?.toString()) || null;
-      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { username: 'Unknown', profilePicture: '/default-avatar.png' };
+      const sellerInfo = sellerMap.get(job.sellerId?.toString()) || { 
+        name: 'Freelancer', 
+        username: 'user', 
+        profilePicture: '/default-avatar.png' 
+      };
       const reviewsCount = reviewsMap.get(job._id.toString()) || 0;
       const salesCount = salesMap.get(job._id.toString()) || 0;
       
@@ -611,6 +633,7 @@ const getFeaturedJobs = async (req, res) => {
         reviews: reviewsCount,
         sales: salesCount,
         seller: {
+          name: sellerInfo.name,
           username: sellerInfo.username,
           profilePicture: sellerInfo.profilePicture
         },

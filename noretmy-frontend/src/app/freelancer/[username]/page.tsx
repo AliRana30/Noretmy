@@ -60,6 +60,8 @@ interface FreelancerData {
     avgDeliveryTime: string;
     completionRate: number;
     successRate: number;
+    onTimeDeliveryRate: number;
+    responseRate: number;
   };
   gigs: {
     _id: string;
@@ -106,16 +108,18 @@ const FreelancerProfileContent = () => {
   const { badge: sellerBadge, loading: badgeLoading } = useSellerBadge(freelancer?.user._id);
   // Only show seller level if they have a level above 'new'
   const showSellerLevel = sellerBadge && sellerBadge.level !== 'new';
-  // Only show reliability indicators if they have real data (not 0 or fallback)
-  const hasRealMetrics = sellerBadge?.metrics && (
-    sellerBadge.metrics.onTimeDeliveryRate > 0 ||
-    sellerBadge.metrics.responseRate > 0 ||
-    sellerBadge.metrics.completionRate > 0
+  // Use stats from API if available, otherwise fall back to badge metrics
+  const hasRealMetrics = freelancer?.stats && (
+    freelancer.stats.onTimeDeliveryRate > 0 ||
+    freelancer.stats.responseRate > 0 ||
+    freelancer.stats.completionRate > 0
   );
-  const responseRateValue = sellerBadge?.metrics?.responseRate;
+  const responseRateValue = freelancer?.stats?.responseRate || sellerBadge?.metrics?.responseRate;
   const responseRateLabel = typeof responseRateValue === 'number' && responseRateValue > 0
     ? `${Math.round(responseRateValue)}%`
     : 'N/A';
+  const onTimeDeliveryRate = freelancer?.stats?.onTimeDeliveryRate || sellerBadge?.metrics?.onTimeDeliveryRate || 0;
+  const completionRateValue = freelancer?.stats?.completionRate || sellerBadge?.metrics?.completionRate || 0;
 
   useEffect(() => {
     const fetchFreelancerProfile = async () => {
@@ -223,18 +227,18 @@ const FreelancerProfileContent = () => {
                   <p className="text-slate-700 mt-1">{profile.profileHeadline}</p>
                 )}
                 {/* Reliability Indicators */}
-                {badgeLoading ? (
+                {badgeLoading || loading ? (
                   <div className="mt-2 flex gap-4">
                     <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
                     <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
                     <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
                   </div>
-                ) : hasRealMetrics && sellerBadge && (
+                ) : hasRealMetrics && (
                   <div className="mt-2">
                     <ReliabilityIndicators
-                      onTimeRate={sellerBadge.metrics.onTimeDeliveryRate}
+                      onTimeRate={onTimeDeliveryRate}
                       responseTime={responseRateLabel}
-                      completionRate={sellerBadge.metrics.completionRate}
+                      completionRate={completionRateValue}
                     />
                   </div>
                 )}

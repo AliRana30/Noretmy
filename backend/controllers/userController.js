@@ -867,6 +867,17 @@ const getFreelancerProfile = async (req, res) => {
     const userProfile = await UserProfile.findOne({ userId })
       .select('profilePicture profileHeadline description skills location country countryCode languages education certifications');
 
+    // Fetch seller badge metrics
+    const SellerBadge = require('../models/SellerBadge');
+    const sellerBadge = await SellerBadge.findOne({ userId })
+      .select('metrics currentLevel trustScore');
+
+    console.log('👤 Fetching profile for user:', userId);
+    console.log('🏅 SellerBadge found:', sellerBadge ? 'Yes' : 'No');
+    if (sellerBadge) {
+      console.log('📊 Badge metrics:', sellerBadge.metrics);
+    }
+
     let gigs = await Job.find({ sellerId: userId.toString() })
       .select('_id title cat subCat description pricingPlan photos sales totalStars starNumber createdAt');
 
@@ -1006,6 +1017,28 @@ const getFreelancerProfile = async (req, res) => {
       };
     });
 
+    // Calculate real metrics if badge doesn't have them
+    let realOnTimeRate = 100;
+    let realResponseRate = 100;
+    let realCompletionRate = +completionRate.toFixed(1);
+
+    if (sellerBadge?.metrics) {
+      realOnTimeRate = sellerBadge.metrics.onTimeDeliveryRate || 100;
+      realResponseRate = sellerBadge.metrics.responseRate || 100;
+      realCompletionRate = sellerBadge.metrics.completionRate || realCompletionRate;
+    } else if (completedOrdersCount > 0) {
+      // Calculate from actual data if no badge metrics
+      realOnTimeRate = +completionRate.toFixed(1);
+      realCompletionRate = +completionRate.toFixed(1);
+    }
+
+    console.log('📈 Final metrics:', {
+      onTimeRate: realOnTimeRate,
+      responseRate: realResponseRate,
+      completionRate: realCompletionRate,
+      completedOrders: completedOrdersCount
+    });
+
     const response = {
       user: {
         _id: user._id,
@@ -1034,8 +1067,10 @@ const getFreelancerProfile = async (req, res) => {
         averagePrice: +avgPrice.toFixed(2),
         totalEarnings: +totalEarnings.toFixed(2),
         avgDeliveryTime: avgDeliveryTimeStr,
-        completionRate: +completionRate.toFixed(1),
-        successRate: +successRate.toFixed(1)
+        completionRate: realCompletionRate,
+        successRate: +successRate.toFixed(1),
+        onTimeDeliveryRate: realOnTimeRate,
+        responseRate: realResponseRate
       },
       gigs: formattedGigs,
       reviews: formattedReviews
