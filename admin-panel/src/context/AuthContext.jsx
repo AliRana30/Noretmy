@@ -51,7 +51,8 @@ export const AuthProvider = ({ children }) => {
         withCredentials: true,
         timeout: API_CONFIG.TIMEOUT,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-platform': 'admin-panel' // Identify as admin panel to allow admin login
         }
       });
 

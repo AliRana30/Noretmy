@@ -67,8 +67,12 @@ const handleSignup = async (req, res, next) => {
 const handleLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Block admin access on main platform (pass true to block admins)
-    const blockAdminAccess = true;
+    // Only block admin access on main frontend (noretmy), not admin panel
+    // Check if request is from admin panel via header or query param
+    const platform = req.query.platform || req.headers['x-platform'] || 'frontend';
+    const isAdminPanel = platform === 'admin' || platform === 'admin-panel';
+    const blockAdminAccess = !isAdminPanel; // Block on frontend, allow on admin panel
+    
     const user = await signIn(email, password, blockAdminAccess);
 
     const token= sign({

@@ -67,7 +67,7 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-user-id'],
+  allowedHeaders: ['Content-Type', 'Authorization','x-user-id', 'x-platform'],
   credentials: true,
   optionsSuccessStatus: 204, // Respond with 204 for preflight requests
 
