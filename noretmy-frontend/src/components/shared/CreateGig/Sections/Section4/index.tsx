@@ -4,6 +4,7 @@ import AnimatedSection from '../AnimatedSection';
 import SectionHeader from '../../SectionHeader';
 import UploadMultimedia from '../../UploadMultimedia';
 import NavigationButtons from '../NavigationButtons';
+import { showError } from '@/util/toast';
 
 interface SectionFourProps {
   isVisible: boolean;
@@ -19,7 +20,16 @@ const SectionFour: React.FC<SectionFourProps> = ({
   onAddPhoto,
   onBack,
   onNext,
-}) => (
+}) => {
+  const handleNext = () => {
+    if (!photos || photos.length === 0) {
+      showError('Please upload at least one photo for your gig.');
+      return;
+    }
+    onNext();
+  };
+
+  return (
   <AnimatedSection isVisible={isVisible}>
     <SectionHeader
       number="04"
@@ -40,14 +50,16 @@ const SectionFour: React.FC<SectionFourProps> = ({
       }}
       rightButton={{
         text: 'Next',
-        onClick: onNext,
+        onClick: handleNext,
+        disabled: !photos || photos.length === 0,
         className:
-          'bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all',
+          `bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all ${!photos || photos.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`,
         icon: <FaArrowRight />,
         iconPosition: 'right',
       }}
     />
   </AnimatedSection>
-);
+  );
+};
 
 export default SectionFour;

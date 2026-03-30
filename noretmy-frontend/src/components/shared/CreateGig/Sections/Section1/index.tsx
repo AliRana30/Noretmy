@@ -9,6 +9,7 @@ import SectionHeader from '../../SectionHeader';
 import CategoryComponent from '../../CategoryComponent';
 import NavigationButtons from '../NavigationButtons';
 import { FaArrowRight } from 'react-icons/fa';
+import { showError } from '@/util/toast';
 
 interface SectionOneProps {
   isVisible: boolean;
@@ -35,6 +36,22 @@ const SectionOne: React.FC<SectionOneProps> = ({
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [titleStrength, setTitleStrength] = useState(0);
+
+  const handleNext = () => {
+    if (!title || title.trim().length < 10) {
+      showError('Title is required and must be at least 10 characters long.');
+      return;
+    }
+    if (!selectedCategory) {
+      showError('Please select a category.');
+      return;
+    }
+    if (!selectedSubcategory) {
+      showError('Please select a subcategory.');
+      return;
+    }
+    onNext();
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -178,8 +195,9 @@ const SectionOne: React.FC<SectionOneProps> = ({
         <NavigationButtons
           rightButton={{
             text: 'Next',
-            onClick: onNext,
-            className: `bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all ${!title ? 'opacity-50 cursor-not-allowed' : ''
+            onClick: handleNext,
+            disabled: !title || !selectedCategory || !selectedSubcategory,
+            className: `bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all ${!title || !selectedCategory || !selectedSubcategory ? 'opacity-50 cursor-not-allowed' : ''
               }`,
             icon: <FaArrowRight />,
             iconPosition: 'right',

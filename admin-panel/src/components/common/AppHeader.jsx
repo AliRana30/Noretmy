@@ -84,15 +84,27 @@ export default function AppHeader() {
     return icons[type] || '📌';
   };
 
+  const getNotificationActor = (notification) => {
+    return (
+      notification?.userFullName ||
+      notification?.userName ||
+      notification?.username ||
+      notification?.senderName ||
+      notification?.data?.userFullName ||
+      notification?.data?.username ||
+      ''
+    );
+  };
+
   return (
-    <header className={`h-16 flex items-center justify-between px-6 border-b transition-colors duration-300 sticky top-0 z-50 ${
+    <header className={`h-16 flex items-center justify-between px-3 sm:px-4 lg:px-6 border-b transition-colors duration-300 sticky top-0 z-50 gap-2 ${
       darkMode 
         ? 'bg-[#1a1a2e]/95 border-white/10 backdrop-blur-xl' 
         : 'bg-white/95 border-gray-200 backdrop-blur-xl'
     }`}>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-4 flex-1 max-w-md">
+      <div className="hidden md:flex items-center gap-4 flex-1 max-w-md">
         <div className="relative flex-1">
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
             darkMode ? 'text-gray-400' : 'text-gray-500'
@@ -120,14 +132,14 @@ export default function AppHeader() {
       </div>
 
       {/* Right Side Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
         {/* Language Switcher */}
         <LanguageSwitcher />
 
         {/* Dark Mode Toggle */}
         <button
           onClick={() => dispatch({ type: 'TOGGLE' })}
-          className={`p-2.5 rounded-xl transition-all duration-200 ${
+          className={`p-2 sm:p-2.5 rounded-xl transition-all duration-200 ${
             darkMode 
               ? 'bg-white/5 hover:bg-white/10 text-yellow-400' 
               : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
@@ -145,7 +157,7 @@ export default function AppHeader() {
         <div className="relative" ref={notificationRef}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`relative p-2.5 rounded-xl transition-all duration-200 ${
+            className={`relative p-2 sm:p-2.5 rounded-xl transition-all duration-200 ${
               darkMode 
                 ? 'bg-white/5 hover:bg-white/10 text-gray-300' 
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
@@ -162,7 +174,7 @@ export default function AppHeader() {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl overflow-hidden z-[9999] ${
+            <div className={`absolute right-0 mt-2 w-[min(20rem,calc(100vw-1rem))] sm:w-80 rounded-2xl shadow-2xl overflow-hidden z-50 ${
               darkMode 
                 ? 'bg-[#1a1a2e] border border-white/10' 
                 : 'bg-white border border-gray-200'
@@ -211,7 +223,8 @@ export default function AppHeader() {
                         <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                           {notification.title}
                         </p>
-                        <p className={`text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className={`text-xs wrap-break-word ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {getNotificationActor(notification) ? `${getNotificationActor(notification)}: ` : ''}
                           {notification.message}
                         </p>
                         <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
@@ -239,7 +252,7 @@ export default function AppHeader() {
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className={`flex items-center gap-3 pl-3 pr-2 py-1.5 rounded-xl transition-all duration-200 ${
+            className={`flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 pr-1.5 sm:pr-2 py-1.5 rounded-xl transition-all duration-200 ${
               darkMode 
                 ? 'bg-white/5 hover:bg-white/10' 
                 : 'bg-gray-100 hover:bg-gray-200'
@@ -261,12 +274,12 @@ export default function AppHeader() {
                 {user?.role || 'Administrator'}
               </p>
             </div>
-            <ChevronDown className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <ChevronDown className={`hidden sm:block w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
 
           {/* User Dropdown */}
           {showUserMenu && (
-            <div className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl overflow-hidden z-[9999] ${
+            <div className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl overflow-hidden z-50 ${
               darkMode 
                 ? 'bg-[#1a1a2e] border border-white/10' 
                 : 'bg-white border border-gray-200'

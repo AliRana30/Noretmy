@@ -7,8 +7,6 @@ import Footer from '@/components/ui/Footer';
 import Navbar from '@/components/shared/Navbar';
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/store/store';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import '@/i18n';
 import { useEffect } from 'react';
 import i18next from 'i18next';
@@ -53,7 +51,6 @@ export default function RootLayout({
               </main>
               <Footer />
             </div>
-            <ToastContainer position="top-right" autoClose={4000} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover style={{ zIndex: 99999 }} />
             <Toaster
               position="top-right"
               containerStyle={{ zIndex: 99999 }}

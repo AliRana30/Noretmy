@@ -70,28 +70,6 @@ const Gigs: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8" id="gigs">
-
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-black">
-          Your <span className="text-orange-600">Gigs</span>
-        </h2>
-        <Link
-          href="/promote-gigs"
-          className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
-        >
-          <PlusCircle size={20} />
-          <span>Promote Gigs</span>
-        </Link>
-        {/* {gigs.length < 5 && (
-          <Link href="/create-new">
-            <button className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-md">
-              <FaPlus size={14} />
-              <span className="font-medium">Create New</span>
-            </button>
-          </Link>
-        )} */}
-      </div>
-
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="flex flex-col items-center">

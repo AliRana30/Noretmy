@@ -1,7 +1,5 @@
 import LoginPage from '@/components/shared/login';
 import Head from 'next/head';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   return (
@@ -19,7 +17,6 @@ const Login = () => {
 
       <main className="overflow-x-hidden">
         <LoginPage />
-        <ToastContainer />
       </main>
     </>
   );

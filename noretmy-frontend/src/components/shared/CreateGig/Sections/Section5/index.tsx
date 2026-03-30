@@ -4,18 +4,17 @@ import AnimatedSection from '../AnimatedSection';
 import SectionHeader from '../../SectionHeader';
 import UpgradeOption from '../../upgradeOption';
 import NavigationButtons from '../NavigationButtons';
-
-interface UpgradeOptionType {
-  title: string;
-  price: number;
-  description: string;
-  colors: string[];
-  disabled: boolean
-}
+import { showError } from '@/util/toast';
 
 interface SectionFiveProps {
   isVisible: boolean;
-  upgradeOptions: UpgradeOptionType[];
+  upgradeOptions: {
+    title: string;
+    price: number;
+    description: string;
+    colors: string[];
+    value: string;
+  }[];
   selectedOption: number | null;
   setSelectedOption: (index: number | null) => void;
   jobStatus: string;
@@ -35,7 +34,16 @@ const SectionFive: React.FC<SectionFiveProps> = ({
   onBack,
   onSubmit,
   isLoading = false,
-}) => (
+}) => {
+  const handleSubmit = () => {
+    if (selectedOption === null) {
+      showError('Please select a promotion plan for your gig.');
+      return;
+    }
+    onSubmit();
+  };
+
+  return (
   <AnimatedSection isVisible={isVisible}>
     <SectionHeader
       number="05"
@@ -106,10 +114,10 @@ const SectionFive: React.FC<SectionFiveProps> = ({
       }}
       rightButton={{
         text: isLoading ? 'Creating Gig...' : 'Submit',
-        onClick: onSubmit,
-        disabled: isLoading,
+        onClick: handleSubmit,
+        disabled: isLoading || selectedOption === null,
         className:
-          `bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all ${isLoading ? 'opacity-75 cursor-wait' : ''}`,
+          `bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all ${isLoading || selectedOption === null ? 'opacity-75 cursor-not-allowed' : ''}`,
         icon: isLoading ? (
           <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -120,6 +128,7 @@ const SectionFive: React.FC<SectionFiveProps> = ({
       }}
     />
   </AnimatedSection>
-);
+  );
+};
 
 export default SectionFive;

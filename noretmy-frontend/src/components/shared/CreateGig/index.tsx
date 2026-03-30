@@ -94,6 +94,9 @@ const AddJobScreen: React.FC = () => {
       if (direction === 'back') return prev > 1 ? prev - 1 : prev;
       return prev;
     });
+    
+    // Scroll to top when section changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async () => {

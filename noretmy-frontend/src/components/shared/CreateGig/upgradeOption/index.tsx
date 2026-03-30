@@ -20,7 +20,7 @@ const UpgradeOption: React.FC<UpgradeOptionProps> = ({
   return (
     <button
       onClick={onPress}
-      className={`relative flex flex-col items-start p-3 rounded-lg shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg 
+      className={`relative flex flex-col items-start p-3 rounded-lg shadow-sm transition-all hover:shadow-lg 
         ${isSelected ? 'ring-2 ring-blue-500' : 'ring-1 ring-gray-300'}`}
       style={{
         background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,

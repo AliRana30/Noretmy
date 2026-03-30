@@ -11,8 +11,9 @@ import ProfileOrders from './ProfileOrders';
 import ProfileSidebar from './ProfileSidebar';
 import ProfileEarnings from './ProfileEarnings';
 import { useUserRole } from '@/util/basic';
-import { useDispatch } from 'react-redux';
-import { updateProfilePicture } from '@/store/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateProfilePicture, updateUserProfile } from '@/store/authSlice';
+import { RootState } from '@/store/store';
 import toast from 'react-hot-toast';
 import { Briefcase, FolderOpen, Star, ShoppingBag, DollarSign, User } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -183,6 +184,7 @@ const EmptyState = ({ section, isSeller, t }: { section: string; isSeller: boole
 
 const ProfileSection = () => {
   const dispatch = useDispatch();
+  const reduxProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
   const { t } = useTranslations();
 
   const [activeSection, setActiveSection] = useState('profile');
@@ -242,10 +244,16 @@ const ProfileSection = () => {
   const updateProfileData = async (updates: any) => {
     try {
       setSectionLoading(true);
+      // Optimistically reflect profile changes in UI so reload is not required.
+      setProfileData((prev) => ({ ...prev, ...updates }));
       const response = await axios.put(`${apiRoot}/users/profile/`, updates, {
         withCredentials: true,
       });
-      setProfileData((prev) => ({ ...prev, ...response.data }));
+      // Backend returns { success, code, message, data }
+      const updatedData = response.data.data || response.data;
+      setProfileData((prev) => ({ ...prev, ...updates, ...updatedData }));
+      // Update Redux state to sync across all components
+      dispatch(updateUserProfile({ ...updates, ...updatedData }));
       setSectionLoading(false);
     } catch (error) {
       console.error('Error updating profile data:', error);
@@ -302,6 +310,16 @@ const ProfileSection = () => {
       setMemberSince(calculateMemberSince(profileData.createdAt));
     }
   }, [profileData.createdAt, t]);
+
+  // Sync profile picture with Redux state to reflect changes without reload
+  useEffect(() => {
+    if (reduxProfilePicture && reduxProfilePicture !== profileData.profilePicture) {
+      setProfileData(prev => ({
+        ...prev,
+        profilePicture: reduxProfilePicture
+      }));
+    }
+  }, [reduxProfilePicture]);
 
   const renderSectionContent = () => {
     if (sectionLoading) {
@@ -375,7 +393,7 @@ const ProfileSection = () => {
                 + {t('profile:sections.portfolio.addProject', 'Add Project')}
               </a>
             </div>
-            <ProjectsPortfolioSection />
+            <ProjectsPortfolioSection hideHeader={true} />
           </div>
         );
 

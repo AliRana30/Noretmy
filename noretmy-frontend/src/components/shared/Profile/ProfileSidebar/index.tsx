@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 import FallbackAvatar from '@/components/shared/FallbackAvatar';
 import {
   User,
@@ -75,6 +77,10 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 }) => {
   const router = useRouter();
   const { t } = useTranslations();
+  
+  // Get live data from Redux for real-time updates
+  const reduxUser = useSelector((state: RootState) => state?.auth?.user);
+  const currentProfilePicture = reduxUser?.profilePicture || profileData.profilePicture;
 
   const navigationItems = getNavigationItems(isSeller, t);
   const quickActions = getQuickActions(isSeller, t);
@@ -102,7 +108,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <div className="relative -mt-10 mb-3">
               <div className="relative">
                 <FallbackAvatar
-                  src={profileData.profilePicture}
+                  src={currentProfilePicture}
                   alt={profileData.fullName || 'User'}
                   name={profileData.fullName}
                   className="border-4 border-white shadow-md"

@@ -41,7 +41,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         setGig(gig);
 
         setGigTopProps({
-          seller: seller?.userName || 'N/A',
+          seller: seller?.fullName || seller?.userName || 'N/A',
           avatar: seller?.profilePicture || '/images/placeholder-avatar.png',
           gig: gig?.title || 'N/A',
           description: gig?.description || 'N/A',

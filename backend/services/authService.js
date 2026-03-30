@@ -154,7 +154,16 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
           const io = global.io;
           if (io) {
+            // Emit to specific admin user
             io.to(`user_${Admin._id}`).emit('notification', {
+              title: '🆕 New User Registration',
+              message: `${fullName} signed up - Pending verification`,
+              type: 'admin',
+              link: `/admin/documents`
+            });
+            
+            // Also emit to admin_room for all admins
+            io.to('admin_room').emit('adminNotification', {
               title: '🆕 New User Registration',
               message: `${fullName} signed up - Pending verification`,
               type: 'admin',
@@ -184,7 +193,7 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     return {
       success: true,
       code: 'SIGNUP_SUCCESS',
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: 'Registration successful!',
       emailSent: true,
       user: {
         id: user._id,

@@ -3,8 +3,7 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast from 'react-hot-toast';
 
 interface FormValues {
   subject: string;
@@ -157,7 +156,6 @@ const ContactPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-      <ToastContainer />
       
       {/* Header Section */}
       <div className="text-center mb-12">

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Clock, X, MessageSquare, Send, ShoppingCart } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import axios from 'axios';
 
 interface PricingPlan {
@@ -47,26 +47,26 @@ const PricingPlans = ({
 
   const handlePlanSelect = (index: number) => {
     if (!isLoggedIn) {
-      toast.info(t('gigs:single.pricing.signInRequired') || 'Please sign in to purchase this service', {
-        position: 'top-center',
-        autoClose: 3000,
+      toast(t('gigs:single.pricing.signInRequired') || 'Please sign in to purchase this service', {
+        icon: 'ℹ️',
+        duration: 3000,
       });
       router.push('/login');
       return;
     }
 
     if (isFreelancer) {
-      toast.info(t('gigs:single.pricing.freelancerRestriction') || 'Freelancers cannot order services. Switch to buyer account to order.', {
-        position: 'top-center',
-        autoClose: 3000,
+      toast(t('gigs:single.pricing.freelancerRestriction') || 'Freelancers cannot order services. Switch to buyer account to order.', {
+        icon: 'ℹ️',
+        duration: 3000,
       });
       return;
     }
 
     if (isOwnGig) {
-      toast.info(t('gigs:single.pricing.ownGigRestriction') || 'You cannot order your own gig.', {
-        position: 'top-center',
-        autoClose: 3000,
+      toast(t('gigs:single.pricing.ownGigRestriction') || 'You cannot order your own gig.', {
+        icon: 'ℹ️',
+        duration: 3000,
       });
       return;
     }
@@ -96,8 +96,7 @@ const PricingPlans = ({
       );
 
       toast.success(response.data.message || 'Order request sent successfully! The freelancer will review your request.', {
-        position: 'top-center',
-        autoClose: 4000,
+        duration: 4000,
       });
       setShowInvitationModal(false);
       setInvitationMessage('');
@@ -105,8 +104,7 @@ const PricingPlans = ({
     } catch (error: any) {
       console.error('Order invitation error:', error);
       toast.error(error.response?.data?.message || 'Failed to send order request. Please try again.', {
-        position: 'top-center',
-        autoClose: 3000,
+        duration: 3000,
       });
     } finally {
       setIsSubmitting(false);
@@ -233,8 +231,8 @@ const PricingPlans = ({
 
       {/* Order Request Modal */}
       {showInvitationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white">
               <div className="flex justify-between items-start">
@@ -256,7 +254,7 @@ const PricingPlans = ({
             </div>
 
             {/* Modal Content */}
-            <div className="p-4">
+            <div className="p-4 overflow-y-auto flex-1">
               {/* Selected Plan Summary */}
               <div className="bg-slate-50 rounded-xl p-3 mb-4">
                 <div className="flex justify-between items-center mb-2">

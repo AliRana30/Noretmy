@@ -98,9 +98,9 @@ const ListJobs = () => {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-xl sm:text-2xl leading-tight font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {getTranslation(listTranslations, "jobsManagement")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -109,7 +109,7 @@ const ListJobs = () => {
         </div>
         <button
           onClick={loadData}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
             darkMode 
               ? 'bg-white/10 text-white hover:bg-white/20' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -171,12 +171,12 @@ const ListJobs = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Filter className={`hidden sm:block w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className={`px-4 py-2.5 rounded-xl transition-all outline-none ${
+            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl transition-all outline-none ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700 text-white' 
                 : 'bg-gray-50 border border-gray-200 text-gray-900'
@@ -262,7 +262,7 @@ const ListJobs = () => {
                     {job.date}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                        <button
                         onClick={() => window.open(`${API_CONFIG.FRONTEND_URL}/gig/${job._id}`, '_blank')}
                         className="p-2 rounded-lg bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 transition-colors"
@@ -300,11 +300,11 @@ const ListJobs = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             {getTranslation(listTranslations, "showing")} {((currentPage - 1) * itemsPerPage) + 1} {getTranslation(commonTranslations, "to")} {Math.min(currentPage * itemsPerPage, filteredData.length)} {getTranslation(listTranslations, "of")} {filteredData.length} {getTranslation(listTranslations, "jobs")}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}

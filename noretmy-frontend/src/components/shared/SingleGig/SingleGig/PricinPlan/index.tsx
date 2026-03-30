@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Clock, X, MessageSquare, Send, ShoppingCart } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import axios from 'axios';
 
 interface PricingPlan {

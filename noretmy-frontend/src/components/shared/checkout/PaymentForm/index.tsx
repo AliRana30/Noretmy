@@ -290,12 +290,13 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-      {paymentSuccess ? (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full mx-4 transform transition-all animate-fadeIn">
+    <>
+      {/* Success Modal - Rendered outside parent container for proper positioning */}
+      {paymentSuccess && (
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all animate-fadeIn">
             <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-5">
+              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-5 shrink-0">
                 <ShieldCheck className="h-10 w-10 text-orange-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -322,7 +323,10 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Payment Form */}
+      <div className="max-w-lg mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div>
           <div className="bg-blue-600 p-6 text-white text-center">
             <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
@@ -414,8 +418,8 @@ const PaymentForm: React.FC<{ paymentType: string; orderData: any }> = ({
             </div>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 

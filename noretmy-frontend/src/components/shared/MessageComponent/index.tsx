@@ -3,7 +3,7 @@ import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import {
   CheckCircle,
   XCircle,
@@ -17,9 +17,6 @@ import {
   CheckCheck
 } from 'lucide-react';
 import MessageAttachmentDisplay from '../MessageAttachmentDisplay';
-
-const defaultAvatar =
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80';
 
 interface OrderData {
   gigTitle?: string;
@@ -89,8 +86,19 @@ const MessageComponent: React.FC<MessageProps> = ({
   const messageType = item.messageType || 'text';
 
   const avatarSource = isSelf
-    ? (currentUserAvatar || defaultAvatar)
-    : (otherUserAvatar || item.image || defaultAvatar);
+    ? currentUserAvatar
+    : (otherUserAvatar || item.image);
+    
+  // Get user initials for fallback
+  const getUserInitials = () => {
+    if (isSelf) return 'ME';
+    if (otherUserName) {
+      const names = otherUserName.split(' ');
+      if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      return otherUserName.slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   const handleAcceptInvitation = async () => {
     if (!item.orderId) return;
@@ -374,11 +382,17 @@ const MessageComponent: React.FC<MessageProps> = ({
         }`}
     >
       {/* Avatar */}
-      <img
-        src={avatarSource}
-        alt="avatar"
-        className="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-lg flex-shrink-0"
-      />
+      {avatarSource ? (
+        <img
+          src={avatarSource}
+          alt="avatar"
+          className="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-lg flex-shrink-0"
+        />
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0">
+          {getUserInitials()}
+        </div>
+      )}
 
       {/* Message Content */}
       <div

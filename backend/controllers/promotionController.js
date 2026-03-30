@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 /**
  * Check if user is eligible to buy promotions (must be seller or company)
  */
-const isEligibleForPromotion = (user) => {
+const isEligibleForPromotion = (user, reqIsSeller = false) => {
   if (!user) return false;
 
   if (typeof user.isSellerUser === 'function') {
@@ -23,8 +23,20 @@ const isEligibleForPromotion = (user) => {
   const hasSellerFlag = user.isSeller === true || user.isSeller === 'true';
   const hasCompanyFlag = user.isCompany === true || user.isCompany === 'true';
   const isCompanyType = user.sellerType === 'company';
+  // Also check JWT token isSeller flag from middleware
+  const tokenIsSeller = reqIsSeller === true || reqIsSeller === 'true';
 
-  const eligible = isFreelancer || isAdmin || hasSellerFlag || hasCompanyFlag || isCompanyType;
+  const eligible = isFreelancer || isAdmin || hasSellerFlag || hasCompanyFlag || isCompanyType || tokenIsSeller;
+  
+  console.log('[Promotion] Eligibility check:', {
+    userId: user._id,
+    role: user.role,
+    isSeller: user.isSeller,
+    isCompany: user.isCompany,
+    sellerType: user.sellerType,
+    tokenIsSeller: reqIsSeller,
+    eligible
+  });
   
   return eligible;
 };
@@ -48,7 +60,15 @@ const allJobsPromotionMonthlySubscription = async (req, res) => {
       return res.status(404).json({ message: "User does not exist!" });
     }
 
-    if (!isEligibleForPromotion(user)) {
+    // Pass req.isSeller from JWT middleware for production compatibility
+    if (!isEligibleForPromotion(user, req.isSeller)) {
+      console.error('[Promotion] User not eligible:', {
+        userId: user._id,
+        role: user.role,
+        isSeller: user.isSeller,
+        reqIsSeller: req.isSeller,
+        isCompany: user.isCompany
+      });
       return res.status(403).json({ 
         message: "Only sellers and companies can purchase promotion plans. Please become a seller first." 
       });
@@ -147,7 +167,13 @@ const singleJobPromotionMonthlySubscriptionController = async (req, res) => {
       return res.status(404).json({ message: "User does not exist!" });
     }
 
-    if (!isEligibleForPromotion(user)) {
+    if (!isEligibleForPromotion(user, req.isSeller)) {
+      console.error('[Promotion] User not eligible for gig promotion:', {
+        userId: user._id,
+        role: user.role,
+        isSeller: user.isSeller,
+        reqIsSeller: req.isSeller
+      });
       return res.status(403).json({ 
         message: "Only sellers and companies can purchase promotion plans. Please become a seller first." 
       });

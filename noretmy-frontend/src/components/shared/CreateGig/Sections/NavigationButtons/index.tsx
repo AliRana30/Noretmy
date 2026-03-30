@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
 interface ButtonProps {
@@ -18,45 +17,45 @@ interface NavigationButtonsProps {
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   leftButton,
   rightButton,
-}) => (
-  <div className="flex justify-between mt-4">
-    {leftButton ? (
-      <motion.button
-        whileHover={{ scale: leftButton.disabled ? 1 : 1.1 }}
-        whileTap={{ scale: leftButton.disabled ? 1 : 0.95 }}
-        onClick={leftButton.onClick}
-        className={leftButton.className}
-        disabled={leftButton.disabled}
-      >
-        {leftButton.icon && leftButton.iconPosition === 'left' && (
-          <span className="mr-2">{leftButton.icon}</span>
-        )}
-        {leftButton.text}
-        {leftButton.icon && leftButton.iconPosition === 'right' && (
-          <span className="ml-2">{leftButton.icon}</span>
-        )}
-      </motion.button>
-    ) : (
-      <div />
-    )}
-    {rightButton && (
-      <motion.button
-        whileHover={{ scale: rightButton.disabled ? 1 : 1.1 }}
-        whileTap={{ scale: rightButton.disabled ? 1 : 0.95 }}
-        onClick={rightButton.onClick}
-        className={rightButton.className}
-        disabled={rightButton.disabled}
-      >
-        {rightButton.icon && rightButton.iconPosition === 'left' && (
-          <span className="mr-2">{rightButton.icon}</span>
-        )}
-        {rightButton.text}
-        {rightButton.icon && rightButton.iconPosition === 'right' && (
-          <span className="ml-2">{rightButton.icon}</span>
-        )}
-      </motion.button>
-    )}
-  </div>
-);
+}) => {
+  const containerClass = leftButton && rightButton 
+    ? 'flex items-center justify-between mt-6 gap-4 w-full'
+    : 'flex items-center justify-end mt-6 gap-4 w-full';
+
+  return (
+    <div className={containerClass}>
+      {leftButton && (
+        <button
+          onClick={leftButton.disabled ? undefined : leftButton.onClick}
+          className={`${leftButton.className} flex items-center gap-2 ${leftButton.disabled ? 'pointer-events-none' : ''}`}
+          disabled={leftButton.disabled}
+        >
+          {leftButton.icon && leftButton.iconPosition === 'left' && (
+            <span className="flex-shrink-0">{leftButton.icon}</span>
+          )}
+          <span>{leftButton.text}</span>
+          {leftButton.icon && leftButton.iconPosition === 'right' && (
+            <span className="flex-shrink-0">{leftButton.icon}</span>
+          )}
+        </button>
+      )}
+      {rightButton && (
+        <button
+          onClick={rightButton.disabled ? undefined : rightButton.onClick}
+          className={`${rightButton.className} flex items-center gap-2 ${rightButton.disabled ? 'pointer-events-none' : ''}`}
+          disabled={rightButton.disabled}
+        >
+          {rightButton.icon && rightButton.iconPosition === 'left' && (
+            <span className="flex-shrink-0">{rightButton.icon}</span>
+          )}
+          <span>{rightButton.text}</span>
+          {rightButton.icon && rightButton.iconPosition === 'right' && (
+            <span className="flex-shrink-0">{rightButton.icon}</span>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default NavigationButtons;

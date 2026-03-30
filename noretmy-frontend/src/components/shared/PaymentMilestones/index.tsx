@@ -15,7 +15,7 @@ import {
   RefreshCw,
   ExternalLink
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 interface PaymentStage {
   id: string;

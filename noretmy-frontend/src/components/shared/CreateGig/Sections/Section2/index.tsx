@@ -10,6 +10,7 @@ import {
 import AnimatedSection from '../AnimatedSection';
 import SectionHeader from '../../SectionHeader';
 import NavigationButtons from '../NavigationButtons';
+import { showError } from '@/util/toast';
 
 interface SectionTwoProps {
   isVisible: boolean;
@@ -40,6 +41,22 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [descriptionStrength, setDescriptionStrength] = useState(0);
   const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
+
+  const handleNext = () => {
+    if (!description || description.trim().length < 100) {
+      showError('Description is required and must be at least 100 characters long.');
+      return;
+    }
+    if (!keywords || keywords.trim().length === 0) {
+      showError('Please enter at least one keyword.');
+      return;
+    }
+    if (!whyChooseMe || whyChooseMe.length === 0) {
+      showError('Please select at least one "Why Choose Me" trait.');
+      return;
+    }
+    onNext();
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -333,7 +350,8 @@ const SectionTwo: React.FC<SectionTwoProps> = ({
           }}
           rightButton={{
             text: 'Next',
-            onClick: onNext,
+            onClick: handleNext,
+            disabled: !description || !keywords || whyChooseMe.length === 0,
             className: `bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all ${!description || !keywords || whyChooseMe.length === 0
                 ? 'opacity-50 cursor-not-allowed'
                 : ''

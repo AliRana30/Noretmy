@@ -576,6 +576,7 @@ const notifyAdminPromotionPurchased = async (userId, userName, promotionName, am
 
   const io = global.io;
   if (io) {
+    // Send to each admin's personal room
     adminIds.forEach((adminId) => {
       io.to(`user_${adminId}`).emit('notification', {
         title: '🎯 Promotion Purchased',
@@ -584,12 +585,7 @@ const notifyAdminPromotionPurchased = async (userId, userName, promotionName, am
         link: '/admin/promotions'
       });
     });
-    emitAdminNotification({
-      title: '🎯 Promotion Purchased',
-      message: `${userName} purchased "${promotionName}" promotion ($${amount})`,
-      type: 'promotion',
-      link: '/admin/promotions'
-    });
+    // Note: Removed duplicate emitAdminNotification - admins already get notified via their personal rooms
   }
 
   return created;

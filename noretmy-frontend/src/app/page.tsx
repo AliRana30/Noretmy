@@ -1,7 +1,5 @@
 'use client';
 
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import 'material-icons/iconfont/material-icons.css';
 import Head from 'next/head';
 import axios from 'axios';
@@ -129,8 +127,6 @@ const Home = () => {
         <PageTransitionWrapper>
           {(navigateWithTransition) => (
             <>
-              <ToastContainer />
-
               {/* === ATTENTION PHASE === */}
               {/* Hero: Strong value proposition with live activity, trust indicators, dual CTAs */}
               <AnimateOnScroll duration={0.8}>

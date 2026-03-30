@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Star, Clock, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import axiosInstance from '@/lib/axiosInstance';
 import { useTranslations } from '@/hooks/useTranslations';
 

@@ -6,7 +6,7 @@ import { StoreProvider } from '@/store/StoreProvider';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 const ChatContent = () => {
   const router = useRouter();

@@ -6,6 +6,7 @@ import PricingPlan from '../../PricingPlan';
 import AddonFaqItem from '../../AddonFaqItem';
 import Faq from '../../FaqsItem';
 import NavigationButtons from '../NavigationButtons';
+import { showError } from '@/util/toast';
 
 interface Addon {
   title: string;
@@ -53,7 +54,27 @@ const SectionThree: React.FC<SectionThreeProps> = ({
   onNext,
   setPricingData,
   pricingData
-}) => (
+}) => {
+  const handleNext = () => {
+    // Check if at least basic plan has all required fields
+    const basicPlan = pricingData.basic;
+    if (!basicPlan.title || !basicPlan.description || !basicPlan.price || !basicPlan.deliveryTime) {
+      showError('Please fill in all Basic plan details (title, description, price, and delivery time).');
+      return;
+    }
+    // Validate price is a number and greater than 0
+    if (isNaN(Number(basicPlan.price)) || Number(basicPlan.price) <= 0) {
+      showError('Please enter a valid price for the Basic plan.');
+      return;
+    }
+    onNext();
+  };
+
+  const isBasicPlanComplete = pricingData.basic.title && pricingData.basic.description && 
+    pricingData.basic.price && pricingData.basic.deliveryTime && 
+    !isNaN(Number(pricingData.basic.price)) && Number(pricingData.basic.price) > 0;
+
+  return (
   <AnimatedSection isVisible={isVisible}>
     <SectionHeader
       number="03"
@@ -79,14 +100,16 @@ const SectionThree: React.FC<SectionThreeProps> = ({
       }}
       rightButton={{
         text: 'Next',
-        onClick: onNext,
+        onClick: handleNext,
+        disabled: !isBasicPlanComplete,
         className:
-          'bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all',
+          `bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all ${!isBasicPlanComplete ? 'opacity-50 cursor-not-allowed' : ''}`,
         icon: <FaArrowRight />,
         iconPosition: 'right',
       }}
     />
   </AnimatedSection>
-);
+  );
+};
 
 export default SectionThree;

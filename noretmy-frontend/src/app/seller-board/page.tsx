@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { SkeletonDashboard } from '@/components/shared/Skeletons';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -121,6 +121,9 @@ const SellerDashboard = () => {
   useEffect(() => {
     if (!isLoggedIn || !isSeller) return;
 
+    let lastRefreshAt = 0;
+    const MIN_REFRESH_GAP_MS = 2000;
+
     const fetchSellerDetails = async () => {
       try {
         const response = await axios.get(
@@ -173,6 +176,36 @@ const SellerDashboard = () => {
     };
 
     fetchSellerDetails();
+
+    const refreshWithThrottle = () => {
+      const now = Date.now();
+      if (now - lastRefreshAt < MIN_REFRESH_GAP_MS) return;
+      lastRefreshAt = now;
+      fetchSellerDetails();
+    };
+
+    const intervalId = setInterval(fetchSellerDetails, 30000);
+    const onFocus = () => refreshWithThrottle();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshWithThrottle();
+      }
+    };
+    const onNotificationsUpdated = () => refreshWithThrottle();
+    const onSellerStatsRefresh = () => refreshWithThrottle();
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('notifications_updated', onNotificationsUpdated);
+    window.addEventListener('seller_stats_refresh', onSellerStatsRefresh);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('notifications_updated', onNotificationsUpdated);
+      window.removeEventListener('seller_stats_refresh', onSellerStatsRefresh);
+    };
   }, [isLoggedIn, isSeller, BACKEND_URL, router]);
 
   if (isChecking) {

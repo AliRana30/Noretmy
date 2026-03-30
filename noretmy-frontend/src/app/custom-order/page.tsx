@@ -2,8 +2,6 @@
 import CreateOrderScreen from '@/components/shared/Milestone';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const MilestonePageContent = () => {
   const searchParams = useSearchParams();
@@ -21,7 +19,6 @@ const MilestonePageContent = () => {
   return (
     <main className="overflow-x-hidden">
       <CreateOrderScreen buyerId={buyerId} /> 
-      <ToastContainer />
     </main>
   );
 };

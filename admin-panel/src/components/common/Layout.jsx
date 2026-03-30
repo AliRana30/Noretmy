@@ -10,7 +10,7 @@ export default function Layout() {
   return (
     <div className={`flex w-full h-screen overflow-hidden ${darkMode ? 'dark' : ''}`}>
       {/* Sidebar - Fixed */}
-      <div className="flex-shrink-0 h-screen overflow-hidden">
+      <div className="shrink-0 h-screen overflow-hidden">
         <Sidebar />
       </div>
       
@@ -23,12 +23,12 @@ export default function Layout() {
         }}
       >
         {/* Header - Fixed at top */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <AppHeader />
         </div>
         
         {/* Page Content - Scrollable */}
-        <div className={`flex-1 overflow-y-auto p-6 ${
+        <div className={`flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 ${
           darkMode ? 'text-white' : 'text-gray-900'
         }`}>
           <Outlet />

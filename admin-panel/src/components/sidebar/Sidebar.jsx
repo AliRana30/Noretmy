@@ -89,7 +89,7 @@ const Sidebar = () => {
   return (
     <div
       className={`relative h-screen transition-all duration-300 ease-in-out flex flex-col ${
-        isOpen ? 'lg:min-w-64 md:min-w-56 sm:min-w-[140px] min-w-[120px]' : 'w-16 sm:w-20'
+        isOpen ? 'lg:min-w-64 md:min-w-56 sm:min-w-40 min-w-36' : 'w-14 sm:w-16'
       } ${
         darkMode 
           ? 'bg-gray-900 border-r border-gray-700' 
@@ -99,7 +99,7 @@ const Sidebar = () => {
       {/* Toggle Button */}
       <button
         onClick={handleToggleSidebar}
-        className={`absolute z-10 -right-3 top-[74px] w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer ${
+        className={`absolute z-10 -right-3 top-[74px] w-6 h-6 rounded-full hidden sm:flex items-center justify-center shadow-md transition-all cursor-pointer ${
           darkMode 
             ? 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white' 
             : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700'
@@ -146,52 +146,48 @@ const Sidebar = () => {
 
         {/* Service Section */}
         {isOpen && (
-          <>
-            <div className="px-5 mt-6 mb-3">
-              <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                darkMode ? 'text-gray-500' : 'text-gray-400'
-              }`}>
-                {getTranslation(sidebarTranslations, 'service') || 'Service'}
-              </p>
-            </div>
-            {SIDEBAR_SERVICE_ITEMS.map((item) => (
-              <SidebarItem
-                key={item.id}
-                icon={item.icon}
-                label={getTranslation(sidebarTranslations, item.id) || item.label}
-                isOpen={isOpen}
-                isSelected={location.pathname === `/${item.id}`}
-                onClick={handleItemClick(item.id)}
-                darkMode={darkMode}
-              />
-            ))}
-          </>
+          <div className="px-5 mt-6 mb-3">
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${
+              darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
+              {getTranslation(sidebarTranslations, 'service') || 'Service'}
+            </p>
+          </div>
         )}
+        {SIDEBAR_SERVICE_ITEMS.map((item) => (
+          <SidebarItem
+            key={item.id}
+            icon={item.icon}
+            label={getTranslation(sidebarTranslations, item.id) || item.label}
+            isOpen={isOpen}
+            isSelected={location.pathname === `/${item.id}`}
+            onClick={handleItemClick(item.id)}
+            darkMode={darkMode}
+          />
+        ))}
 
         {/* User Section */}
         {isOpen && (
-          <>
-            <div className="px-5 mt-6 mb-3">
-              <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                darkMode ? 'text-gray-500' : 'text-gray-400'
-              }`}>
-                {getTranslation(sidebarTranslations, 'user') || 'User'}
-              </p>
-            </div>
-            {SIDEBAR_USER_ITEMS.map((item) => (
-              <SidebarItem
-                key={item.id}
-                icon={item.icon}
-                label={getTranslation(sidebarTranslations, item.id) || item.label}
-                isOpen={isOpen}
-                isSelected={location.pathname === `/${item.id}`}
-                onClick={handleItemClick(item.id)}
-                darkMode={darkMode}
-                isLogout={item.id === 'logout'}
-              />
-            ))}
-          </>
+          <div className="px-5 mt-6 mb-3">
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${
+              darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
+              {getTranslation(sidebarTranslations, 'user') || 'User'}
+            </p>
+          </div>
         )}
+        {SIDEBAR_USER_ITEMS.map((item) => (
+          <SidebarItem
+            key={item.id}
+            icon={item.icon}
+            label={getTranslation(sidebarTranslations, item.id) || item.label}
+            isOpen={isOpen}
+            isSelected={location.pathname === `/${item.id}`}
+            onClick={handleItemClick(item.id)}
+            darkMode={darkMode}
+            isLogout={item.id === 'logout'}
+          />
+        ))}
       </div>
 
       {/* Theme Toggle Button */}

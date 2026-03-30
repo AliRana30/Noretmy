@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   PencilIcon,
   CheckIcon,
@@ -59,6 +59,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const { t } = useTranslations();
 
   const isSeller = useUserRole();
+
+  useEffect(() => {
+    setEditedTagline(tagline || '');
+  }, [tagline]);
 
   const handleTaglineEdit = () => {
     if (isEditingTagline && editedTagline !== tagline) {
@@ -223,7 +227,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   e.preventDefault();
                   onSectionChange?.('portfolio');
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg hover:bg-orange-100 transition-all text-sm font-medium shadow-sm transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg hover:bg-orange-100 transition-colors text-sm font-medium shadow-sm"
               >
                 <FolderIcon className="h-4 w-4" />
                 {t('profile:profileCard.navigation.portfolio')}
@@ -238,7 +242,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   e.preventDefault();
                   onSectionChange?.('gigs');
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg hover:bg-orange-100 transition-all text-sm font-medium shadow-sm transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg hover:bg-orange-100 transition-colors text-sm font-medium shadow-sm"
               >
                 <BriefcaseIcon className="h-4 w-4" />
                 {t('profile:profileCard.navigation.gigs')}

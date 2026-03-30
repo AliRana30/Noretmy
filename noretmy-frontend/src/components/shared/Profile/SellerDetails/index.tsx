@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,10 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description);
   const { t } = useTranslations();
+
+  useEffect(() => {
+    setEditedDescription(description || '');
+  }, [description]);
 
   const handleEditDescription = () => {
     if (isEditingDescription) {

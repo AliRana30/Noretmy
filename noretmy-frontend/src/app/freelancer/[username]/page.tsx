@@ -109,17 +109,28 @@ const FreelancerProfileContent = () => {
   // Only show seller level if they have a level above 'new'
   const showSellerLevel = sellerBadge && sellerBadge.level !== 'new';
   // Use stats from API if available, otherwise fall back to badge metrics
-  const hasRealMetrics = freelancer?.stats && (
-    freelancer.stats.onTimeDeliveryRate > 0 ||
-    freelancer.stats.responseRate > 0 ||
-    freelancer.stats.completionRate > 0
-  );
-  const responseRateValue = freelancer?.stats?.responseRate || sellerBadge?.metrics?.responseRate;
+  const hasRealMetrics = !!freelancer?.stats;
+  const responseRateValue =
+    typeof freelancer?.stats?.responseRate === 'number'
+      ? freelancer.stats.responseRate
+      : sellerBadge?.metrics?.responseRate;
   const responseRateLabel = typeof responseRateValue === 'number' && responseRateValue > 0
     ? `${Math.round(responseRateValue)}%`
     : 'N/A';
-  const onTimeDeliveryRate = freelancer?.stats?.onTimeDeliveryRate || sellerBadge?.metrics?.onTimeDeliveryRate || 0;
-  const completionRateValue = freelancer?.stats?.completionRate || sellerBadge?.metrics?.completionRate || 0;
+  const onTimeDeliveryRate =
+    typeof freelancer?.stats?.onTimeDeliveryRate === 'number'
+      ? freelancer.stats.onTimeDeliveryRate
+      : (sellerBadge?.metrics?.onTimeDeliveryRate ?? 0);
+  const completionRateValue =
+    typeof freelancer?.stats?.completionRate === 'number'
+      ? freelancer.stats.completionRate
+      : (sellerBadge?.metrics?.completionRate ?? 0);
+  const successScoreValue = Math.round(
+    ((stats?.averageRating || 0) / 5) * 40 +
+    completionRateValue * 0.25 +
+    onTimeDeliveryRate * 0.2 +
+    (typeof responseRateValue === 'number' ? responseRateValue : 0) * 0.15
+  );
 
   useEffect(() => {
     const fetchFreelancerProfile = async () => {
@@ -351,6 +362,19 @@ const FreelancerProfileContent = () => {
                     <div
                       className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000"
                       style={{ width: `${stats.successRate || 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-600">Success Score</span>
+                    <span className="font-semibold text-slate-900">{successScoreValue}/100</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-1.5">
+                    <div
+                      className="bg-orange-500 h-1.5 rounded-full transition-all duration-1000"
+                      style={{ width: `${Math.min(100, Math.max(0, successScoreValue))}%` }}
                     ></div>
                   </div>
                 </div>

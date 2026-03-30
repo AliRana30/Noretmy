@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Clock, Heart, CheckCircle, Shield, Award } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
 import FallbackAvatar from '../FallbackAvatar';

@@ -279,7 +279,22 @@ const handleReject = (requestId) => {
 
 export const getNotificationColumns = (getTranslation) => {
   return [
-    { field: "userFullName", headerName: getTranslatedHeader(getTranslation, "user"), width: 150 },
+    {
+      field: "userFullName",
+      headerName: getTranslatedHeader(getTranslation, "user"),
+      width: 180,
+      renderCell: (params) => {
+        const name =
+          params.row.userFullName ||
+          params.row.userName ||
+          params.row.username ||
+          params.row.senderName ||
+          params.row.data?.userFullName ||
+          params.row.data?.username ||
+          'System';
+        return <span>{name}</span>;
+      }
+    },
     { field: "type", headerName: getTranslatedHeader(getTranslation, "type"), width: 100,
       renderCell: (params) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -782,7 +797,17 @@ export const getNotifications = async () => {
 
     const notifications = response.data?.data || response.data?.notifications || response.data || [];
 
-    return notifications;
+    return notifications.map((notification) => ({
+      ...notification,
+      userFullName:
+        notification.userFullName ||
+        notification.userName ||
+        notification.username ||
+        notification.senderName ||
+        notification.data?.userFullName ||
+        notification.data?.username ||
+        'System'
+    }));
   } catch (error) {
     console.error("Error fetching notifications:", error);
     handleApiError(error);

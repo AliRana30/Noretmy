@@ -90,13 +90,13 @@ import { useState, useEffect, useContext } from "react";
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-start sm:items-center gap-3">
           <div className={`p-3 rounded-xl ${darkMode ? 'bg-orange-500/20' : 'bg-orange-100'}`}>
             <Bell className={`w-6 h-6 ${darkMode ? 'text-orange-400' : 'text-orange-600'}`} />
           </div>
           <div>
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-xl sm:text-2xl leading-tight font-bold wrap-break-word ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {getTranslation(listTranslations, "allNotifications")}
             </h1>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -106,7 +106,7 @@ import { useState, useEffect, useContext } from "react";
         </div>
         <button
           onClick={loadData}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
             darkMode 
               ? 'bg-white/10 text-white hover:bg-white/20' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

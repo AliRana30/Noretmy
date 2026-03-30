@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Star, Send, MessageSquare, ThumbsUp, Clock, Sparkles } from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 interface ReviewFormProps {
     orderId: string;

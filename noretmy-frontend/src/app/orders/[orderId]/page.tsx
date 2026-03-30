@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SingleOrderPage from '@/components/shared/Order-Details-Buyer/Single';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import SingleOrderSkeleton from '@/skelton/SingleOrder';
 import MilestoneOrderDisplay from '@/components/shared/SingleOrder/MilestonesDisplay';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -94,7 +92,6 @@ const OrderDetailsPage = ({ params }: { params: { orderId: string } }) => {
         reviewDetails={orderData?.reviewDetails}
         onOperationComplete={() => setOnOperationComplete(true)}
       />}
-      <ToastContainer />
     </main>
   );
 };

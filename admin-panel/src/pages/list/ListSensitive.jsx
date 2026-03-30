@@ -131,9 +131,9 @@ const ListSensitive = () => {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-xl sm:text-2xl leading-tight font-bold wrap-break-word ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {getTranslation(listTranslations, "sensitiveMessages")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -142,7 +142,7 @@ const ListSensitive = () => {
         </div>
         <button
           onClick={loadData}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
             darkMode 
               ? 'bg-white/10 text-white hover:bg-white/20' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -240,7 +240,7 @@ const ListSensitive = () => {
                     <p className="max-w-md truncate">{msg.desc}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => handleWarn(msg.userId)}
                         disabled={actionLoading === msg.userId + '-warn'}
@@ -277,11 +277,11 @@ const ListSensitive = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
              {getTranslation(listTranslations, "showing")} {((currentPage - 1) * itemsPerPage) + 1} {getTranslation(commonTranslations, "to")} {Math.min(currentPage * itemsPerPage, filteredData.length)} {getTranslation(listTranslations, "of")} {filteredData.length} {getTranslation(listTranslations, "messages")}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}

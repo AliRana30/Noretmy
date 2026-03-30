@@ -6,8 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { FaSave,  FaImage, FaPlus, FaTimes } from 'react-icons/fa';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast from 'react-hot-toast';
 import { selectGigById } from '@/store/gigSlice';
 import { useSelector } from 'react-redux';
 
@@ -261,7 +260,6 @@ const EditGig: React.FC<EditGigProps> = ({ params }) => {
   
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <ToastContainer position="top-right" autoClose={3000} />
       
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">

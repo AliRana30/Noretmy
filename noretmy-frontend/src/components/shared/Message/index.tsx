@@ -38,7 +38,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const [isOtherUserSeller, setIsOtherUserSeller] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<any[]>([]);
-  const [forceUpdate, setForceUpdate] = useState(0); // Force re-render
   const [newMessage, setNewMessage] = useState('');
   const [pendingAttachments, setPendingAttachments] = useState<AttachmentData[]>([]);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
@@ -46,6 +45,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const shouldAutoScrollRef = useRef(true);
   const socketRef = useRef<any>(null);
   const actionsMenuRef = useRef<HTMLDivElement | null>(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -97,7 +97,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         const messageData = response.data.length > 0 ? response.data : [];
         setMessages(messageData);
         setIsLoading(false);
-        setTimeout(scrollToBottom, 100); // Scroll after render
+        requestAnimationFrame(() => scrollToBottom('auto'));
 
         // Mark messages as read - both socket and API
         if (messageData.length > 0) {
@@ -259,6 +259,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         return;
       }
 
+      const senderId = String(payload.userId || payload.senderId || '');
+      const isOwnMessage = senderId && String(senderId) === String(userId);
+
       setMessages((prev) => {
         const exists = prev.some((msg) => msg._id === payload._id);
         if (exists) {
@@ -271,11 +274,10 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         return newMessages;
       });
 
-      // Use requestAnimationFrame instead of setTimeout to prevent performance violations
-      requestAnimationFrame(() => {
-        setForceUpdate(prev => prev + 1);
-        requestAnimationFrame(scrollToBottom);
-      });
+      // Only auto-scroll when user is already near bottom or when message is sent by current user.
+      if (isOwnMessage || shouldAutoScrollRef.current) {
+        requestAnimationFrame(() => scrollToBottom('smooth'));
+      }
     };
 
     const handleMessagesMarkedRead = (payload: any) => {
@@ -327,11 +329,33 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     };
   }, [SOCKET_URL, conversationId, userId]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior,
+      });
     }
   };
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const updateAutoScrollState = () => {
+      const threshold = 80;
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      shouldAutoScrollRef.current = distanceFromBottom <= threshold;
+    };
+
+    container.addEventListener('scroll', updateAutoScrollState);
+    updateAutoScrollState();
+
+    return () => {
+      container.removeEventListener('scroll', updateAutoScrollState);
+    };
+  }, [messages.length]);
 
   const handleSend = async () => {
     if (newMessage.trim() || pendingAttachments.length > 0) {
@@ -360,7 +384,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         });
       }
 
-      setTimeout(scrollToBottom, 50);
+      requestAnimationFrame(() => scrollToBottom('smooth'));
 
       try {
         if (messages.length === 0 && sellerId && buyerId) {
@@ -535,7 +559,6 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       {/* Messages List - flex-1 with min-h-0 to enable proper scrolling in flex container */}
       <div
         ref={messagesContainerRef}
-        key={`messages-${forceUpdate}`}
         className="flex-1 p-3 md:p-4 space-y-3 md:space-y-4 min-h-0 chat-scrollbar"
         style={{
           maxHeight: 'calc(100vh - 300px)',

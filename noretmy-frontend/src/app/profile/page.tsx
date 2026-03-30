@@ -5,7 +5,7 @@ import { SkeletonProfileHeader } from '@/components/shared/Skeletons';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 const Profile = () => {
   const router = useRouter();

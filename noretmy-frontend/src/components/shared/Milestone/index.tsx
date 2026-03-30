@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { showSuccess } from '@/util/toast';
 
 interface Milestone {
