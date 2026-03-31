@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_CONFIG, getApiUrl, getAuthHeaders } from "./config/api";
+import { getAdminJobs } from "./utils/adminApi";
 import datatableColumnsTranslations from "./localization/datatableColumns.json";
 
 const handleApiError = (error) => {
@@ -219,12 +220,26 @@ export const getWithdrawalRequestsColumns = (getTranslation) => {
     {
       field: "userId",
       headerName: getTranslatedHeader(getTranslation, "userId"),
-      width: 200,
+      width: 220,
+      renderCell: (params) => (
+        <span>{params.row.userId || params.row.user?._id || 'N/A'}</span>
+      ),
     },
     {
       field: "username",
       headerName: getTranslatedHeader(getTranslation, "username"),
-      width: 150,
+      width: 170,
+      renderCell: (params) => (
+        <span>{params.row.username || params.row.userFullName || 'N/A'}</span>
+      ),
+    },
+    {
+      field: "email",
+      headerName: getTranslatedHeader(getTranslation, "email"),
+      width: 220,
+      renderCell: (params) => (
+        <span>{params.row.email || params.row.userEmail || params.row.user?.email || 'N/A'}</span>
+      ),
     },
     {
       field: "amount",
@@ -266,6 +281,21 @@ export const getWithdrawalRequestsColumns = (getTranslation) => {
           hour: "2-digit",
           minute: "2-digit",
         }),
+    },
+    {
+      field: "updatedAt",
+      headerName: getTranslatedHeader(getTranslation, "updatedAt") || "Updated",
+      width: 200,
+      renderCell: (params) => {
+        if (!params.row.updatedAt) return 'N/A';
+        return new Date(params.row.updatedAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      },
     },
   ];
 };
@@ -680,19 +710,18 @@ export const getOrders = async () => {
 
 export const getJobs = async () => {
   try {
-    const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.JOBS), {
-      withCredentials: true,
-      headers: getAuthHeaders()
-    });
+    const response = await getAdminJobs({ limit: 200 });
+    const jobsData = response?.data || response || [];
 
-    const sortedJobs = response.data.sort(
+    const sortedJobs = [...jobsData].sort(
       (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
     );
 
     return sortedJobs.map((job) => {
+      const sourceDate = job.createdAt || job.updatedAt || job.publishedAt;
       let formattedDate = 'N/A';
-      if (job.createdAt) {
-        const dateObj = new Date(job.createdAt);
+      if (sourceDate) {
+        const dateObj = new Date(sourceDate);
         if (!isNaN(dateObj.getTime())) {
           formattedDate = dateObj.toLocaleDateString("en-US", {
             year: "numeric",
@@ -702,22 +731,26 @@ export const getJobs = async () => {
         }
       }
 
-      let status = job.jobStatus || 'Active';
-      if (status.toLowerCase() === 'available') status = 'Active';
-      status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      const rawStatus = String(job.jobStatus || job.status || 'Active');
+      const normalizedStatus = rawStatus.toLowerCase();
+      const status = normalizedStatus === 'available'
+        ? 'Active'
+        : rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
 
       return {
         _id: job._id,
         title: job.title,
         sellerId: job.sellerId,
+        sellerName: job.sellerName || job.seller?.fullName || job.seller?.username || null,
+        sellerUsername: job.sellerUsername || job.seller?.username || null,
         buyerId: job.buyerId,
         jobStatus: status,
-        location: job.subCat || job.cat || 'No Category',
-        category: job.cat,
-        subCategory: job.subCat,
+        location: job.location || job.subCat || job.cat || 'No Category',
+        category: job.category || job.cat,
+        subCategory: job.subCategory || job.subCat,
         upgradeOption: job.upgradeOption || 'Free',
         date: formattedDate,
-        createdAt: job.createdAt,
+        createdAt: sourceDate,
       };
     });
   } catch (error) {
@@ -766,20 +799,24 @@ export const getUserJobs = async (userId) => {
 
 export const getSensitiveMessages = async () => {
   try {
-    const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.SENSITIVE_MESSAGES), {
+    const response = await axios.get(getApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SENSITIVE_MESSAGES), {
       withCredentials: true,
       headers: getAuthHeaders()
     });
 
-    const sortedMessages = response.data.sort(
+    const source = response.data?.data || response.data || [];
+    const sortedMessages = source.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
     return sortedMessages.map((message) => ({
       _id: message._id, 
       conversationId:message.conversationId,
-      userId : message.userId,
-      desc : message.desc,
+      userId : message.userId || message.senderId || message.sender?._id || null,
+      desc : message.desc || message.content || '',
+      senderName: message.senderName || message.sender?.fullName || null,
+      senderUsername: message.senderUsername || message.sender?.username || null,
+      senderEmail: message.senderEmail || message.sender?.email || null,
 
     }));
   } catch (error) {

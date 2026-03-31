@@ -19,6 +19,22 @@ const verifyToken = (req, res, next) => {
         req.userRole = payload.role;
         req.isSeller = payload.isSeller;
         req.isAdmin = payload.role === 'admin';
+
+        try {
+            const user = await User.findById(payload.id).select('isBlocked blockReason');
+            if (user?.isBlocked) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Access denied. Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}.`
+                });
+            }
+        } catch (dbError) {
+            return res.status(500).json({
+                success: false,
+                message: 'Unable to validate account status.'
+            });
+        }
+
         next();
     });
 }

@@ -24,12 +24,14 @@ const formatWithdrawalRequestForAdmin = (request) => ({
   _id: request._id,
   requestId: request._id,
   userId: request.userId?._id,
-  username: request.userId?.username,
-  userEmail: request.userId?.email,
+  username: request.userId?.username || request.userId?.fullName || null,
+  userEmail: request.userId?.email || null,
+  email: request.userId?.email || null,
   userFullName: request.userId?.fullName,
   amount: request.amount,
-  withdrawalMethod: request.paymentMethod,
-  paymentMethod: request.paymentMethod,
+  withdrawalMethod: request.withdrawalMethod || request.paymentMethod || null,
+  paymentMethod: request.paymentMethod || request.withdrawalMethod || null,
+  payoutEmail: request.payoutEmail || null,
   accountDetails: request.accountDetails,
   notes: request.notes,
   status: request.status,
@@ -582,16 +584,21 @@ const getUserDetails = async (req, res) => {
       }
     } catch (e) { }
 
-    const formattedJobs = userJobs.map(job => ({
-      id: job._id,
-      img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
-      location: job.location || "N/A",
-      jobStatus: job.jobStatus || (job.isActive ? 'Active' : 'Inactive'),
-      date: new Date(job.createdAt).toLocaleDateString(),
-      upgradeOption: job.upgradeOption || "None",
-      method: "GIG",
-      status: job.jobStatus === 'Available' || job.jobStatus === 'active' || job.jobStatus === 'Active' ? 'Approved' : 'Pending'
-    }));
+    const formattedJobs = userJobs.map(job => {
+      const normalizedJobStatus = String(job.jobStatus || (job.isActive ? 'Active' : 'Inactive')).toLowerCase();
+      const isActiveJob = ['available', 'active'].includes(normalizedJobStatus);
+
+      return {
+        id: job._id,
+        img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
+        location: job.location || "N/A",
+        jobStatus: isActiveJob ? 'Active' : 'Inactive',
+        date: new Date(job.createdAt).toLocaleDateString(),
+        upgradeOption: job.upgradeOption || "None",
+        method: "GIG",
+        status: isActiveJob ? 'Active' : 'Inactive'
+      };
+    });
 
     const formattedOrders = userOrders.map(order => ({
       id: order._id,
@@ -660,9 +667,27 @@ const updateUserRole = async (req, res) => {
 const blockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { reason, duration } = req.body;
+    const { reason, duration, email, username } = req.body;
 
-    const user = await User.findById(userId);
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      user = await User.findById(userId);
+    }
+    if (!user && (email || username)) {
+      const lookup = [];
+      if (email) {
+        const v = String(email).trim();
+        lookup.push({ email: v });
+        lookup.push({ email: v.toLowerCase() });
+      }
+      if (username) {
+        const v = String(username).trim();
+        lookup.push({ username: v });
+        lookup.push({ username: v.toLowerCase() });
+      }
+      if (lookup.length > 0) user = await User.findOne({ $or: lookup });
+    }
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -714,7 +739,7 @@ const blockUser = async (req, res) => {
       success: true,
       message: 'User blocked successfully',
       data: {
-        userId,
+        userId: user._id,
         isBlocked: true,
         reason,
         blockedAt: user.blockedAt,
@@ -834,9 +859,27 @@ const verifyUser = async (req, res) => {
 const warnUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { reason } = req.body;
+    const { reason, email, username } = req.body;
 
-    const user = await User.findById(userId);
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      user = await User.findById(userId);
+    }
+    if (!user && (email || username)) {
+      const lookup = [];
+      if (email) {
+        const v = String(email).trim();
+        lookup.push({ email: v });
+        lookup.push({ email: v.toLowerCase() });
+      }
+      if (username) {
+        const v = String(username).trim();
+        lookup.push({ username: v });
+        lookup.push({ username: v.toLowerCase() });
+      }
+      if (lookup.length > 0) user = await User.findOne({ $or: lookup });
+    }
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -858,7 +901,7 @@ const warnUser = async (req, res) => {
     const warning = {
       reason,
       warnedAt: new Date(),
-      warnedBy: req.user._id
+      warnedBy: req.user?._id || req.userId
     };
     user.warnings.push(warning);
     user.warningCount = user.warnings.length;
@@ -868,7 +911,7 @@ const warnUser = async (req, res) => {
 
     try {
       await Notification.create({
-        userId: userId,
+        userId: String(user._id),
         type: 'warning',
         title: 'Account Warning',
         message: `Your account has received a warning: ${reason}`,
@@ -905,7 +948,7 @@ const warnUser = async (req, res) => {
       success: true,
       message: 'User warned successfully',
       data: {
-        userId,
+        userId: user._id,
         warningCount: user.warningCount,
         reason,
         warnedAt: warning.warnedAt
@@ -983,20 +1026,26 @@ const getAllJobs = async (req, res) => {
 
     const filter = {};
     
-    if (category) filter.category = category;
-    if (status) filter.status = status;
-    if (featured !== undefined) filter.isFeatured = featured === 'true';
+    if (category) {
+      filter.$or = [
+        { cat: { $regex: new RegExp(`^${category}$`, 'i') } },
+        { subCat: { $regex: new RegExp(`^${category}$`, 'i') } }
+      ];
+    }
+    if (status) filter.jobStatus = status;
+    if (featured !== undefined) filter.upgradeOption = featured === 'true' ? { $ne: 'Free' } : 'Free';
     if (priceMin || priceMax) {
-      filter.price = {};
-      if (priceMin) filter.price.$gte = parseInt(priceMin);
-      if (priceMax) filter.price.$lte = parseInt(priceMax);
+      const range = {};
+      if (priceMin) range.$gte = parseInt(priceMin);
+      if (priceMax) range.$lte = parseInt(priceMax);
+      filter['pricingPlan.basic.price'] = range;
     }
     
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+        { keywords: { $in: [new RegExp(search, 'i')] } }
       ];
     }
 
@@ -1007,7 +1056,11 @@ const getAllJobs = async (req, res) => {
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .populate('userId', 'fullName email username');
+      .lean();
+
+    const sellerIds = [...new Set(jobs.map((j) => j.sellerId).filter(Boolean))];
+    const sellers = await User.find({ _id: { $in: sellerIds } }).select('fullName email username').lean();
+    const sellerMap = new Map(sellers.map((s) => [String(s._id), s]));
 
     const total = await Job.countDocuments(filter);
 
@@ -1015,18 +1068,18 @@ const getAllJobs = async (req, res) => {
       _id: job._id,
       id: job._id,
       title: job.title,
-      sellerId: job.userId?.username || job.userId?._id,
-      sellerName: job.userId?.fullName,
-      sellerEmail: job.userId?.email,
-      price: job.price,
-      category: job.category,
-      location: job.location,
-      jobStatus: job.status || job.jobStatus,
-      status: job.status || job.jobStatus,
+      sellerId: job.sellerId,
+      sellerName: sellerMap.get(String(job.sellerId))?.fullName || sellerMap.get(String(job.sellerId))?.username || 'User',
+      sellerEmail: sellerMap.get(String(job.sellerId))?.email || null,
+      price: job.pricingPlan?.basic?.price || 0,
+      category: job.cat,
+      location: job.subCat,
+      jobStatus: job.jobStatus,
+      status: job.jobStatus,
       upgradeOption: job.upgradeOption,
-      isFeatured: job.isFeatured,
-      isActive: job.isActive,
-      tags: job.tags,
+      isFeatured: Boolean(job.upgradeOption && String(job.upgradeOption).toLowerCase() !== 'free'),
+      isActive: ['available', 'active'].includes(String(job.jobStatus || '').toLowerCase()),
+      tags: job.keywords,
       description: job.description,
       adminNote: job.adminNote,
       createdAt: job.createdAt,
@@ -1062,6 +1115,61 @@ const getAllJobs = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch jobs',
+      error: error.message
+    });
+  }
+};
+
+const getJobDetails = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await Job.findById(jobId).lean();
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    const [seller, sellerProfile] = await Promise.all([
+      User.findById(job.sellerId).select('fullName username email').lean(),
+      UserProfile.findOne({ userId: job.sellerId }).select('profilePicture').lean()
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        _id: job._id,
+        id: job._id,
+        title: job.title,
+        description: job.description,
+        cat: job.cat,
+        subCat: job.subCat,
+        keywords: job.keywords || [],
+        whyChooseMe: job.whyChooseMe || [],
+        pricingPlan: job.pricingPlan || {},
+        addons: job.addons || [],
+        faqs: job.faqs || [],
+        photos: job.photos || [],
+        upgradeOption: job.upgradeOption || 'Free',
+        jobStatus: job.jobStatus,
+        sellerId: job.sellerId,
+        seller: {
+          fullName: seller?.fullName || seller?.username || 'Unknown Seller',
+          username: seller?.username || null,
+          email: seller?.email || null,
+          profilePicture: sellerProfile?.profilePicture || null
+        },
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Get job details error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch job details',
       error: error.message
     });
   }
@@ -1285,20 +1393,32 @@ const getOrderDetails = async (req, res) => {
     try {
       if (order.buyerId && (typeof order.buyerId === 'string' ? order.buyerId.match(/^[0-9a-fA-F]{24}$/) : true)) {
         buyer = await User.findById(order.buyerId).select('fullName email username profilePicture').lean();
-        if (buyer) {
-          const profile = await UserProfile.findOne({ userId: buyer._id }).select('profilePicture').lean();
-          buyer.profilePicture = profile?.profilePicture || buyer.profilePicture;
-        }
+      }
+      if (!buyer && order.buyerEmail) {
+        buyer = await User.findOne({ email: order.buyerEmail }).select('fullName email username profilePicture').lean();
+      }
+      if (!buyer && order.buyerUsername) {
+        buyer = await User.findOne({ username: order.buyerUsername }).select('fullName email username profilePicture').lean();
+      }
+      if (buyer) {
+        const profile = await UserProfile.findOne({ userId: buyer._id }).select('profilePicture').lean();
+        buyer.profilePicture = profile?.profilePicture || buyer.profilePicture || null;
       }
     } catch (e) {}
     
     try {
       if (order.sellerId && (typeof order.sellerId === 'string' ? order.sellerId.match(/^[0-9a-fA-F]{24}$/) : true)) {
         seller = await User.findById(order.sellerId).select('fullName email username profilePicture').lean();
-        if (seller) {
-          const profile = await UserProfile.findOne({ userId: seller._id }).select('profilePicture').lean();
-          seller.profilePicture = profile?.profilePicture || seller.profilePicture;
-        }
+      }
+      if (!seller && order.sellerEmail) {
+        seller = await User.findOne({ email: order.sellerEmail }).select('fullName email username profilePicture').lean();
+      }
+      if (!seller && order.sellerUsername) {
+        seller = await User.findOne({ username: order.sellerUsername }).select('fullName email username profilePicture').lean();
+      }
+      if (seller) {
+        const profile = await UserProfile.findOne({ userId: seller._id }).select('profilePicture').lean();
+        seller.profilePicture = profile?.profilePicture || seller.profilePicture || null;
       }
     } catch (e) {}
     
@@ -1310,8 +1430,20 @@ const getOrderDetails = async (req, res) => {
     } catch (e) {
       }
     
-    order.buyerId = buyer || { _id: order.buyerId, fullName: 'Unknown Buyer' };
-    order.sellerId = seller || { _id: order.sellerId, fullName: 'Unknown Seller' };
+    order.buyerId = buyer || {
+      _id: order.buyerId,
+      fullName: order.buyerName || order.buyerUsername || 'Unknown Buyer',
+      username: order.buyerUsername || null,
+      email: order.buyerEmail || null,
+      profilePicture: null,
+    };
+    order.sellerId = seller || {
+      _id: order.sellerId,
+      fullName: order.sellerName || order.sellerUsername || 'Unknown Seller',
+      username: order.sellerUsername || null,
+      email: order.sellerEmail || null,
+      profilePicture: null,
+    };
     order.jobId = job || null;
 
     let messages = [];
@@ -2505,26 +2637,32 @@ const updatePromotionStatus = async (req, res) => {
 const getNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 10, type, read } = req.query;
+    const adminUserId = String(req.userId || '');
     
     const filter = {};
     if (type) filter.type = type;
     if (read !== undefined) filter.isRead = read === 'true';
+
+    filter.$or = [
+      { userId: adminUserId },
+      { isGlobal: true },
+      { link: { $regex: /^\/admin/i } }
+    ];
     
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .populate('userId', 'fullName email username');
+      .skip((page - 1) * limit);
       
     const total = await Notification.countDocuments(filter);
     
     const formattedNotifications = notifications.map((notification) => ({
       _id: notification._id,
       id: notification._id,
-      userId: notification.userId?._id,
-      username: notification.userId?.username,
-      email: notification.userId?.email,
-      userFullName: notification.userId?.fullName,
+      userId: notification.userId || null,
+      username: notification.data?.username || null,
+      email: notification.data?.email || null,
+      userFullName: notification.data?.fullName || null,
       title: notification.title,
       message: notification.message,
       type: notification.type,
@@ -2809,6 +2947,32 @@ const getSensitiveMessages = async (req, res) => {
   }
 };
 
+const deleteSensitiveMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+
+    const deleted = await Message.findByIdAndDelete(messageId);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Sensitive message deleted successfully',
+      data: { messageId }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete sensitive message',
+      error: error.message
+    });
+  }
+};
+
 
 const getSystemLogs = async (req, res) => {
   try {
@@ -3020,6 +3184,7 @@ module.exports = {
   deleteUser,
   
   getAllJobs,
+  getJobDetails,
   updateJobStatus,
   deleteJob,
   
@@ -3038,6 +3203,7 @@ module.exports = {
   getAllReviews,
   moderateReview,
   getSensitiveMessages,
+  deleteSensitiveMessage,
   
   getContactMessages,
   markContactAsRead,

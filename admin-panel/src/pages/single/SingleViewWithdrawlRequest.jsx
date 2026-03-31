@@ -23,7 +23,7 @@ const ViewWithdrawalRequest = () => {
         setError(null);
         const res = await getAdminWithdrawalDetail(resolvedId);
         console.log('[Withdrawal Detail] API Response:', res);
-        setRequestData(res || null);
+        setRequestData(res?.data || res || null);
       } catch (err) {
         setError(err?.message || 'Failed to load withdrawal request');
       } finally {

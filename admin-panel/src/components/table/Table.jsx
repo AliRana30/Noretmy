@@ -18,11 +18,9 @@ const List = ({jobsData}) => {
         <TableHead>
           <TableRow>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "gigId")}</TableCell>
-            <TableCell className="tableCell">{getTranslation(tableTranslations, "location")}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "jobStatus")}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "dateCreated")}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "upgradeMethod")}</TableCell>
-            <TableCell className="tableCell">{getTranslation(tableTranslations, "paymentMethod") || "Type"}</TableCell>
             <TableCell className="tableCell">{getTranslation(tableTranslations, "status")}</TableCell>
           </TableRow>
         </TableHead>
@@ -30,23 +28,18 @@ const List = ({jobsData}) => {
           {jobsData.map((row) => (
             <TableRow key={row.id}>
               <TableCell className="tableCell">{row.id}</TableCell>
-              <TableCell className="tableCell">
-                <div className="flex items-center">
-                  <img src={row.img} alt="" className="w-8 h-8 rounded-full mr-3 object-cover" />
-                  {row.location}
-                </div>
-              </TableCell>
               <TableCell className="tableCell">{row.jobStatus}</TableCell>
               <TableCell className="tableCell">{row.date}</TableCell>
               <TableCell className="tableCell">{row.upgradeOption}</TableCell>
-              <TableCell className="tableCell">{row.method}</TableCell>
               <TableCell className="tableCell">
                 <span className={cn(
                   "px-2 py-1 rounded-md text-xs font-medium",
-                  row.status === 'Approved' 
+                  row.status === 'Approved' || row.status === 'Active'
                     ? "bg-green-50 text-green-700" 
-                    : row.status === 'Pending'
+                    : row.status === 'Pending' || row.status === 'In Progress'
                     ? "bg-amber-50 text-amber-700"
+                    : row.status === 'Inactive'
+                    ? "bg-slate-100 text-slate-700"
                     : "bg-red-50 text-red-700"
                 )}>{row.status}</span>
               </TableCell>

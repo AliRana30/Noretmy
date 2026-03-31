@@ -8,6 +8,7 @@ const {
   translateJob,
   translateReviews,
 } = require("../services/translateService");
+const { sortGigsByRanking, isPromotionActive } = require("../utils/gigRanking");
 const {
   singleJobPromotionMonthlySubscriptionUtil,
 } = require("./promotionController");
@@ -151,8 +152,22 @@ const getAllJobs = async (req, res) => {
       const priceFilter = {};
       if (min) priceFilter.$gte = parseFloat(min);
       if (max) priceFilter.$lte = parseFloat(max);
-      
-      filters["pricingPlan.basic.price"] = priceFilter;
+
+      const priceOrFilters = [
+        { "pricingPlan.basic.price": priceFilter },
+        { "pricingPlan.premium.price": priceFilter },
+        { "pricingPlan.pro.price": priceFilter },
+      ];
+
+      if (filters.$or) {
+        filters.$and = [
+          { $or: filters.$or },
+          { $or: priceOrFilters }
+        ];
+        delete filters.$or;
+      } else {
+        filters.$or = priceOrFilters;
+      }
     }
 
     if (keywords) {
@@ -192,10 +207,20 @@ const getAllJobs = async (req, res) => {
 
     if (search) {
       const regex = new RegExp(escapeRegex(search), "i");
-      filters.$or = [
+      const searchFilters = [
         { title: { $regex: regex } },
         { description: { $regex: regex } }
       ];
+
+      if (filters.$or) {
+        filters.$and = [
+          { $or: filters.$or },
+          { $or: searchFilters }
+        ];
+        delete filters.$or;
+      } else {
+        filters.$or = searchFilters;
+      }
     }
 
     if (categories) {
@@ -204,12 +229,12 @@ const getAllJobs = async (req, res) => {
         if (parts.length === 2) {
           return {
             $and: [
-              { cat: { $regex: new RegExp(escapeRegex(parts[0]), 'i') } },
-              { subCat: { $regex: new RegExp(escapeRegex(parts[1]), 'i') } }
+              { cat: { $regex: new RegExp(`^${escapeRegex(parts[0])}$`, 'i') } },
+              { subCat: { $regex: new RegExp(`^${escapeRegex(parts[1])}$`, 'i') } }
             ]
           };
         } else {
-          return { cat: { $regex: new RegExp(escapeRegex(parts[0]), 'i') } };
+          return { cat: { $regex: new RegExp(`^${escapeRegex(parts[0])}$`, 'i') } };
         }
       });
       
@@ -276,6 +301,36 @@ const getAllJobs = async (req, res) => {
       });
     }
 
+    // Fetch active promotions to enrich job data
+    const PromotionPurchase = require('../models/PromotionPurchase');
+    const now = new Date();
+    const activePromotions = await PromotionPurchase.find({
+      status: 'active',
+      expiresAt: { $gt: now }
+    }).lean();
+
+    // Build promotion maps for quick lookup
+    const gigPromotionMap = {};
+    const sellerPromotionMap = {};
+    activePromotions.forEach(promo => {
+      if (promo.gigId && promo.promotionType === 'single_gig') {
+        const gigIdStr = promo.gigId.toString();
+        gigPromotionMap[gigIdStr] = Math.max(gigPromotionMap[gigIdStr] || 0, promo.planPriority);
+      } else if (promo.userId && promo.promotionType === 'all_gigs') {
+        const userIdStr = promo.userId.toString();
+        sellerPromotionMap[userIdStr] = Math.max(sellerPromotionMap[userIdStr] || 0, promo.planPriority);
+      }
+    });
+
+    // Apply promotion data to jobs
+    jobs.forEach(job => {
+      const gigIdStr = job._id?.toString();
+      const sellerIdStr = job.sellerId?.toString();
+      const gigPromo = gigPromotionMap[gigIdStr] || 0;
+      const sellerPromo = sellerPromotionMap[sellerIdStr] || 0;
+      job.promotionPriority = Math.max(gigPromo, sellerPromo);
+    });
+
     const upgradePriority = {
       homepage: 1,
       premium: 2,
@@ -296,10 +351,11 @@ const getAllJobs = async (req, res) => {
       groupMap.get(priority).push(job);
     }
 
+    // Sort by comprehensive ranking score instead of random shuffle
     const sortedJobs = Array.from(groupMap.entries())
       .sort(([a], [b]) => a - b)
-      .flatMap(([_, jobs]) =>
-        jobs.sort(() => Math.random() - 0.5) // fast shuffle
+      .flatMap(([_, groupJobs]) =>
+        sortGigsByRanking(groupJobs) // Apply ranking-based sorting within each group
       );
 
     const uniqueSellerIds = [...new Set(sortedJobs.map(job => job.sellerId).filter(Boolean))];
@@ -375,6 +431,21 @@ const getAllJobs = async (req, res) => {
         profilePicture: '/default-avatar.png' 
       };
       
+      // Check if gig has active promotion
+      const isPromoted = job.promotionPriority && job.promotionPriority > 0;
+      let promotedBadge = null;
+      if (isPromoted) {
+        if (job.promotionPriority >= 100) {
+          promotedBadge = { tier: 'ultimate', label: 'Ultimate Promoted' };
+        } else if (job.promotionPriority >= 70) {
+          promotedBadge = { tier: 'premium', label: 'Promoted' };
+        } else if (job.promotionPriority >= 40) {
+          promotedBadge = { tier: 'standard', label: 'Featured' };
+        } else if (job.promotionPriority >= 20) {
+          promotedBadge = { tier: 'basic', label: 'Boosted' };
+        }
+      }
+      
       return {
         _id: job._id,
         title: job.title,
@@ -394,6 +465,8 @@ const getAllJobs = async (req, res) => {
         rating: job.starNumber > 0
           ? +(job.totalStars / job.starNumber).toFixed(1)
           : 0,
+        isPromoted: isPromoted,
+        promotedBadge: promotedBadge,
         seller: {
           name: sellerInfo.name,
           username: sellerInfo.username,

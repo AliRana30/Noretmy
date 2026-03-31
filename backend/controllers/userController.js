@@ -4,6 +4,7 @@ const UserProfile = require('../models/UserProfile');
 const Reviews = require('../models/Review');
 const Job = require('../models/Job');
 const Order = require('../models/Order');
+const { getSellerStatistics } = require('../services/sellerService');
 const { uploadDocuments } = require("./uploadController");
 
 const getAllUsers = async (req, res) => {
@@ -743,23 +744,19 @@ const searchFreelancers = async (req, res) => {
   try {
     const { q, limit = 10, skill } = req.query;
 
-    if (!q || q.trim().length < 2) {
-      if (!skill) return res.status(200).json([]);
-    }
+    const trimmedQuery = (q || '').trim();
+    const matchQuery = { isSeller: true };
 
-    const searchRegex = new RegExp(q?.trim() || "", 'i');
-    
-    const matchQuery = {
-      isSeller: true,
-      $or: [
+    if (trimmedQuery.length >= 2) {
+      const searchRegex = new RegExp(trimmedQuery, 'i');
+      matchQuery.$or = [
         { fullName: { $regex: searchRegex } },
         { username: { $regex: searchRegex } }
-      ]
-    };
+      ];
+    }
 
     const results = await User.aggregate([
       { $match: matchQuery },
-      { $limit: parseInt(limit) },
       {
         $lookup: {
           from: 'userprofiles',
@@ -821,6 +818,15 @@ const searchFreelancers = async (req, res) => {
           totalGigsCount: { $size: '$allGigs' }
         }
       },
+      {
+        $sort: {
+          completedOrdersCount: -1,
+          averageRating: -1,
+          totalReviews: -1,
+          createdAt: -1,
+        }
+      },
+      { $limit: parseInt(limit) },
       {
         $project: {
           _id: 1,
@@ -1017,12 +1023,19 @@ const getFreelancerProfile = async (req, res) => {
       };
     });
 
+    // Pull live seller stats so public profile metrics stay in sync with seller board and order lifecycle.
+    const liveSellerStats = await getSellerStatistics(userId);
+
     // Calculate real metrics if badge doesn't have them
     let realOnTimeRate = 100;
     let realResponseRate = 100;
     let realCompletionRate = +completionRate.toFixed(1);
 
-    if (sellerBadge?.metrics) {
+    if (!liveSellerStats?.error) {
+      realOnTimeRate = Number(liveSellerStats.onTimeDeliveryRate ?? realOnTimeRate);
+      realResponseRate = Number(liveSellerStats.responseRate ?? realResponseRate);
+      realCompletionRate = Number(liveSellerStats.completionRate ?? realCompletionRate);
+    } else if (sellerBadge?.metrics) {
       realOnTimeRate = sellerBadge.metrics.onTimeDeliveryRate || 100;
       realResponseRate = sellerBadge.metrics.responseRate || 100;
       realCompletionRate = sellerBadge.metrics.completionRate || realCompletionRate;

@@ -82,7 +82,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               type="text"
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search for gigs..."
+              placeholder="Search for services..."
               className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 transition-colors text-gray-800 placeholder:text-gray-400 text-sm"
               autoComplete="new-password"
               data-form-type="other"

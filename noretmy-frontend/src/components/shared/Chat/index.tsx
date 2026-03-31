@@ -19,6 +19,7 @@ import { Conversation, ChatUser } from '@/types/chat';
 import { SkeletonChatListItem } from '@/components/shared/Skeletons';
 import { io as createSocket } from 'socket.io-client';
 import { useOnlineStatus } from '@/context/OnlineStatusContext';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 // Session storage key for tracking read conversations
 const READ_CONVERSATIONS_KEY = 'chat_read_conversations';
@@ -224,13 +225,13 @@ const ChatScreen: React.FC = () => {
     const isActive = !!activeConversationId &&
       (conversation._id === activeConversationId || conversation.id === activeConversationId);
 
-    // Use full username
-    const displayName = otherParty.username || 'Unknown';
+    // Use full name from database
+    const displayName = otherParty.fullName || otherParty.username || 'Unknown';
 
     return (
       <div
         key={conversation._id}
-        className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${isActive
+        className={`relative flex items-center gap-3 p-4 transition-colors cursor-pointer border-b border-gray-100 ${unread ? 'font-bold bg-gray-50' : ''} ${isActive
           ? 'bg-orange-50/70 border-orange-200'
           : 'bg-white hover:bg-gray-50'
           }`}
@@ -262,13 +263,15 @@ const ChatScreen: React.FC = () => {
         }}
       >
         <div className="relative flex-shrink-0">
-          <Image
-            src={otherParty.profilePicture || '/api/placeholder/48/48'}
-            alt={t('chat.conversation.aria.userAvatar', { username: displayName })}
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-          />
+          <div className="relative">
+            <FallbackAvatar
+              src={otherParty.profilePicture}
+              alt={displayName}
+              name={displayName}
+              size="md"
+              className="border-2 border-white shadow-sm"
+            />
+          </div>
           {/* Single indicator: Orange for online, Gray for offline, Red dot for unread */}
           <span
             className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${unread ? 'bg-red-500' : isUserOnline(otherParty._id || otherParty.id) ? 'bg-orange-500' : 'bg-gray-400'
@@ -280,15 +283,15 @@ const ChatScreen: React.FC = () => {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-baseline mb-1">
-            <h3 className="font-medium truncate text-gray-900">
+          <div className="flex justify-between items-baseline mb-1 gap-2">
+            <h3 className={`font-medium truncate text-gray-900 ${unread ? 'font-bold' : ''}`}>
               {displayName}
             </h3>
-            <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+            <span className={`text-xs flex-shrink-0 ml-auto ${unread ? 'text-gray-900 font-semibold' : 'text-gray-400'}`}>
               {moment(conversation.updatedAt).fromNow()}
             </span>
           </div>
-          <p className={`text-sm truncate ${unread ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
+          <p className={`text-sm truncate ${unread ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
             {typingConversations[conversation._id] || typingConversations[conversation.id] ? (
               <span className="text-orange-600 font-bold animate-pulse">Typing...</span>
             ) : (

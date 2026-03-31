@@ -163,6 +163,13 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
 
   const badgeDisplay = gig.sellerBadge ? getBadgeDisplayInfo(gig.sellerBadge.level) : null;
   const showNewSellerBadge = !badgeDisplay;
+  
+  // Only show promoted badge to the gig owner
+  const isGigOwner = user && gig.seller && (
+    user._id === gig.seller._id ||
+    user.id === gig.seller._id ||
+    user.username === gig.seller.username
+  );
 
   return (
     <Link href={`/gig/${gig._id}`} className="block group">
@@ -183,8 +190,8 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
           {/* Top Badges */}
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
             <div className="flex flex-col gap-2">
-              {/* Promotion Badge */}
-              {!!gig.isPromoted && (
+              {/* Promotion Badge - Only visible to gig owner */}
+              {!!gig.isPromoted && isGigOwner && (
                 <div className="z-20 relative">
                   {gig.promotionPriority && gig.promotionPriority >= 70 ? (
                     <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 border border-white/20">

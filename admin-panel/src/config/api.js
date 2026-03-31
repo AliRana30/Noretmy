@@ -23,6 +23,7 @@ export const API_CONFIG = {
     ADMIN_USERS_BULK: '/api/admin/users/bulk',
     
     ADMIN_JOBS: '/api/admin/jobs',
+    ADMIN_JOB_DETAIL: '/api/admin/jobs/:jobId',
     ADMIN_JOB_STATUS: '/api/admin/jobs/:jobId/status',
     ADMIN_JOB_DELETE: '/api/admin/jobs/:jobId',
     
@@ -41,6 +42,7 @@ export const API_CONFIG = {
     ADMIN_REVIEWS: '/api/admin/content/reviews',
     ADMIN_REVIEW_MODERATE: '/api/admin/content/reviews/:reviewId/moderate',
     ADMIN_SENSITIVE_MESSAGES: '/api/admin/content/sensitive-messages',
+    ADMIN_SENSITIVE_MESSAGE_DELETE: '/api/admin/content/sensitive-messages/:messageId',
     
     ADMIN_CONTACTS: '/api/admin/communication/contacts',
     ADMIN_CONTACT_READ: '/api/admin/communication/contacts/:contactId/read',

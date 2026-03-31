@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Search, Sparkles, Users, Briefcase } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -81,14 +81,36 @@ const SearchGigs: React.FC = () => {
   const currentLanguage = getCurrentLanguage();
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
+  const resolvedCategoryFilter = useMemo(() => {
+    const categorySlug = searchParams.get('category');
+    if (!categorySlug) return '';
+
+    const slugify = (value: string) =>
+      String(value || '')
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    const mapped = slugToCategoryMap[categorySlug];
+    if (mapped) return mapped;
+
+    for (const cat of FiverrCategories) {
+      if (slugify(cat.name) === categorySlug) return cat.name;
+      const matchedSub = cat.subcategories.find((sub) => slugify(sub) === categorySlug);
+      if (matchedSub) return `${cat.name} › ${matchedSub}`;
+    }
+
+    return categorySlug.replace(/-/g, ' ');
+  }, [searchParams]);
+
   useEffect(() => {
     const categorySlug = searchParams.get('category');
     const query = searchParams.get('q');
     const type = searchParams.get('type');
 
-    if (categorySlug) {
-      // Get the English category name from the slug
-      const categoryName = slugToCategoryMap[categorySlug] || categorySlug;
+    if (categorySlug && resolvedCategoryFilter) {
+      const categoryName = resolvedCategoryFilter;
 
       let matchedFilter = categoryName;
 
@@ -114,9 +136,7 @@ const SearchGigs: React.FC = () => {
         }
       }
 
-      if (!selectedFilters.includes(matchedFilter)) {
-        setSelectedFilters([matchedFilter]);
-      }
+      setSelectedFilters((prev) => (prev.includes(matchedFilter) ? prev : [matchedFilter]));
     }
     if (query) {
       setSearchText(query);
@@ -124,7 +144,7 @@ const SearchGigs: React.FC = () => {
     if (type === 'freelancers') {
       setSearchType('freelancers');
     }
-  }, [searchParams]);
+  }, [searchParams, resolvedCategoryFilter]);
 
   const parseFilters = (filters: string[]) => {
     const priceRangeMap: Record<string, { min?: number; max?: number }> = {
@@ -166,10 +186,13 @@ const SearchGigs: React.FC = () => {
     if (searchType === 'gigs') {
       const debounce = setTimeout(() => {
         const { categories, parsedMinBudget, parsedMaxBudget, parsedDeliveryTime } = parseFilters(selectedFilters);
+        const mergedCategories = resolvedCategoryFilter
+          ? Array.from(new Set([...categories, resolvedCategoryFilter]))
+          : categories;
 
         dispatch(
           fetchGigs({
-            categories: categories,
+            categories: mergedCategories,
             minBudget: parsedMinBudget,
             maxBudget: parsedMaxBudget,
             deliveryTime: parsedDeliveryTime,
@@ -181,19 +204,22 @@ const SearchGigs: React.FC = () => {
 
       return () => clearTimeout(debounce);
     }
-  }, [searchText, selectedFilters, minBudget, maxBudget, deliveryTime, currentLanguage, dispatch, searchType]);
+  }, [searchText, selectedFilters, minBudget, maxBudget, deliveryTime, currentLanguage, dispatch, searchType, resolvedCategoryFilter]);
 
   useEffect(() => {
     const searchFreelancers = async () => {
-      if (searchType !== 'freelancers' || searchText.length < 2) {
+      if (searchType !== 'freelancers') {
         setFreelancers([]);
         return;
       }
 
       try {
         setFreelancerLoading(true);
+        const queryPart = searchText.trim().length >= 2
+          ? `q=${encodeURIComponent(searchText.trim())}&`
+          : '';
         const response = await axios.get(
-          `${BACKEND_URL}/users/search/freelancers?q=${encodeURIComponent(searchText)}&limit=20`
+          `${BACKEND_URL}/users/search/freelancers?${queryPart}limit=20`
         );
         setFreelancers(response.data);
       } catch (err) {
@@ -372,7 +398,7 @@ const SearchGigs: React.FC = () => {
                   </Link>
                 ))}
               </div>
-            ) : searchText.length >= 2 ? (
+            ) : searchText.trim().length >= 2 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <Users className="w-8 h-8 text-slate-400" />
@@ -387,13 +413,13 @@ const SearchGigs: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <Search className="w-8 h-8 text-slate-400" />
+                  <Users className="w-8 h-8 text-slate-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                  Search for freelancers
+                  No freelancers available right now
                 </h2>
                 <p className="text-slate-600 max-w-md">
-                  Enter at least 2 characters to start searching for freelancers by name.
+                  Top freelancers will appear here automatically, or type a name to narrow results.
                 </p>
               </div>
             )

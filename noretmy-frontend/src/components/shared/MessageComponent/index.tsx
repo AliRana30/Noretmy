@@ -17,6 +17,7 @@ import {
   CheckCheck
 } from 'lucide-react';
 import MessageAttachmentDisplay from '../MessageAttachmentDisplay';
+import FallbackAvatar from '../FallbackAvatar';
 
 interface OrderData {
   gigTitle?: string;
@@ -53,15 +54,20 @@ interface MessageProps {
     orderId?: string;
     orderData?: OrderData;
     attachments?: MessageAttachment[];
+    isRead?: boolean;
   };
   userId: string;
   receiverId: string;
   currentUserAvatar?: string;
   otherUserAvatar?: string;
   otherUserName?: string;
+  otherUserFullName?: string;
+  currentUserFullName?: string;
   isSeller?: boolean;
-  onOrderAction?: (orderId: string, action: 'accept' | 'reject', reason?: string) => void;
   otherUserId?: string;
+  onOrderAction?: (orderId: string, action: string, reason?: string) => void;
+  socket?: any;
+  conversationId?: string;
 }
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -73,9 +79,13 @@ const MessageComponent: React.FC<MessageProps> = ({
   currentUserAvatar,
   otherUserAvatar,
   otherUserName,
+  otherUserFullName,
+  currentUserFullName,
   isSeller = false,
   onOrderAction,
   otherUserId,
+  socket,
+  conversationId,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -88,16 +98,16 @@ const MessageComponent: React.FC<MessageProps> = ({
   const avatarSource = isSelf
     ? currentUserAvatar
     : (otherUserAvatar || item.image);
+  
+  // Get user fullName or fallback to username
+  const senderFullName = isSelf ? (currentUserFullName || 'You') : (otherUserFullName || otherUserName || 'Anonymous');
     
-  // Get user initials for fallback
+  // Get user initials for fallback avatar
   const getUserInitials = () => {
-    if (isSelf) return 'ME';
-    if (otherUserName) {
-      const names = otherUserName.split(' ');
-      if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
-      return otherUserName.slice(0, 2).toUpperCase();
-    }
-    return 'U';
+    const name = isSelf ? (currentUserFullName || 'Me') : (otherUserFullName || otherUserName || 'User');
+    const names = name.split(' ');
+    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
   };
 
   const handleAcceptInvitation = async () => {
@@ -111,7 +121,21 @@ const MessageComponent: React.FC<MessageProps> = ({
       );
       toast.success('Order accepted! The client can now proceed with payment.');
       if (onOrderAction) onOrderAction(item.orderId, 'accept');
-      window.location.reload();
+      
+      // Emit socket event to notify the other user in real-time
+      if (socket && conversationId) {
+        socket.emit('orderInvitationUpdated', {
+          conversationId,
+          messageId: item._id,
+          invitationStatus: 'accepted',
+          orderId: item.orderId
+        });
+      }
+      
+      // Update message state immediately without reload
+      if (item.orderData) {
+        item.orderData.invitationStatus = 'accepted';
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to accept invitation');
     } finally {
@@ -128,10 +152,25 @@ const MessageComponent: React.FC<MessageProps> = ({
         { invitationId: item.orderId, reason: rejectReason },
         { withCredentials: true }
       );
-      toast.info('Order invitation declined.');
+      toast('Order invitation declined.');
       setShowRejectModal(false);
       if (onOrderAction) onOrderAction(item.orderId, 'reject', rejectReason);
-      window.location.reload();
+      
+      // Emit socket event to notify the other user in real-time
+      if (socket && conversationId) {
+        socket.emit('orderInvitationUpdated', {
+          conversationId,
+          messageId: item._id,
+          invitationStatus: 'rejected',
+          orderId: item.orderId,
+          reason: rejectReason
+        });
+      }
+      
+      // Update message state immediately without reload
+      if (item.orderData) {
+        item.orderData.invitationStatus = 'rejected';
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to reject invitation');
     } finally {
@@ -381,45 +420,54 @@ const MessageComponent: React.FC<MessageProps> = ({
       className={`flex items-start gap-4 my-6 ${isSelf ? 'flex-row-reverse' : 'flex-row'
         }`}
     >
-      {/* Avatar */}
-      {avatarSource ? (
-        <img
+      {/* Avatar with FallbackAvatar component */}
+      <div className="flex-shrink-0">
+        <FallbackAvatar
           src={avatarSource}
-          alt="avatar"
-          className="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-lg flex-shrink-0"
+          alt={senderFullName}
+          name={senderFullName}
+          size="md"
+          className="border border-gray-300 shadow-lg"
         />
-      ) : (
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0">
-          {getUserInitials()}
-        </div>
-      )}
+      </div>
 
       {/* Message Content */}
       <div
         className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'
           }`}
       >
-        {/* User Name */}
-        <span
-          className={`text-sm font-semibold mb-1 ${isSelf ? 'text-orange-500' : 'text-gray-700'
-            }`}
-        >
-          {isSelf ? 'Me' : (otherUserName || receiverId)}
-        </span>
+        {/* User Name with timestamp */}
+        <div className={`flex items-center gap-2 mb-1 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
+          <span
+            className={`text-sm font-semibold ${isSelf ? 'text-orange-600' : 'text-gray-700'
+              }`}
+          >
+            {isSelf ? 'You' : senderFullName}
+          </span>
+          <span className={`text-xs ${isSelf ? 'text-orange-400' : 'text-gray-400'}`}>
+            {moment(item.createdAt).format('h:mm A')}
+          </span>
+        </div>
 
         {/* Message Content */}
         {renderMessageContent()}
 
-        {/* Timestamp with read status */}
-        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
-          <span>{moment(item.createdAt).format('h:mm A')}</span>
-          {isSelf && item.isRead && (
-            <CheckCheck className="w-3 h-3 text-blue-500" />
-          )}
-          {isSelf && !item.isRead && (
-            <Check className="w-3 h-3 text-gray-400" />
-          )}
-        </div>
+        {/* Read status indicator */}
+        {isSelf && (
+          <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+            {item.isRead ? (
+              <>
+                <CheckCheck className="w-3 h-3 text-blue-500" />
+                <span>Read</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3 h-3 text-gray-400" />
+                <span>Sent</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

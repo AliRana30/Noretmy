@@ -11,7 +11,7 @@ import homeTranslations from "../../localization/home.json";
 import datatableColumnsTranslations from "../../localization/datatableColumns.json";
 import { getMonthName } from "../../utils/translationUtils";
 import { getAdminDashboardStats } from "../../utils/adminApi";
-import { Users, Package, DollarSign, Briefcase, TrendingUp, Activity, Clock, CheckCircle } from "lucide-react";
+import { Users, Package, DollarSign, Briefcase, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { SkeletonDashboard } from "../../components/Skeletons";
 
 const Home = () => {
@@ -403,35 +403,6 @@ const Home = () => {
       {/* Quick Actions */}
       {isAdmin() && <QuickActions />}
 
-      {/* System Status */}
-      {isAdmin() && (
-        <div className={`p-6 rounded-2xl ${
-          darkMode ? 'bg-[#1a1a2e]/80 border border-white/10' : 'bg-white border border-gray-100 shadow-lg'
-        }`}>
-          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {getTranslation(homeTranslations, "systemStatus")}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { label: getTranslation(homeTranslations, "apiStatus"), status: getTranslation(homeTranslations, "operational"), color: '#22c55e' },
-              { label: getTranslation(homeTranslations, "database"), status: getTranslation(homeTranslations, "connected"), color: '#22c55e' },
-              { label: getTranslation(homeTranslations, "paymentGateway"), status: getTranslation(homeTranslations, "active"), color: '#22c55e' },
-            ].map(({ label, status, color }) => (
-              <div key={label} className={`p-4 rounded-xl flex items-center justify-between ${
-                darkMode ? 'bg-white/5' : 'bg-gray-50'
-              }`}>
-                <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{label}</span>
-                <span 
-                  className="px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ backgroundColor: color + '20', color }}
-                >
-                  {status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

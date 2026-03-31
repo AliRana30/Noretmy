@@ -1,14 +1,14 @@
 import { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom";
 import { getSensitiveMessages } from "../../datatablesource";
+import { getAdminUsers, warnUser, deleteSensitiveMessage } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
 import commonTranslations from "../../localization/common.json";
 import listTranslations from "../../localization/list.json";
 import datatableColumnsTranslations from "../../localization/datatableColumns.json";
 import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-import { AlertTriangle, Search, Filter, AlertCircle, Ban, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
-import axios from "axios";
-import { API_CONFIG } from "../../config/api";
+import { AlertTriangle, Search, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, X, Eye, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ListSensitive = () => {
@@ -19,9 +19,11 @@ const ListSensitive = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(null);
-  const [blockModalOpen, setBlockModalOpen] = useState(false);
-  const [blockUserId, setBlockUserId] = useState(null);
-  const [blockReason, setBlockReason] = useState('');
+  const [warnModalOpen, setWarnModalOpen] = useState(false);
+  const [warnUserId, setWarnUserId] = useState(null);
+  const [warnTarget, setWarnTarget] = useState(null);
+  const [warnReason, setWarnReason] = useState('');
+  const [userMap, setUserMap] = useState({});
   const itemsPerPage = 10;
   const { getTranslation } = useLocalization();
 
@@ -33,7 +35,42 @@ const ListSensitive = () => {
     try {
       setLoading(true);
       const messages = await getSensitiveMessages();
-      setData(messages || []);
+      const usersRes = await getAdminUsers({ limit: 5000 });
+      const usersArray = Array.isArray(usersRes?.data)
+        ? usersRes.data
+        : Array.isArray(usersRes?.data?.data)
+        ? usersRes.data.data
+        : Array.isArray(usersRes)
+        ? usersRes
+        : [];
+      const map = {};
+      const emailToId = {};
+      const usernameToId = {};
+      usersArray.forEach((u) => {
+        const resolvedId = String(u._id || u.id);
+        map[resolvedId] = u;
+        if (u.email) emailToId[String(u.email).toLowerCase()] = resolvedId;
+        if (u.username) usernameToId[String(u.username).toLowerCase()] = resolvedId;
+      });
+
+      const normalized = (messages || []).map((msg) => {
+        const directId = msg.userId || msg.senderId || msg.sender?._id || null;
+        const emailKey = (msg.senderEmail || msg.sender?.email || '').toLowerCase();
+        const usernameKey = (msg.senderUsername || msg.sender?.username || '').toLowerCase();
+        const resolvedUserId =
+          directId ||
+          emailToId[emailKey] ||
+          usernameToId[usernameKey] ||
+          null;
+
+        return {
+          ...msg,
+          userId: resolvedUserId,
+        };
+      });
+
+      setData(normalized);
+      setUserMap(map);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,20 +78,44 @@ const ListSensitive = () => {
     }
   };
 
-  const handleWarn = async (userId) => {
-    if (!userId) {
+  const openWarnModal = (msg) => {
+    const hasLookupData = !!(msg?.userId || msg?.senderEmail || msg?.senderUsername);
+    const resolvedUserId = msg?.userId || '__lookup__';
+    if (!hasLookupData) {
       toast.error('No user ID found');
       return;
     }
-    
+    setWarnUserId(resolvedUserId);
+    setWarnTarget({
+      userId: msg?.userId,
+      email: msg?.senderEmail,
+      username: msg?.senderUsername,
+    });
+    setWarnReason('');
+    setWarnModalOpen(true);
+  };
+
+  const handleWarn = async () => {
+    if (!warnUserId) {
+      toast.error('No user ID found');
+      return;
+    }
+    if (!warnReason.trim()) {
+      toast.error('Please enter a warning reason');
+      return;
+    }
+
     try {
-      setActionLoading(userId + '-warn');
-      const response = await axios.put(
-        `${API_CONFIG.BASE_URL}/api/users/warn/${userId}`,
-        {},
-        { withCredentials: true }
-      );
+      setActionLoading(warnUserId + '-warn');
+      await warnUser(warnUserId, warnReason.trim(), {
+        email: warnTarget?.email,
+        username: warnTarget?.username,
+      });
       toast.success('User warned successfully!');
+      setWarnModalOpen(false);
+      setWarnUserId(null);
+      setWarnTarget(null);
+      setWarnReason('');
       loadData();
     } catch (error) {
       console.error('Error warning the user:', error);
@@ -64,38 +125,14 @@ const ListSensitive = () => {
     }
   };
 
-  const handleBlock = async (userId) => {
-    if (!userId) {
-      toast.error('No user ID found');
-      return;
-    }
-    
-    setBlockUserId(userId);
-    setBlockReason('');
-    setBlockModalOpen(true);
-  };
-
-  const confirmBlock = async () => {
-    if (!blockReason.trim()) {
-      toast.error('Please enter a reason for blocking');
-      return;
-    }
-
+  const handleDeleteMessage = async (messageId) => {
     try {
-      setActionLoading(blockUserId + '-block');
-      await axios.put(
-        `${API_CONFIG.BASE_URL}/api/users/block/${blockUserId}`,
-        { reason: blockReason },
-        { withCredentials: true }
-      );
-      toast.success('User blocked successfully!');
-      setBlockModalOpen(false);
-      setBlockUserId(null);
-      setBlockReason('');
-      loadData();
+      setActionLoading(messageId + '-delete');
+      await deleteSensitiveMessage(messageId);
+      setData((prev) => prev.filter((m) => m._id !== messageId));
     } catch (error) {
-      console.error('Error blocking the user:', error);
-      toast.error('Failed to block user: ' + (error.response?.data?.message || error.message));
+      console.error('Error deleting sensitive message:', error);
+      toast.error('Failed to delete message: ' + (error.response?.data?.message || error.message));
     } finally {
       setActionLoading(null);
     }
@@ -104,7 +141,10 @@ const ListSensitive = () => {
   const filteredData = data.filter(msg => {
     const matchesSearch = 
       msg.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      msg.userId?.toLowerCase().includes(searchQuery.toLowerCase());
+      msg.userId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      msg.senderName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      msg.senderEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      msg.senderUsername?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
@@ -233,8 +273,13 @@ const ListSensitive = () => {
                       : 'border-gray-50 hover:bg-gray-50'
                   }`}
                 >
-                  <td className={`px-6 py-4 text-sm font-mono ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {msg.userId?.substring(0, 15)}...
+                  <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {userMap[String(msg.userId)]?.fullName || userMap[String(msg.userId)]?.username || msg.senderName || msg.senderUsername || 'Unknown user'}
+                      </p>
+                      <p className="font-mono text-xs opacity-70">{msg.userId || 'N/A'}</p>
+                    </div>
                   </td>
                   <td className={`px-6 py-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     <p className="max-w-md truncate">{msg.desc}</p>
@@ -242,21 +287,30 @@ const ListSensitive = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
-                        onClick={() => handleWarn(msg.userId)}
-                        disabled={actionLoading === msg.userId + '-warn'}
+                        onClick={() => openWarnModal(msg)}
+                        disabled={(!msg.userId && !msg.senderEmail && !msg.senderUsername) || actionLoading === (msg.userId || '__lookup__') + '-warn'}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
                       >
                         <AlertCircle className="w-3 h-3" />
-                        {actionLoading === msg.userId + '-warn' ? getTranslation(listTranslations, "warning") : getTranslation(listTranslations, "warn")}
+                        {actionLoading === (msg.userId || '__lookup__') + '-warn' ? getTranslation(listTranslations, "warning") : getTranslation(listTranslations, "warn")}
                       </button>
                       <button
-                        onClick={() => handleBlock(msg.userId)}
-                        disabled={actionLoading === msg.userId + '-block'}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                        onClick={() => handleDeleteMessage(msg._id)}
+                        disabled={actionLoading === msg._id + '-delete'}
+                        className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                        title={getTranslation(commonTranslations, "delete")}
                       >
-                        <Ban className="w-3 h-3" />
-                        {actionLoading === msg.userId + '-block' ? getTranslation(listTranslations, "blocking") : getTranslation(listTranslations, "block")}
+                        <Trash2 className="w-4 h-4" />
                       </button>
+                      {msg.userId && userMap[String(msg.userId)] && (
+                        <Link
+                          to={`/admin/users/${msg.userId}`}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View User
+                        </Link>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -321,18 +375,18 @@ const ListSensitive = () => {
         </div>
       )}
 
-      {/* Block User Modal */}
-      {blockModalOpen && (
+      {/* Warn User Modal */}
+      {warnModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className={`w-full max-w-md rounded-2xl p-6 ${
             darkMode ? 'bg-[#1a1a2e]' : 'bg-white'
           }`}>
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {getTranslation(listTranslations, "blockUser")}
+                Warn User
               </h3>
-              <button 
-                onClick={() => { setBlockModalOpen(false); setBlockUserId(null); setBlockReason(''); }}
+              <button
+                onClick={() => { setWarnModalOpen(false); setWarnUserId(null); setWarnTarget(null); setWarnReason(''); }}
                 className={`p-2 rounded-xl transition-colors ${
                   darkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
                 }`}
@@ -340,54 +394,39 @@ const ListSensitive = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="mb-6">
-              <div className={`p-4 rounded-xl mb-4 ${darkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
-                <p className={`text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
-                  <strong>{getTranslation(commonTranslations, "error")}:</strong> {getTranslation(listTranslations, "blockUserWarning")}
-                </p>
-              </div>
-              
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {getTranslation(listTranslations, "reasonForBlocking")}
+                Warning reason
               </label>
               <textarea
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value)}
-                placeholder={getTranslation(listTranslations, "enterBlockingReason")}
+                value={warnReason}
+                onChange={(e) => setWarnReason(e.target.value)}
+                placeholder="Enter warning reason"
                 rows={4}
                 className={`w-full px-4 py-3 rounded-xl text-sm transition-all outline-none resize-none ${
                   darkMode
-                    ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-red-500/50'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
-                }`}
+                    ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                } focus:border-orange-500`}
               />
             </div>
-            
-            <div className="flex gap-3">
+
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => { setBlockModalOpen(false); setBlockUserId(null); setBlockReason(''); }}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors ${
-                  darkMode 
-                    ? 'bg-white/10 text-white hover:bg-white/20' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                onClick={() => { setWarnModalOpen(false); setWarnUserId(null); setWarnTarget(null); setWarnReason(''); }}
+                className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-colors ${
+                  darkMode ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {getTranslation(commonTranslations, "cancel")}
+                Cancel
               </button>
               <button
-                onClick={confirmBlock}
-                disabled={!blockReason.trim() || actionLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
+                onClick={handleWarn}
+                disabled={!warnReason.trim() || actionLoading === warnUserId + '-warn'}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
-                {actionLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Ban className="w-5 h-5" />
-                    {getTranslation(listTranslations, "blockUser")}
-                  </>
-                )}
+                {actionLoading === warnUserId + '-warn' ? 'Warning...' : 'Warn User'}
               </button>
             </div>
           </div>

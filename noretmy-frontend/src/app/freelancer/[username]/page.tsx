@@ -110,6 +110,7 @@ const FreelancerProfileContent = () => {
   const showSellerLevel = sellerBadge && sellerBadge.level !== 'new';
   // Use stats from API if available, otherwise fall back to badge metrics
   const hasRealMetrics = !!freelancer?.stats;
+  const averageRatingValue = typeof freelancer?.stats?.averageRating === 'number' ? freelancer.stats.averageRating : 0;
   const responseRateValue =
     typeof freelancer?.stats?.responseRate === 'number'
       ? freelancer.stats.responseRate
@@ -126,7 +127,7 @@ const FreelancerProfileContent = () => {
       ? freelancer.stats.completionRate
       : (sellerBadge?.metrics?.completionRate ?? 0);
   const successScoreValue = Math.round(
-    ((stats?.averageRating || 0) / 5) * 40 +
+    (Math.max(0, Math.min(5, averageRatingValue)) / 5) * 40 +
     completionRateValue * 0.25 +
     onTimeDeliveryRate * 0.2 +
     (typeof responseRateValue === 'number' ? responseRateValue : 0) * 0.15

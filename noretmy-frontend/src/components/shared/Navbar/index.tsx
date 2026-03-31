@@ -332,7 +332,7 @@ const Navbar: React.FC = () => {
                   onChange={(e) => setSearchType(e.target.value as 'services' | 'freelancers')}
                   className="appearance-none bg-transparent pl-3 pr-10 py-2.5 text-sm font-medium text-gray-700 cursor-pointer outline-none hover:text-gray-900 transition-colors"
                 >
-                  <option value="services">Jobs</option>
+                  <option value="services">Services</option>
                   <option value="freelancers">Freelancers</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />

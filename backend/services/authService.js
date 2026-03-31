@@ -137,7 +137,6 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     console.log('✅ User created successfully:', user.email);
     console.log('ℹ️  User will appear in admin documents for manual verification');
-    console.log('ℹ️  User can login immediately without email verification');
 
     const sendAdminNotification = async () => {
       try {
@@ -178,23 +177,23 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
 
     sendAdminNotification();
 
-    const sendVerificationInBackground = async () => {
-      try {
-        console.log(`📧 Sending verification email to: ${user.email}`);
-        await sendVerificationEmail(user.email, token);
-        console.log(`✅ Verification email sent successfully to: ${user.email}`);
-      } catch (emailError) {
-        console.error(`❌ Signup email failed for ${user.email}:`, emailError.message);
-      }
-    };
-    
-    sendVerificationInBackground();
+    let emailSent = false;
+    try {
+      console.log(`📧 Sending verification email to: ${user.email}`);
+      await sendVerificationEmail(user.email, token);
+      console.log(`✅ Verification email sent successfully to: ${user.email}`);
+      emailSent = true;
+    } catch (emailError) {
+      console.error(`❌ Signup email failed for ${user.email}:`, emailError.message);
+    }
 
     return {
       success: true,
       code: 'SIGNUP_SUCCESS',
-      message: 'Registration successful!',
-      emailSent: true,
+      message: emailSent
+        ? 'Registration successful! Please check your email to verify your account.'
+        : 'Registration successful, but we could not send the verification email right now. Please use resend verification email.',
+      emailSent,
       user: {
         id: user._id,
         email: user.email,

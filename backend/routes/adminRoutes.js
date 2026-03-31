@@ -16,6 +16,7 @@ const {
   deleteUser,
   
   getAllJobs,
+  getJobDetails,
   updateJobStatus,
   deleteJob,
   
@@ -34,6 +35,7 @@ const {
   getAllReviews,
   moderateReview,
   getSensitiveMessages,
+  deleteSensitiveMessage,
   
   getContactMessages,
   markContactAsRead,
@@ -109,6 +111,7 @@ router.delete('/users/:userId', ...requirePermission('user_management'), deleteU
 router.post('/users/bulk', ...requirePermission('user_management'), bulkUpdateUsers);
 
 router.get('/jobs', getAllJobs);
+router.get('/jobs/:jobId', getJobDetails);
 router.put('/jobs/:jobId/status', ...requirePermission('content_moderation'), updateJobStatus);
 router.delete('/jobs/:jobId', ...requirePermission('content_moderation'), deleteJob);
 
@@ -127,6 +130,7 @@ router.put('/financial/withdrawals/:withdrawalId/reject', ...requirePermission('
 router.get('/content/reviews', getAllReviews);
 router.put('/content/reviews/:reviewId/moderate', ...requirePermission('content_moderation'), moderateReview);
 router.get('/content/sensitive-messages', ...requirePermission('content_moderation'), getSensitiveMessages);
+router.delete('/content/sensitive-messages/:messageId', ...requirePermission('content_moderation'), deleteSensitiveMessage);
 
 router.get('/communication/contacts', getContactMessages);
 router.put('/communication/contacts/:contactId/read', markContactAsRead);

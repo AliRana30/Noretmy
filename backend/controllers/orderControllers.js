@@ -1661,25 +1661,28 @@ const acceptInvitation = async (req, res) => {
         await conversation.save();
       }
       
-      const Message = require('../models/Message');
-      const acceptedMessage = new Message({
-        conversationId: conversationId,
-        userId: userId,
-        desc: `Order invitation accepted! Please proceed with payment for: ${gig?.title}`,
-        messageType: 'order_accepted',
-        orderId: invitation._id,
-        orderData: {
-          gigTitle: gig?.title,
-          gigImage: gig?.photos && gig.photos.length > 0 ? gig.photos[0] : null,
-          planTitle: invitation.selectedPlanTitle || 'Standard',
-          price: invitation.price,
-          deliveryTime: invitation.selectedPlanDeliveryTime || '',
-          status: 'accepted',
-          invitationStatus: 'accepted'
-        }
-      });
-      await acceptedMessage.save();
+      // DO NOT create 'order_accepted' message until payment is completed
+      // User wants to see order accepted status only after payment is received
+      // const Message = require('../models/Message');
+      // const acceptedMessage = new Message({
+      //   conversationId: conversationId,
+      //   userId: userId,
+      //   desc: `Order invitation accepted! Please proceed with payment for: ${gig?.title}`,
+      //   messageType: 'order_accepted',
+      //   orderId: invitation._id,
+      //   orderData: {
+      //     gigTitle: gig?.title,
+      //     gigImage: gig?.photos && gig.photos.length > 0 ? gig.photos[0] : null,
+      //     planTitle: invitation.selectedPlanTitle || 'Standard',
+      //     price: invitation.price,
+      //     deliveryTime: invitation.selectedPlanDeliveryTime || '',
+      //     status: 'accepted',
+      //     invitationStatus: 'accepted'
+      //   }
+      // });
+      // await acceptedMessage.save();
       
+      const Message = require('../models/Message');
       await Message.updateMany(
         { orderId: invitation._id, messageType: 'order_invitation' },
         { 'orderData.invitationStatus': 'accepted', 'orderData.status': 'accepted' }

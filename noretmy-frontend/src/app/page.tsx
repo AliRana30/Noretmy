@@ -1,9 +1,6 @@
 'use client';
 
-import 'material-icons/iconfont/material-icons.css';
 import Head from 'next/head';
-import axios from 'axios';
-import { showError, showSuccess } from '@/util/toast';
 import PageTransitionWrapper from '@/util/transitionWrapper';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useEffect, useState } from 'react';
@@ -127,8 +124,8 @@ const Home = () => {
         <PageTransitionWrapper>
           {(navigateWithTransition) => (
             <>
+
               {/* === ATTENTION PHASE === */}
-              {/* Hero: Strong value proposition with live activity, trust indicators, dual CTAs */}
               <AnimateOnScroll duration={0.8}>
                 <Hero />
               </AnimateOnScroll>

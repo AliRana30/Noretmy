@@ -239,11 +239,11 @@ const SingleOrder = () => {
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold bg-blue-500 text-white ${buyer.profilePicture || buyer.img ? 'hidden' : ''}`}
               >
-                {(buyer.fullName || buyer.username || 'B').charAt(0).toUpperCase()}
+                {(buyer.username || buyer.fullName || 'B').charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'} truncate`}>
-                  {buyer.fullName || buyer.username || 'N/A'}
+                  {buyer.username || buyer.fullName || 'N/A'}
                 </p>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} break-all truncate`} title={buyer.email}>
                   {buyer.email || 'N/A'}

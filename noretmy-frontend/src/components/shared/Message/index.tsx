@@ -5,6 +5,7 @@ import { RootState } from '@/store/store';
 import axios from 'axios';
 import MessageComponent from '../MessageComponent';
 import ChatFileUpload from '../ChatFileUpload';
+import FallbackAvatar from '../FallbackAvatar';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Menu, PlusCircle, Send, ChevronDown, Paperclip } from 'lucide-react';
 import { useUserRole } from '@/util/basic';
@@ -33,6 +34,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const sellerId = searchParams.get('sellerId');
   const [buyerId, setBuyerId] = useState<string | null>(null);
   const [otherUserName, setOtherUserName] = useState<string>('');
+  const [otherUserFullName, setOtherUserFullName] = useState<string>('');
+  const [currentUserFullName, setCurrentUserFullName] = useState<string>('');
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('');
   const [otherUserAvatar, setOtherUserAvatar] = useState<string>('');
   const [isOtherUserSeller, setIsOtherUserSeller] = useState<boolean>(false);
@@ -43,6 +46,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
@@ -150,7 +154,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
             : conversation.buyer;
 
           setOtherUserName(otherUser?.username || otherUser?.name || '');
+          setOtherUserFullName(otherUser?.fullName || otherUser?.username || '');
           setOtherUserAvatar(otherUser?.profilePicture || '');
+          setCurrentUserFullName(currentUser?.fullName || currentUser?.username || '');
           setIsOtherUserSeller(!isCurrentUserSeller);
 
           if (currentUser?.profilePicture && !currentUserAvatar) {
@@ -230,6 +236,11 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       console.log('[Message] ✅ Socket connected - user:', userId, 'conversation:', conversationId);
       socket.emit('userOnline', String(userId));
       socket.emit('joinRoom', conversationId);
+      
+      // Check if other user is online
+      if (receiverId) {
+        socket.emit('getOnlineUsers', [String(receiverId)]);
+      }
       console.log('[Message] Joined room:', conversationId);
     });
 
@@ -313,9 +324,61 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       }
     };
 
+    // Handle order invitation updates (acceptance/rejection)
+    const handleOrderInvitationUpdate = (payload: any) => {
+      if (!payload || payload.conversationId !== conversationId) return;
+      // Update messages with order invitation updates
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg._id === payload.messageId) {
+            return {
+              ...msg,
+              orderData: {
+                ...msg.orderData,
+                invitationStatus: payload.invitationStatus
+              }
+            };
+          }
+          return msg;
+        })
+      );
+    };
+
+    // Handle user online status
+    const handleUserOnline = (userId: string) => {
+      if (String(userId) === String(receiverId)) {
+        console.log('[Message] ✅ Other user is now online:', userId);
+        setIsOtherUserOnline(true);
+      }
+    };
+
+    // Handle user offline status
+    const handleUserOffline = (userId: string) => {
+      if (String(userId) === String(receiverId)) {
+        console.log('[Message] ❌ Other user is now offline:', userId);
+        setIsOtherUserOnline(false);
+      }
+    };
+
+    // Handle online users status response
+    const handleOnlineUsersStatus = (statuses: any) => {
+      console.log('[Message] 📊 Online status response:', statuses);
+      if (statuses && receiverId) {
+        const otherUserStatus = statuses[String(receiverId)];
+        if (otherUserStatus !== undefined) {
+          setIsOtherUserOnline(otherUserStatus?.isOnline || false);
+          console.log('[Message] Other user online status:', otherUserStatus?.isOnline);
+        }
+      }
+    };
+
     socket.on('receiveMessage', handleReceiveMessage);
     socket.on('messagesMarkedRead', handleMessagesMarkedRead);
     socket.on('userTyping', handleUserTyping);
+    socket.on('orderInvitationUpdated', handleOrderInvitationUpdate);
+    socket.on('userOnline', handleUserOnline);
+    socket.on('userOffline', handleUserOffline);
+    socket.on('onlineUsersStatus', handleOnlineUsersStatus);
 
     return () => {
       if (typingTimeoutRef.current) {
@@ -325,6 +388,10 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       socket.off('receiveMessage', handleReceiveMessage);
       socket.off('messagesMarkedRead', handleMessagesMarkedRead);
       socket.off('userTyping', handleUserTyping);
+      socket.off('orderInvitationUpdated', handleOrderInvitationUpdate);
+      socket.off('userOnline', handleUserOnline);
+      socket.off('userOffline', handleUserOffline);
+      socket.off('onlineUsersStatus', handleOnlineUsersStatus);
       socket.disconnect();
     };
   }, [SOCKET_URL, conversationId, userId]);
@@ -531,20 +598,25 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
               }
             }}
           >
-            {otherUserAvatar && (
-              <img
-                src={otherUserAvatar}
-                alt={otherUserName}
-                className="w-9 h-9 rounded-full object-cover border-2 border-orange-100"
-              />
-            )}
+            <FallbackAvatar
+              src={otherUserAvatar}
+              alt={otherUserName}
+              name={otherUserFullName}
+              size="sm"
+              className="border-2 border-orange-100"
+            />
             <div>
               <h2 className="text-base md:text-lg font-bold text-gray-700 hover:text-orange-600 transition-colors">
-                {otherUserName || 'Chat'}
+                {otherUserFullName || otherUserName || 'Chat'}
               </h2>
               {isOtherUserTyping ? (
                 <span className="text-xs font-bold text-orange-600 animate-pulse">
                   Typing...
+                </span>
+              ) : isOtherUserOnline ? (
+                <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                  Online
                 </span>
               ) : (
                 <span className="text-xs text-gray-400">
@@ -589,8 +661,12 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
                 currentUserAvatar={currentUserAvatar}
                 otherUserAvatar={otherUserAvatar}
                 otherUserName={otherUserName}
+                otherUserFullName={otherUserFullName}
+                currentUserFullName={currentUserFullName}
                 isSeller={isSeller}
                 otherUserId={receiverId ?? ''}
+                socket={socketRef.current}
+                conversationId={conversationId}
               />
             ))}
             {/* Typing Indicator */}

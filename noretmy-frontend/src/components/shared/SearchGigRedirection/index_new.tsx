@@ -8,12 +8,12 @@ interface SearchGigsRedirectionProps {
   navigateWithTransition: (path: string) => void;
 }
 
-type SearchType = 'jobs' | 'freelancers';
+type SearchType = 'services' | 'freelancers';
 
 export default function SearchGigRedirection({ navigateWithTransition }: SearchGigsRedirectionProps) {
   const { t } = useTranslations();
   const [searchValue, setSearchValue] = useState('');
-  const [searchType, setSearchType] = useState<SearchType>('jobs');
+  const [searchType, setSearchType] = useState<SearchType>('services');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +68,7 @@ export default function SearchGigRedirection({ navigateWithTransition }: SearchG
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 px-6 py-3.5 text-slate-700 hover:text-slate-900 font-medium transition-colors"
             >
-              <span>{searchType === 'jobs' ? (t('home:searchSection.jobs') || 'Jobs') : (t('home:searchSection.freelancers') || 'Freelancers')}</span>
+              <span>{searchType === 'services' ? (t('home:searchSection.jobs') || 'Services') : (t('home:searchSection.freelancers') || 'Freelancers')}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -85,14 +85,14 @@ export default function SearchGigRedirection({ navigateWithTransition }: SearchG
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-20">
                   <button
                     type="button"
-                    onClick={() => handleTypeChange('jobs')}
+                    onClick={() => handleTypeChange('services')}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                      searchType === 'jobs'
+                      searchType === 'services'
                         ? 'bg-orange-50 text-orange-600 font-medium'
                         : 'text-slate-700 hover:bg-slate-50'
                     }`}
                   >
-                    {t('home:searchSection.jobs') || 'Jobs'}
+                    {t('home:searchSection.jobs') || 'Services'}
                   </button>
                   <button
                     type="button"
@@ -120,7 +120,7 @@ export default function SearchGigRedirection({ navigateWithTransition }: SearchG
             key={index}
             onClick={() => {
               setSearchValue(term);
-              const path = searchType === 'jobs' 
+              const path = searchType === 'services' 
                 ? `/search-gigs?q=${encodeURIComponent(term)}`
                 : `/freelancer?q=${encodeURIComponent(term)}`;
               navigateWithTransition(path);

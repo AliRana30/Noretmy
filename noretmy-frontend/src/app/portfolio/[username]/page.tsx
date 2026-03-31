@@ -146,11 +146,14 @@ const UserProfile: React.FC = ({ params }: { params: { username: string } }) => 
             {/* Profile Image */}
             <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden relative border-4 border-indigo-50 shadow-md ring-2 ring-indigo-600 ring-offset-2">
               <Image
-                src={userData.profilePicture}
+                src={userData.profilePicture || '/images/default-avatar.png'}
                 alt={userData.username}
                 layout="fill"
                 objectFit="cover"
                 className="hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  e.currentTarget.src = '/images/default-avatar.png';
+                }}
               />
             </div>
 

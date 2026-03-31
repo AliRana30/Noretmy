@@ -3,6 +3,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const paypalCheckout = require('@paypal/checkout-server-sdk');
 const paypalRestSdk = require('paypal-rest-sdk');
+const axios = require('axios');
 
 paypalRestSdk.configure({
     'mode': process.env.PAYPAL_MODE || 'sandbox', // 'sandbox' or 'live'
@@ -22,6 +23,23 @@ const PromotionPurchase = require('../models/PromotionPurchase'); // New: Single
 const { PROMOTION_PLANS, getPlan } = require('../utils/promotionPlans');
 const notificationService = require('../services/notificationService');
 const mongoose = require('mongoose');
+
+const getFrontendBaseUrl = () => {
+    return process.env.FRONTEND_URL || process.env.ORIGIN || 'https://noretmy.com';
+};
+
+const getPayPalApiBaseUrl = () => {
+    const mode = (process.env.PAYPAL_MODE || 'sandbox').toLowerCase();
+    return mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+};
+
+const getStripeOnboardingUrls = () => {
+    const baseUrl = getFrontendBaseUrl().replace(/\/$/, '');
+    return {
+        refreshUrl: `${baseUrl}/withdraw?stripe_refresh=true`,
+        returnUrl: `${baseUrl}/withdraw?stripe_success=true`
+    };
+};
 
 exports.createCustomerAndPaymentIntent = async (req, res) => {
   const { amount, email } = req.body;
@@ -192,8 +210,10 @@ exports.paypalWithdrawFunds = async (req, res) => {
     const { email, amount } = req.body; // Freelancer's email and withdrawal amount
 
     try {
+        const payPalApiBaseUrl = getPayPalApiBaseUrl();
+
         const tokenResponse = await axios.post(
-            'https://api-m.sandbox.paypal.com/v1/oauth2/token', // Use the live URL for production: 'https://api-m.paypal.com/v1/oauth2/token'
+            `${payPalApiBaseUrl}/v1/oauth2/token`,
             'grant_type=client_credentials',
             {
                 auth: {
@@ -215,7 +235,7 @@ exports.paypalWithdrawFunds = async (req, res) => {
         }
 
         const payoutResponse = await axios.post(
-            'https://api-m.sandbox.paypal.com/v1/payments/payouts', // Use the live URL for production: 'https://api-m.paypal.com/v1/payments/payouts'
+            `${payPalApiBaseUrl}/v1/payments/payouts`,
             {
                 sender_batch_header: {
                     email_subject: 'You have a payout!',
@@ -259,16 +279,22 @@ exports.paypalWithdrawFunds = async (req, res) => {
 };
 
 exports.withdrawFunds = async (req, res) => {
-    const { email, amount } = req.body; 
+    const { email, amount } = req.body;
 
     try {
+        const numericAmount = Number(amount);
+        if (!email || Number.isNaN(numericAmount) || numericAmount <= 0) {
+            return res.status(400).json({ success: false, error: 'Invalid email or withdrawal amount' });
+        }
+
+        const { refreshUrl, returnUrl } = getStripeOnboardingUrls();
         let freelancerAccount = await Freelancer.findOne({ email });
 
         if (!freelancerAccount) {
             const account = await stripe.accounts.create({
-                type: 'express', // Type of account (can be 'express' or 'custom' based on your needs)
-                country: 'US', // Set the country for the connected account
-                email: email, // Freelancer's email
+                type: 'express',
+                country: 'US',
+                email,
                 capabilities: {
                     card_payments: { requested: true },
                     transfers: { requested: true },
@@ -278,62 +304,62 @@ exports.withdrawFunds = async (req, res) => {
             freelancerAccount = new Freelancer({
                 email,
                 stripeAccountId: account.id,
-                availableBalance: 30, // You can update the balance as per your requirements
+                availableBalance: 30,
             });
 
             await freelancerAccount.save();
 
             const accountLink = await stripe.accountLinks.create({
                 account: account.id,
-                refresh_url: 'https://your-platform.com/onboarding-refresh', // Redirect if freelancer needs to update information
-                return_url: 'https://your-platform.com/onboarding-success', // Redirect after successful onboarding
-                type: 'account_onboarding', // Type of onboarding flow
+                refresh_url: refreshUrl,
+                return_url: returnUrl,
+                type: 'account_onboarding',
             });
 
-            return res.status(200).json({ 
+            return res.status(200).json({
                 success: true,
                 message: 'Freelancer account created. Complete your onboarding.',
-                link: accountLink.url // Redirect the freelancer to this URL to complete onboarding
+                link: accountLink.url
             });
         }
 
         const account = await stripe.accounts.retrieve(freelancerAccount.stripeAccountId);
 
-        if (account.charges_enabled === false) {
+        if (!account.charges_enabled || !account.payouts_enabled) {
             const accountLink = await stripe.accountLinks.create({
                 account: freelancerAccount.stripeAccountId,
-                refresh_url: 'https://noretmy.com/onboarding-refresh', // Redirect if freelancer needs to update information
-                return_url: 'https://noretmy.com/onboarding-success', // Redirect after successful onboarding
+                refresh_url: refreshUrl,
+                return_url: returnUrl,
                 type: 'account_onboarding',
-            })
+            });
 
             return res.status(400).json({
                 success: false,
-                message: 'Please complete the onboarding process before withdrawing funds.',
-                link: accountLink.url // Send the onboarding link
+                message: 'Please complete Stripe onboarding before withdrawing funds.',
+                link: accountLink.url
             });
         }
 
-        if (freelancerAccount.availableBalance < amount) {
-            return res.status(400).json({ error: 'Insufficient funds' });
+        if (Number(freelancerAccount.availableBalance || 0) < numericAmount) {
+            return res.status(400).json({ success: false, error: 'Insufficient funds' });
         }
 
         const payout = await stripe.payouts.create(
             {
-                amount: amount * 100, // Amount is in cents
+                amount: Math.round(numericAmount * 100),
                 currency: 'usd',
             },
             {
-                stripeAccount: freelancerAccount.stripeAccountId, // Freelancer's Stripe account ID
+                stripeAccount: freelancerAccount.stripeAccountId,
             }
         );
 
-        freelancerAccount.availableBalance -= amount;
+        freelancerAccount.availableBalance = Number(freelancerAccount.availableBalance || 0) - numericAmount;
         await freelancerAccount.save();
 
         res.status(200).json({ success: true, payout });
     } catch (error) {
-        console.error(error);
+        console.error('[Stripe Withdrawal] Error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 };

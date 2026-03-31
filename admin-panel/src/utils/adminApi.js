@@ -167,16 +167,16 @@ export const updateUserPermissions = async (userId, permissions) => {
   return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_PERMISSIONS, { permissions }, { userId });
 };
 
-export const blockUser = async (userId, reason, duration = 0) => {
-  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_BLOCK, { reason, duration }, { userId });
+export const blockUser = async (userId, reason, duration = 0, identifiers = {}) => {
+  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_BLOCK, { reason, duration, ...identifiers }, { userId });
 };
 
 export const unblockUser = async (userId) => {
   return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_UNBLOCK, null, { userId });
 };
 
-export const warnUser = async (userId, reason) => {
-  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_WARN, { reason }, { userId });
+export const warnUser = async (userId, reason, identifiers = {}) => {
+  return makeRequest('PUT', API_CONFIG.ENDPOINTS.ADMIN_USER_WARN, { reason, ...identifiers }, { userId });
 };
 
 export const deleteUser = async (userId, reason = 'Deleted by admin') => {
@@ -192,6 +192,10 @@ export const getAdminJobs = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
   const endpoint = queryParams ? `${API_CONFIG.ENDPOINTS.ADMIN_JOBS}?${queryParams}` : API_CONFIG.ENDPOINTS.ADMIN_JOBS;
   return makeRequest('GET', endpoint);
+};
+
+export const getAdminJobDetail = async (jobId) => {
+  return makeRequest('GET', API_CONFIG.ENDPOINTS.ADMIN_JOB_DETAIL, null, { jobId });
 };
 
 export const updateJobStatus = async (jobId, status, reason) => {
@@ -263,6 +267,10 @@ export const getAdminSensitiveMessages = async (filters = {}) => {
   const queryParams = new URLSearchParams(filters).toString();
   const endpoint = queryParams ? `${API_CONFIG.ENDPOINTS.ADMIN_SENSITIVE_MESSAGES}?${queryParams}` : API_CONFIG.ENDPOINTS.ADMIN_SENSITIVE_MESSAGES;
   return makeRequest('GET', endpoint);
+};
+
+export const deleteSensitiveMessage = async (messageId) => {
+  return makeRequest('DELETE', API_CONFIG.ENDPOINTS.ADMIN_SENSITIVE_MESSAGE_DELETE, null, { messageId });
 };
 
 
@@ -604,6 +612,7 @@ export default {
   bulkUserAction,
   
   getAdminJobs,
+  getAdminJobDetail,
   updateJobStatus,
   deleteJob,
   

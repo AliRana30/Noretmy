@@ -16,9 +16,9 @@ const ChatContent = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      toast.info('Please sign in to access your messages', {
+      toast('Please sign in to access your messages', {
         position: 'top-center',
-        autoClose: 3000,
+        duration: 3000,
       });
       router.push('/login');
       return;

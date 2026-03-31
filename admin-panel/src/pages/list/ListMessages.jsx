@@ -8,7 +8,7 @@ import { useState, useEffect, useContext } from "react";
   import listTranslations from "../../localization/list.json";
   import commonTranslations from "../../localization/common.json";
   import { LoadingSpinner, ErrorMessage } from "../../components/ui";
-  import { Bell, RefreshCw } from 'lucide-react';
+  import { Bell, RefreshCw, Trash2 } from 'lucide-react';
   import toast from 'react-hot-toast';
 
   const ListMessages = () => {
@@ -40,11 +40,8 @@ import { useState, useEffect, useContext } from "react";
     try {
       await deleteNotification(id);
       setData((prevData) => prevData.filter((item) => item._id !== id));
-      toast.success(getTranslation(commonTranslations, "deletedSuccess") || 'Notification deleted successfully');
     } catch (err) {
       console.error('Delete notification error:', err);
-      const errorMessage = err.message || 'Failed to delete notification';
-      toast.error(errorMessage);
     }
   };
 
@@ -75,12 +72,13 @@ import { useState, useEffect, useContext } from "react";
             </div>
           )}
           {process.env.NODE_ENV !== 'production' && (
-            <div 
-              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+            <button
+              className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all duration-200"
               onClick={() => handleDelete(params.row._id)}
+              title={getTranslation(commonTranslations, "delete")}
             >
-              {getTranslation(commonTranslations, "delete")}
-            </div>
+              <Trash2 className="w-4 h-4" />
+            </button>
           )}
         </div>
       ),

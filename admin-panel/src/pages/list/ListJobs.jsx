@@ -1,9 +1,9 @@
 import { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom";
 import { getJobs } from "../../datatablesource";
 import { deleteJob } from "../../utils/adminApi";
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { DarkModeContext } from "../../context/darkModeContext.jsx";
-import { API_CONFIG } from "../../config/api";
 import commonTranslations from "../../localization/common.json";
 import listTranslations from "../../localization/list.json";
 import datatableColumnsTranslations from "../../localization/datatableColumns.json";
@@ -55,7 +55,7 @@ const ListJobs = () => {
       setDeleting(true);
       await deleteJob(jobToDelete._id, deleteReason || 'Removed by admin');
       setData((prevData) => prevData.filter((item) => item._id !== jobToDelete._id));
-      toast.success('Job deleted successfully');
+      toast.success('Gig deleted successfully');
       setDeleteModalOpen(false);
       setJobToDelete(null);
       setDeleteReason('');
@@ -70,8 +70,15 @@ const ListJobs = () => {
   const filteredData = data.filter(job => {
     const matchesSearch = 
       job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.sellerId?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || job.jobStatus?.toLowerCase() === statusFilter;
+      job.sellerId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.sellerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.sellerUsername?.toLowerCase().includes(searchQuery.toLowerCase());
+    const normalizedStatus = (job.jobStatus || '').toLowerCase();
+    const isActive = normalizedStatus === 'active' || normalizedStatus === 'available';
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && isActive) ||
+      (statusFilter === 'inactive' && !isActive);
     return matchesSearch && matchesStatus;
   });
 
@@ -125,7 +132,7 @@ const ListJobs = () => {
         {[
           { label: getTranslation(listTranslations, "totalJobs"), value: data.length, color: '#6366f1' },
           { label: getTranslation(commonTranslations, "active"), value: data.filter(j => j.jobStatus?.toLowerCase() === 'active').length, color: '#22c55e' },
-          { label: getTranslation(commonTranslations, "inactive"), value: data.filter(j => j.jobStatus?.toLowerCase() !== 'active').length, color: '#f59e0b' },
+          { label: getTranslation(commonTranslations, "inactive"), value: data.filter(j => !['active', 'available'].includes((j.jobStatus || '').toLowerCase())).length, color: '#f59e0b' },
           { label: getTranslation(listTranslations, "featured"), value: data.filter(j => j.upgradeOption && j.upgradeOption !== 'Free').length, color: '#8b5cf6' },
         ].map(({ label, value, color }) => (
           <div 
@@ -235,7 +242,7 @@ const ListJobs = () => {
                     <p className="font-medium truncate max-w-[200px]">{job.title}</p>
                   </td>
                   <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {job.sellerId?.substring(0, 10)}...
+                    {job.sellerName || job.sellerUsername || (job.sellerId ? `${job.sellerId.substring(0, 10)}...` : 'N/A')}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -259,17 +266,21 @@ const ListJobs = () => {
                     </span>
                   </td>
                   <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {job.date}
+                    {job.date || (job.createdAt ? new Date(job.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    }) : 'N/A')}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 flex-wrap">
-                       <button
-                        onClick={() => window.open(`${API_CONFIG.FRONTEND_URL}/gig/${job._id}`, '_blank')}
+                       <Link
+                        to={`/admin/jobs/${job._id}`}
                         className="p-2 rounded-lg bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 transition-colors"
                         title={getTranslation(commonTranslations, "view")}
                       >
                         <Eye className="w-4 h-4" />
-                      </button>
+                      </Link>
 
                       {process.env.NODE_ENV !== 'production' && (
                         <button

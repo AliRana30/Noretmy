@@ -1,5 +1,6 @@
 const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
+const User = require("../models/User");
 
 let io; 
 
@@ -232,7 +233,32 @@ const searchSensitiveMessages = async (req, res) => {
     const sensitiveMessages = await Message.find({
       $or: regexPatterns
     }).sort({ createdAt: -1 });
-    res.status(201).json(sensitiveMessages);
+
+    const senderIds = [...new Set((sensitiveMessages || []).map((m) => m.userId).filter(Boolean))];
+    let senderMap = new Map();
+    if (senderIds.length > 0) {
+      const users = await User.find({ _id: { $in: senderIds } })
+        .select('_id fullName username email')
+        .lean();
+      senderMap = new Map(users.map((u) => [String(u._id), u]));
+    }
+
+    const formatted = sensitiveMessages.map((m) => {
+      const sender = senderMap.get(String(m.userId));
+      return {
+        _id: m._id,
+        conversationId: m.conversationId,
+        userId: m.userId,
+        desc: m.desc,
+        senderName: sender?.fullName || null,
+        senderUsername: sender?.username || null,
+        senderEmail: sender?.email || null,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+      };
+    });
+
+    res.status(200).json(formatted);
 
 
   } catch (error) {

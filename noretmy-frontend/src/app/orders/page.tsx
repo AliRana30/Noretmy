@@ -23,6 +23,7 @@ const OrdersPage: React.FC = () => {
 
   const user = useSelector((state: any) => state?.auth?.user);
   const isLoggedIn = !!user;
+  const isFreelancer = user?.role === 'freelancer' || user?.isSeller === true;
 
   const currentLanguage = getCurrentLanguage();
 
@@ -198,13 +199,15 @@ const OrdersPage: React.FC = () => {
             </div>
             <h3 className="empty-state-title">No orders found</h3>
             <p className="empty-state-description">
-              Your orders will appear here once you make a purchase
+              {isFreelancer
+                ? 'Your orders will appear here'
+                : 'Your orders will appear here once you make a purchase'}
             </p>
             <button
-              onClick={() => router.push('/search-gigs')}
+              onClick={() => router.push(isFreelancer ? '/' : '/search-gigs')}
               className="btn btn-primary"
             >
-              Browse Services
+              {isFreelancer ? 'Go to Home' : 'Browse Services'}
             </button>
           </div>
         )}

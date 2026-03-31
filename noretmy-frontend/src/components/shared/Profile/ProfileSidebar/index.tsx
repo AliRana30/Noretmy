@@ -1,10 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
-import FallbackAvatar from '@/components/shared/FallbackAvatar';
+import { useRouter } from 'next/navigation';
 import {
   User,
   MessageSquare,
@@ -77,10 +74,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 }) => {
   const router = useRouter();
   const { t } = useTranslations();
-  
-  // Get live data from Redux for real-time updates
-  const reduxUser = useSelector((state: RootState) => state?.auth?.user);
-  const currentProfilePicture = reduxUser?.profilePicture || profileData.profilePicture;
 
   const navigationItems = getNavigationItems(isSeller, t);
   const quickActions = getQuickActions(isSeller, t);
@@ -99,30 +92,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       <div className="sticky top-24 space-y-4">
         {/* User Info Card */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          {/* Header Background */}
-          <div className="h-16 bg-gradient-to-r from-orange-600 to-orange-400" />
-
           {/* Profile Content */}
-          <div className="px-5 pb-5">
-            {/* Avatar */}
-            <div className="relative -mt-10 mb-3">
-              <div className="relative">
-                <FallbackAvatar
-                  src={currentProfilePicture}
-                  alt={profileData.fullName || 'User'}
-                  name={profileData.fullName}
-                  className="border-4 border-white shadow-md"
-                  size="lg"
-                />
-              </div>
-            </div>
-
+          <div className="px-5 py-5">
             {/* User Info */}
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-gray-900 truncate">
                 {profileData.fullName || 'User'}
               </h3>
-              <p className="text-sm text-gray-500 truncate">@{profileData.username || 'username'}</p>
 
               {/* Member Since */}
               <p className="text-xs text-gray-400 pt-1">

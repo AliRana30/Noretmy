@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocalization } from "../../context/LocalizationContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -29,12 +29,15 @@ const AdminUsersList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [actionReason, setActionReason] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
+  const hasLoadedRef = useRef(false);
   const itemsPerPage = 10;
 
   const { getTranslation } = useLocalization();
   const { hasPermission, ROLES } = useAuth();
 
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
     loadUsers();
   }, []);
 
@@ -75,6 +78,7 @@ const AdminUsersList = () => {
   const extractUsersArray = (response) => {
     if (Array.isArray(response)) return response;
     if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response?.data?.data)) return response.data.data;
     if (Array.isArray(response?.data?.users)) return response.data.users;
     if (Array.isArray(response?.users)) return response.users;
     if (Array.isArray(response?.result)) return response.result;
@@ -238,12 +242,17 @@ const AdminUsersList = () => {
       user.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const effectiveStatus = user.isBlocked
+      ? 'blocked'
+      : user.isVerified
+      ? 'active'
+      : 'unverified';
     const matchesStatus = 
       statusFilter === 'all' || 
-      (statusFilter === 'blocked' && user.isBlocked) ||
-      (statusFilter === 'active' && !user.isBlocked) ||
+      (statusFilter === 'blocked' && effectiveStatus === 'blocked') ||
+      (statusFilter === 'active' && effectiveStatus === 'active') ||
       (statusFilter === 'verified' && user.isVerified) ||
-      (statusFilter === 'unverified' && !user.isVerified);
+      (statusFilter === 'unverified' && effectiveStatus === 'unverified');
 
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -410,22 +419,22 @@ const AdminUsersList = () => {
         darkMode ? 'bg-[#1a1a2e]/80 border border-white/10' : 'bg-white border border-gray-100 shadow-lg'
       }`}>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[1200px]">
             <thead>
               <tr className={`border-b ${darkMode ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider min-w-[250px] ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>{getTranslation(userManagementTranslations, "user")}</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider min-w-[200px] ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>{getTranslation(userManagementTranslations, "email")}</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider min-w-[120px] ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>{getTranslation(userManagementTranslations, "role")}</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider min-w-[140px] ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>{getTranslation(userManagementTranslations, "status")}</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${
+                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider min-w-[120px] ${
                   darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>{getTranslation(userManagementTranslations, "actions")}</th>
               </tr>
@@ -442,43 +451,49 @@ const AdminUsersList = () => {
                         : 'border-gray-50 hover:bg-gray-50'
                     }`}
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={user.img || user.profilePicture || 'https://via.placeholder.com/40'}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {user.fullName || user.username}
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex-shrink-0">
+                          <img
+                            src={user.img || user.profilePicture}
+                            alt={user.username}
+                            className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/images/default-avatar.svg';
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {user.fullName || user.username || 'Unknown User'}
                           </p>
-                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <p className={`text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             @{user.username}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <td className={`px-6 py-5 text-sm break-all ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {user.email}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${roleBadge.bg} ${roleBadge.text}`}>
+                    <td className="px-6 py-5">
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize whitespace-nowrap ${roleBadge.bg} ${roleBadge.text}`}>
                         {user.role || 'client'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
                         {user.isBlocked ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-500">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-500/20 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                             {getTranslation(userManagementTranslations, "blocked")}
                           </span>
                         ) : user.isVerified ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-500">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-700 dark:text-orange-400 whitespace-nowrap">
                             {getTranslation(userManagementTranslations, "verified")}
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-500">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700 dark:text-amber-400 whitespace-nowrap">
                             {getTranslation(userManagementTranslations, "unverified")}
                           </span>
                         )}

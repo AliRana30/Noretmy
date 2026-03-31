@@ -38,11 +38,12 @@ const getUserNotifications = async (req, res) => {
             return res.status(400).json({ error: 'User ID is required' });
         }
 
+        const uid = String(userId);
         const notifications = await Notification.find({
             $and: [
                 {
                     $or: [
-                        { userId },   // User-specific notifications
+                        { userId: uid },   // User-specific notifications
                         { isGlobal: true } // Global notifications
                     ]
                 },
@@ -71,11 +72,12 @@ const getUnreadNotificationCount = async (req, res) => {
             return res.status(400).json({ error: 'User ID is required' });
         }
 
+        const uid = String(userId);
         const count = await Notification.countDocuments({
             $and: [
                 {
                     $or: [
-                        { userId, isRead: false },   // User-specific unread notifications
+                        { userId: uid, isRead: false },   // User-specific unread notifications
                         { isGlobal: true, isRead: false } // Global unread notifications
                     ]
                 },
@@ -145,10 +147,11 @@ const markAllNotificationsAsRead = async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
+        const uid = String(userId);
         const result = await Notification.updateMany(
             {
                 $or: [
-                    { userId, isRead: false },
+                    { userId: uid, isRead: false },
                     { isGlobal: true, isRead: false }
                 ]
             },
@@ -217,8 +220,9 @@ const deleteAllUserNotifications = async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
+        const uid = String(userId);
         const result = await Notification.deleteMany({
-            userId,
+            userId: uid,
             isGlobal: false
         });
 

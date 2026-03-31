@@ -3,7 +3,6 @@ import {
   Package,
   Calendar,
   FolderOpen,
-  Settings,
   Users,
   ShoppingBag,
   Briefcase,
@@ -36,7 +35,7 @@ export const SIDEBAR_NAV_LIST = [
   },
   {
     id: '/admin/orders',
-    label: 'Orders',
+    label: 'All Orders',
     icon: ShoppingBag,
     allowedRoles: ['admin'],
     requiredPermission: 'order_management',
@@ -44,7 +43,7 @@ export const SIDEBAR_NAV_LIST = [
   },
   {
     id: '/admin/jobs',
-    label: 'Jobs',
+    label: 'All Gigs',
     icon: Briefcase,
     allowedRoles: ['admin'],
     requiredPermission: 'content_moderation',
@@ -84,12 +83,6 @@ export const SIDEBAR_NAV_LIST = [
 ];
 
 export const SIDEBAR_SERVICE_ITEMS = [
-  {
-    id: 'system-health',
-    label: 'System Health',
-    icon: Settings,
-    translationKey: 'systemHealth'
-  },
   {
     id: 'logs',
     label: 'Logs',

@@ -15,6 +15,7 @@ import AdminRoute from "./components/AdminRoute";
 import SingleOrder from "./pages/single/SingleOrder";
 import ListOrders from "./pages/list/ListOrders";
 import ListJobs from "./pages/list/ListJobs";
+import SingleJob from "./pages/single/SingleJob";
 import ListSensitive from "./pages/list/ListSensitive";
 import ListMessages from "./pages/list/ListMessages";
 import ReplyEmail from "./pages/single/Reply";
@@ -31,7 +32,6 @@ import { Toaster } from "react-hot-toast";
 import AdminUsersList from "./pages/admin/AdminUsersList";
 
 import Profile from "./pages/profile/Profile";
-import SystemHealth from "./pages/system/SystemHealth";
 import Logs from "./pages/system/Logs";
 
 function App() {
@@ -69,7 +69,6 @@ function App() {
 
                 {/* Profile */}
                 <Route path="profile" element={<Profile />} />
-                <Route path="system-health" element={<SystemHealth />} />
                 <Route path="logs" element={<Logs />} />
 
                 {/* Admin Routes - Protected with AdminRoute */}
@@ -79,6 +78,7 @@ function App() {
                   <Route path="orders" element={<AdminRoute requiredPermissions={['order_management']}><ListOrders /></AdminRoute>} />
                   <Route path="orders/:orderId" element={<AdminRoute requiredPermissions={['order_management']}><SingleOrder /></AdminRoute>} />
                   <Route path="jobs" element={<AdminRoute requiredPermissions={['content_moderation']}><ListJobs /></AdminRoute>} />
+                  <Route path="jobs/:jobId" element={<AdminRoute requiredPermissions={['content_moderation']}><SingleJob /></AdminRoute>} />
                   <Route path="sensitive-messages" element={<AdminRoute requiredPermissions={['content_moderation']}><ListSensitive /></AdminRoute>} />
                   <Route path="contacts" element={<AdminRoute requiredPermissions={['content_moderation']}><ListMessages /></AdminRoute>} />
                   <Route path="contacts/reply" element={<AdminRoute requiredPermissions={['content_moderation']}><ReplyEmail /></AdminRoute>} />

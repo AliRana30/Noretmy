@@ -61,11 +61,13 @@ const createConverstion = async (req, res,next) => {
         seller: {
           _id: seller?._id || null,
           username: seller?.username || null,
+          fullName: seller?.fullName || null,
           profilePicture: sellerProfile?.profilePicture || null,
         },
         buyer: {
           _id: buyer?._id || null,
           username: buyer?.username || null,
+          fullName: buyer?.fullName || null,
           profilePicture: buyerProfile?.profilePicture || null,
         },
       };
@@ -121,11 +123,13 @@ const getConverstions = async (req, res, next) => {
           seller: {
             _id: seller?._id || null,
             username: seller?.username || null,
+            fullName: seller?.fullName || null,
             profilePicture: sellerProfile?.profilePicture || null,
           },
           buyer: {
             _id: buyer?._id || null,
             username: buyer?.username || null,
+            fullName: buyer?.fullName || null,
             profilePicture: buyerProfile?.profilePicture || null,
           },
         };

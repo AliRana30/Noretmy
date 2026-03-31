@@ -17,6 +17,7 @@ import {
   Quote
 } from 'lucide-react';
 import { useTranslations } from '@/hooks/useTranslations';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 interface Freelancer {
   _id: string;
@@ -186,11 +187,12 @@ function FreelancerSearchContent() {
               >
                 {/* Profile Picture */}
                 <div className="relative w-20 h-20 mx-auto mb-4">
-                  <Image
-                    src={freelancer.profilePicture || '/images/default-avatar.png'}
+                  <FallbackAvatar
+                    src={freelancer.profilePicture}
                     alt={freelancer.fullName}
-                    fill
-                    className="rounded-full object-cover border-2 border-slate-100 group-hover:border-orange-200 transition-colors"
+                    name={freelancer.username}
+                    size="lg"
+                    className="border-2 border-slate-100 group-hover:border-orange-200 transition-colors"
                   />
                 </div>
 

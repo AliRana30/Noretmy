@@ -15,7 +15,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      toast.info('Please sign in to view your profile', {
+      toast('Please sign in to view your profile', {
         position: 'top-center',
         autoClose: 3000,
       });

@@ -2,6 +2,8 @@ const Freelancer = require('../models/Freelancer');
 const Order = require('../models/Order');
 const Reviews = require('../models/Review')
 const User = require('../models/User');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
 const mongoose = require('mongoose');
 
 const getFirstDayOfCurrentMonth = () => {
@@ -52,13 +54,15 @@ const calculateSellerLevel = (completedOrders, rating, completionRate, totalEarn
   }
 };
 
-const calculateSuccessScore = (rating, completionRate, onTimeDeliveryRate, responseRate) => {
+const calculateSuccessScore = (rating, completionRate, onTimeDeliveryRate, responseRate, totalReviews = 0) => {
   const ratingWeight = 0.4;
   const completionWeight = 0.25;
   const onTimeWeight = 0.2;
   const responseWeight = 0.15;
-  
-  const normalizedRating = (parseFloat(rating) || 0) / 5 * 100;
+
+  // New sellers without reviews should not be heavily penalized.
+  const effectiveRating = totalReviews > 0 ? (parseFloat(rating) || 0) : 4.5;
+  const normalizedRating = (Math.max(0, Math.min(5, effectiveRating)) / 5) * 100;
   
   const score = (normalizedRating * ratingWeight) +
                 (completionRate * completionWeight) +
@@ -197,9 +201,38 @@ const getSellerStatistics = async (sellerId) => {
       ? Math.round((completedOrders / totalOrders) * 100)
       : 100;
 
-    const responseRate = 98;
+    const sellerConversations = await Conversation.find({ sellerId: sellerIdStr }).select('id').lean();
+    const conversationIds = sellerConversations.map((c) => c.id).filter(Boolean);
+    let responseRate = 100;
 
-    const successScore = calculateSuccessScore(rating, completionRate, onTimeDeliveryRate, responseRate);
+    if (conversationIds.length > 0) {
+      const messageAgg = await Message.aggregate([
+        { $match: { conversationId: { $in: conversationIds } } },
+        {
+          $group: {
+            _id: '$conversationId',
+            hasSellerMessage: {
+              $max: {
+                $cond: [{ $eq: ['$userId', sellerIdStr] }, 1, 0]
+              }
+            },
+            hasBuyerMessage: {
+              $max: {
+                $cond: [{ $ne: ['$userId', sellerIdStr] }, 1, 0]
+              }
+            }
+          }
+        }
+      ]);
+
+      const conversationsNeedingReply = messageAgg.filter((row) => row.hasBuyerMessage === 1);
+      const conversationsReplied = conversationsNeedingReply.filter((row) => row.hasSellerMessage === 1);
+      responseRate = conversationsNeedingReply.length > 0
+        ? Math.round((conversationsReplied.length / conversationsNeedingReply.length) * 100)
+        : 100;
+    }
+
+    const successScore = calculateSuccessScore(rating, completionRate, onTimeDeliveryRate, responseRate, totalReviews);
 
     const sellerLevel = calculateSellerLevel(completedOrders, rating, completionRate, totalEarnings);
 
