@@ -66,6 +66,25 @@ const userProfileSchema = new mongoose.Schema({
     year: { type: Number }
   }],
   
+    experienceLevel: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'expert'],
+      default: 'beginner'
+    },
+    interests: { type: [String], default: [] },
+    portfolioUrl: { type: String, required: false },
+    githubUrl: { type: String, required: false },
+    onboardingActionChoice: {
+      type: String,
+      enum: ['post-job', 'browse-gigs'],
+      required: false
+    },
+    portfolioItems: [{
+      title: { type: String },
+      image: { type: String },
+      link: { type: String }
+    }],
+  
   education: [{
     degree: { type: String },
     institution: { type: String },

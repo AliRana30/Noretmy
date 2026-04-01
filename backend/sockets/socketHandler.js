@@ -136,9 +136,23 @@ const socketHandler = (io) => {
           const Message = require('../models/Message');
           const readAt = new Date();
 
+          const unreadDetailed = await Message.find({
+            _id: { $in: messageIds },
+            conversationId,
+            userId: { $ne: String(userId) },
+            isRead: false
+          }).select('_id userId');
+
+          const unreadMessageIds = unreadDetailed.map((m) => String(m._id));
+          const senderUserIds = [...new Set(unreadDetailed.map((m) => String(m.userId)).filter(Boolean))];
+
+          if (unreadMessageIds.length === 0) {
+            return;
+          }
+
           await Message.updateMany(
             {
-              _id: { $in: messageIds },
+              _id: { $in: unreadMessageIds },
               conversationId,
               userId: { $ne: String(userId) },
               isRead: false
@@ -149,12 +163,17 @@ const socketHandler = (io) => {
           const payload = {
             conversationId,
             userId,
-            messageIds,
+            messageIds: unreadMessageIds,
             readAt
           };
 
           socket.to(conversationId).emit('messagesMarkedRead', payload);
           socket.to(conversationId).emit('message_read', payload);
+
+          senderUserIds.forEach((senderId) => {
+            io.to(`user_${senderId}`).emit('messagesMarkedRead', payload);
+            io.to(`user_${senderId}`).emit('message_read', payload);
+          });
         } catch (err) {
           console.error('[Socket] Error in messagesRead:', err.message);
         }

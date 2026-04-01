@@ -1,5 +1,5 @@
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE || '1';
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./services/dbService');
@@ -37,15 +37,12 @@ const { initDeadlineCronJobs } = require('./services/orderDeadlineCron');
 const { initPromotionExpirationCron } = require('./scripts/expirePromotions');
 require('./controllers/vatController'); 
 
-const { uploadFiles, uploadImages } = require('./controllers/uploadController');
-const upload = require('./config/multer-cloudinary-storage');
 const cookieParser = require('cookie-parser');
 const socketHandler = require('./sockets/socketHandler'); // Import socket handler
 
 const app = express();
 
 const allowedOrigins = [
-  'http://localhost:8081', 
   'http://localhost:3000',
   'http://localhost:3001',
   'https://www.noretmy.com',
@@ -54,7 +51,6 @@ const allowedOrigins = [
   'https://noretmy.vercel.app',
   'https://noretmy-admin.vercel.app',
   'https://noretmy-admin-panel.vercel.app',
-  'https://noretmy-admin-panel-three.vercel.app'
 ];
 
 const corsOptions = {
@@ -70,7 +66,6 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization','x-user-id', 'x-platform'],
   credentials: true,
   optionsSuccessStatus: 204, // Respond with 204 for preflight requests
-
 };
 
 app.use(cors(corsOptions));

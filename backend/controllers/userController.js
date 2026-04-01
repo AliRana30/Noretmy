@@ -1135,4 +1135,147 @@ const getClientProfile = async (req, res) => {
   }
 };
 
-module.exports = { deleteUser ,getTotalUsers,getAllUsers, warnUser, blockUser,getVerifiedSellers,updateSingleAttribute,createOrUpdateProfile,getSellerData,getUserWithProjects,updateDocumentStatus, getFavorites, addToFavorites, removeFromFavorites, toggleFavorite, checkFavorite, searchFreelancers, getFreelancerProfile, getClientProfile};
+const getOnboardingStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('role isOnboarded onboardingStep onboardingFlow fullName username isSeller');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const profile = await UserProfile.findOne({ userId: user._id }).lean();
+    const gigCount = await Job.countDocuments({ sellerId: String(user._id) });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        role: user.role,
+        isOnboarded: !!user.isOnboarded,
+        onboardingStep: user.onboardingStep || 1,
+        onboardingFlow: user.onboardingFlow || user.role,
+        profile: {
+          fullName: user.fullName || '',
+          username: user.username || '',
+          profilePicture: profile?.profilePicture || '',
+          profileHeadline: profile?.profileHeadline || '',
+          description: profile?.description || '',
+          skills: profile?.skills || [],
+          experienceLevel: profile?.experienceLevel || 'beginner',
+          portfolioUrl: profile?.portfolioUrl || '',
+          githubUrl: profile?.githubUrl || '',
+          portfolioItems: profile?.portfolioItems || [],
+          interests: profile?.interests || []
+        },
+        gigCount
+      }
+    });
+  } catch (error) {
+    console.error('Error getting onboarding status:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+const saveOnboardingProgress = async (req, res) => {
+  try {
+    const { step, data = {} } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (typeof step === 'number' && step > 0) {
+      user.onboardingStep = step;
+    }
+
+    if (typeof data.fullName === 'string' && data.fullName.trim()) {
+      user.fullName = data.fullName.trim();
+    }
+
+    user.onboardingFlow = user.role === 'freelancer' ? 'freelancer' : 'client';
+    await user.save();
+
+    const profileUpdates = {};
+    const allowedProfileFields = [
+      'profilePicture',
+      'profileHeadline',
+      'description',
+      'skills',
+      'experienceLevel',
+      'portfolioUrl',
+      'githubUrl',
+      'portfolioItems',
+      'interests'
+    ];
+
+    allowedProfileFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(data, field)) {
+        profileUpdates[field] = data[field];
+      }
+    });
+
+    await UserProfile.findOneAndUpdate(
+      { userId: user._id },
+      { $set: profileUpdates },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Onboarding progress saved',
+      data: {
+        isOnboarded: !!user.isOnboarded,
+        onboardingStep: user.onboardingStep
+      }
+    });
+  } catch (error) {
+    console.error('Error saving onboarding progress:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+const completeOnboarding = async (req, res) => {
+  try {
+    const { actionChoice } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role === 'freelancer') {
+      const gigCount = await Job.countDocuments({ sellerId: String(user._id) });
+      if (gigCount < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Freelancer onboarding requires at least one gig.'
+        });
+      }
+    }
+
+    user.isOnboarded = true;
+    user.onboardingStep = user.role === 'freelancer' ? 5 : 4;
+    user.onboardingFlow = user.role === 'freelancer' ? 'freelancer' : 'client';
+    await user.save();
+
+    if (actionChoice) {
+      await UserProfile.findOneAndUpdate(
+        { userId: user._id },
+        { $set: { onboardingActionChoice: actionChoice } },
+        { upsert: true }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Onboarding completed successfully',
+      data: {
+        isOnboarded: true,
+        onboardingStep: user.onboardingStep,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Error completing onboarding:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+module.exports = { deleteUser ,getTotalUsers,getAllUsers, warnUser, blockUser,getVerifiedSellers,updateSingleAttribute,createOrUpdateProfile,getSellerData,getUserWithProjects,updateDocumentStatus, getFavorites, addToFavorites, removeFromFavorites, toggleFavorite, checkFavorite, searchFreelancers, getFreelancerProfile, getClientProfile, getOnboardingStatus, saveOnboardingProgress, completeOnboarding};

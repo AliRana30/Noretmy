@@ -318,10 +318,11 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
     const applyReadReceipt = (payload: ReadReceiptPayload) => {
       if (!payload || payload.conversationId !== conversationId) return;
       if (payload.messageIds && payload.messageIds.length > 0) {
+        const readIdSet = new Set(payload.messageIds.map((id) => String(id)));
         setMessages((prev) =>
           prev.map((msg) =>
-            payload.messageIds.includes(msg._id)
-              ? { ...msg, isRead: true, readAt: payload.readAt || msg.readAt }
+            readIdSet.has(String(msg._id))
+              ? { ...msg, isRead: true, isDelivered: true, readAt: payload.readAt || msg.readAt }
               : msg
           )
         );

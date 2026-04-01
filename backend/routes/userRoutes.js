@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { deleteUser, getTotalUsers, getAllUsers, warnUser, blockUser, getVerifiedSellers, createOrUpdateProfile, updateSingleAttribute, getSellerData, getUserWithProjects, getFavorites, addToFavorites, removeFromFavorites, toggleFavorite, checkFavorite, searchFreelancers, getFreelancerProfile, getClientProfile } = require("../controllers/userController");
+const { deleteUser, getTotalUsers, getAllUsers, warnUser, blockUser, getVerifiedSellers, createOrUpdateProfile, updateSingleAttribute, getSellerData, getUserWithProjects, getFavorites, addToFavorites, removeFromFavorites, toggleFavorite, checkFavorite, searchFreelancers, getFreelancerProfile, getClientProfile, getOnboardingStatus, saveOnboardingProgress, completeOnboarding } = require("../controllers/userController");
 const {verifyToken, requireAdmin, verifyTokenEnhanced}=require("../middleware/jwt");
 const { upload } = require("../controllers/uploadController");
 
@@ -9,6 +9,9 @@ router.get('/freelancer/:username', getFreelancerProfile);
 router.get('/client/:userId', verifyToken, getClientProfile);
 router.get('/verified-sellers', verifyTokenEnhanced, getVerifiedSellers);
 router.get('/profile/portfolio/:username',getUserWithProjects)
+router.get('/onboarding/status', verifyToken, getOnboardingStatus);
+router.put('/onboarding/progress', verifyToken, saveOnboardingProgress);
+router.post('/onboarding/complete', verifyToken, completeOnboarding);
 
 router.get('/', verifyToken, ...requireAdmin, getAllUsers);
 router.get("/total-users", verifyToken, ...requireAdmin, getTotalUsers);

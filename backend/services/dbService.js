@@ -1,14 +1,31 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+let isConnecting = false;
+
 const connectDB = async () => {
+  if (isConnecting) return;
+  isConnecting = true;
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    } catch (err) {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+    });
+    console.log('MongoDB connected successfully');
+    isConnecting = false;
+  } catch (err) {
     console.error('MongoDB connection error:', err.message);
-    process.exit(1);
+    isConnecting = false;
+    setTimeout(() => {
+      connectDB();
+    }, 5000);
   }
 };
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected. Retrying connection...');
+  connectDB();
+});
 
 const saveUserToDatabase = async (user) => {
   const newUser = new User(user);

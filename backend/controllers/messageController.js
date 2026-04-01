@@ -294,6 +294,12 @@ const markMessagesAsRead = async (req, res, next) => {
 
       const io = req.app.get('io') || global.io;
       if (io) {
+        const unreadDetailed = await Message.find({
+          _id: { $in: unreadMessageIds },
+          conversationId
+        }).select('_id userId');
+        const senderUserIds = [...new Set(unreadDetailed.map((m) => String(m.userId)).filter(Boolean))];
+
         const payload = {
           conversationId,
           userId: req.userId,
@@ -302,6 +308,11 @@ const markMessagesAsRead = async (req, res, next) => {
         };
         io.to(conversationId).emit('messagesMarkedRead', payload);
         io.to(conversationId).emit('message_read', payload);
+
+        senderUserIds.forEach((senderId) => {
+          io.to(`user_${senderId}`).emit('messagesMarkedRead', payload);
+          io.to(`user_${senderId}`).emit('message_read', payload);
+        });
       }
     }
 

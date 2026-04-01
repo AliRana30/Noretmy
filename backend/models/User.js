@@ -52,6 +52,14 @@ const userSchema = new mongoose.Schema({
     default: 'none'
   }, 
 
+  isOnboarded: { type: Boolean, default: false },
+  onboardingStep: { type: Number, default: 1 },
+  onboardingFlow: {
+    type: String,
+    enum: ['client', 'freelancer'],
+    default: 'client'
+  },
+
   documentImages: [{ type: String, required: false }],
 
   revenue: {

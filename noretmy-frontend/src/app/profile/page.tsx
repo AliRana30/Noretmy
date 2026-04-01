@@ -17,7 +17,7 @@ const Profile = () => {
     if (!isLoggedIn) {
       toast('Please sign in to view your profile', {
         position: 'top-center',
-        autoClose: 3000,
+        duration: 3000,
       });
       router.push('/login');
       return;

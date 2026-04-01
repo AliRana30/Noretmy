@@ -18,6 +18,9 @@ interface User {
   country?: string;
   countryCode?: string;
   permissions?: string[];
+  isOnboarded?: boolean;
+  onboardingStep?: number;
+  onboardingFlow?: 'client' | 'freelancer';
 }
 
 interface AuthState {
