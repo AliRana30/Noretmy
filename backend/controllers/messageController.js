@@ -2,12 +2,6 @@ const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
 const User = require("../models/User");
 
-let io; 
-
-const setSocketIO = (socketIO) => {
-  io = socketIO; 
-};
-
 const createMessage = async (req, res, next) => {
   const { conversationId, desc, attachments, messageType } = req.body;
   
@@ -274,21 +268,52 @@ const markMessagesAsRead = async (req, res, next) => {
     if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
       return res.status(400).json({ message: 'Message IDs are required' });
     }
+    if (!conversationId) {
+      return res.status(400).json({ message: 'Conversation ID is required' });
+    }
 
-    // Update all specified messages to mark them as read
-    await Message.updateMany(
-      { 
-        _id: { $in: messageIds },
-        conversationId: conversationId,
-        userId: { $ne: req.userId } // Only mark messages from other users as read
-      },
-      { $set: { isRead: true } }
-    );
+    const unreadMessages = await Message.find({
+      _id: { $in: messageIds },
+      conversationId,
+      userId: { $ne: req.userId },
+      isRead: false
+    }).select('_id');
 
-    res.status(200).json({ success: true, message: 'Messages marked as read' });
+    const unreadMessageIds = unreadMessages.map((msg) => String(msg._id));
+    const readAt = new Date();
+
+    if (unreadMessageIds.length > 0) {
+      await Message.updateMany(
+        {
+          _id: { $in: unreadMessageIds },
+          conversationId,
+          userId: { $ne: req.userId }
+        },
+        { $set: { isRead: true, readAt } }
+      );
+
+      const io = req.app.get('io') || global.io;
+      if (io) {
+        const payload = {
+          conversationId,
+          userId: req.userId,
+          messageIds: unreadMessageIds,
+          readAt
+        };
+        io.to(conversationId).emit('messagesMarkedRead', payload);
+        io.to(conversationId).emit('message_read', payload);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Messages marked as read',
+      messageIds: unreadMessageIds,
+      readAt
+    });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { setSocketIO, createMessage, getMessages, searchSensitiveMessages, markMessagesAsRead };
+module.exports = { createMessage, getMessages, searchSensitiveMessages, markMessagesAsRead };

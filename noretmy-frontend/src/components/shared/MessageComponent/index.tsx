@@ -55,6 +55,8 @@ interface MessageProps {
     orderData?: OrderData;
     attachments?: MessageAttachment[];
     isRead?: boolean;
+    isDelivered?: boolean;
+    readAt?: string;
   };
   userId: string;
   receiverId: string;
@@ -102,13 +104,8 @@ const MessageComponent: React.FC<MessageProps> = ({
   // Get user fullName or fallback to username
   const senderFullName = isSelf ? (currentUserFullName || 'You') : (otherUserFullName || otherUserName || 'Anonymous');
     
-  // Get user initials for fallback avatar
-  const getUserInitials = () => {
-    const name = isSelf ? (currentUserFullName || 'Me') : (otherUserFullName || otherUserName || 'User');
-    const names = name.split(' ');
-    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  };
+  const isPendingSend = typeof item._id === 'string' && item._id.startsWith('temp-');
+  const isDelivered = !isPendingSend && (item.isDelivered ?? true);
 
   const handleAcceptInvitation = async () => {
     if (!item.orderId) return;
@@ -459,6 +456,11 @@ const MessageComponent: React.FC<MessageProps> = ({
               <>
                 <CheckCheck className="w-3 h-3 text-blue-500" />
                 <span>Read</span>
+              </>
+            ) : isDelivered ? (
+              <>
+                <CheckCheck className="w-3 h-3 text-gray-400" />
+                <span>Delivered</span>
               </>
             ) : (
               <>

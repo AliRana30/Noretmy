@@ -41,7 +41,10 @@ const messageSchema = new mongoose.Schema({
     
     attachmentCount: { type: Number, default: 0 },
     
+    isDelivered: { type: Boolean, default: true },
+    deliveredAt: { type: Date, default: Date.now },
     isRead: { type: Boolean, default: false },
+    readAt: { type: Date, default: null },
     
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date }

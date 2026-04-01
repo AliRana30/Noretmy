@@ -26,6 +26,13 @@ interface AttachmentData {
   dimensions?: { width: number; height: number };
 }
 
+interface ReadReceiptPayload {
+  conversationId: string;
+  userId: string;
+  messageIds: string[];
+  readAt?: string;
+}
+
 const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,6 +67,45 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
   const userProfilePicture = useSelector((state: RootState) => state?.auth?.user?.profilePicture);
   const userId = useSelector((state: RootState) => state?.auth?.user?._id || state?.auth?.user?.id);
   const receiverId = userId === sellerId ? buyerId : sellerId;
+
+  const markMessagesAsReadIfVisible = async (sourceMessages: any[]) => {
+    if (!Array.isArray(sourceMessages) || sourceMessages.length === 0) return;
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+
+    const unreadMessageIds = sourceMessages
+      .filter((msg: any) => String(msg.userId || msg.senderId) !== String(userId) && !msg.isRead)
+      .map((msg: any) => msg._id)
+      .filter(Boolean);
+
+    if (unreadMessageIds.length === 0) return;
+
+    if (socketRef.current) {
+      socketRef.current.emit('messagesRead', {
+        conversationId,
+        userId,
+        messageIds: unreadMessageIds
+      });
+    }
+
+    try {
+      const response = await axios.put(
+        `${BACKEND_URL}/messages/mark-read`,
+        { messageIds: unreadMessageIds, conversationId },
+        { withCredentials: true }
+      );
+
+      const readAt = response?.data?.readAt;
+      setMessages((prev) =>
+        prev.map((msg) =>
+          unreadMessageIds.includes(msg._id)
+            ? { ...msg, isRead: true, readAt: readAt || msg.readAt }
+            : msg
+        )
+      );
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
 
   useEffect(() => {
     const id = searchParams.get('buyerId');
@@ -103,34 +149,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         setIsLoading(false);
         requestAnimationFrame(() => scrollToBottom('auto'));
 
-        // Mark messages as read - both socket and API
-        if (messageData.length > 0) {
-          const unreadMessageIds = messageData
-            .filter((msg: any) => msg.userId !== userId && !msg.isRead)
-            .map((msg: any) => msg._id);
-
-          if (unreadMessageIds.length > 0) {
-            // Emit socket event for real-time update
-            if (socketRef.current) {
-              socketRef.current.emit('messagesRead', {
-                conversationId,
-                userId,
-                messageIds: unreadMessageIds
-              });
-            }
-
-            // Call API to persist in database
-            try {
-              await axios.put(
-                `${BACKEND_URL}/messages/mark-read`,
-                { messageIds: unreadMessageIds, conversationId },
-                { withCredentials: true }
-              );
-            } catch (error) {
-              console.error('Error marking messages as read:', error);
-            }
-          }
-        }
+        await markMessagesAsReadIfVisible(messageData);
       } catch (error) {
         console.error('Error fetching initial messages:', error);
         setIsLoading(false);
@@ -280,10 +299,15 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           return prev;
         }
         console.log('[Message] ✅ Adding new message to state');
-        const newMessages = [...prev, payload];
+        const newMessages = [...prev, { ...payload, isDelivered: true }];
         console.log('[Message] 📊 Total messages now:', newMessages.length);
         return newMessages;
       });
+
+      // Mark incoming messages as read only when chat is open and visible.
+      if (!isOwnMessage && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        markMessagesAsReadIfVisible([payload]);
+      }
 
       // Only auto-scroll when user is already near bottom or when message is sent by current user.
       if (isOwnMessage || shouldAutoScrollRef.current) {
@@ -291,18 +315,25 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       }
     };
 
-    const handleMessagesMarkedRead = (payload: any) => {
+    const applyReadReceipt = (payload: ReadReceiptPayload) => {
       if (!payload || payload.conversationId !== conversationId) return;
-      // Update messages read status in UI
       if (payload.messageIds && payload.messageIds.length > 0) {
         setMessages((prev) =>
           prev.map((msg) =>
             payload.messageIds.includes(msg._id)
-              ? { ...msg, isRead: true }
+              ? { ...msg, isRead: true, readAt: payload.readAt || msg.readAt }
               : msg
           )
         );
       }
+    };
+
+    const handleMessagesMarkedRead = (payload: ReadReceiptPayload) => {
+      applyReadReceipt(payload);
+    };
+
+    const handleMessageRead = (payload: ReadReceiptPayload) => {
+      applyReadReceipt(payload);
     };
 
     const handleUserTyping = (payload: any) => {
@@ -374,6 +405,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
     socket.on('receiveMessage', handleReceiveMessage);
     socket.on('messagesMarkedRead', handleMessagesMarkedRead);
+    socket.on('message_read', handleMessageRead);
     socket.on('userTyping', handleUserTyping);
     socket.on('orderInvitationUpdated', handleOrderInvitationUpdate);
     socket.on('userOnline', handleUserOnline);
@@ -387,6 +419,7 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       socket.emit('leaveRoom', conversationId);
       socket.off('receiveMessage', handleReceiveMessage);
       socket.off('messagesMarkedRead', handleMessagesMarkedRead);
+      socket.off('message_read', handleMessageRead);
       socket.off('userTyping', handleUserTyping);
       socket.off('orderInvitationUpdated', handleOrderInvitationUpdate);
       socket.off('userOnline', handleUserOnline);
@@ -394,7 +427,20 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
       socket.off('onlineUsersStatus', handleOnlineUsersStatus);
       socket.disconnect();
     };
-  }, [SOCKET_URL, conversationId, userId]);
+  }, [SOCKET_URL, conversationId, userId, receiverId]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && messages.length > 0) {
+        markMessagesAsReadIfVisible(messages);
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [messages, conversationId, userId]);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (messagesContainerRef.current) {
@@ -434,6 +480,8 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
         attachments: pendingAttachments,
         messageType: pendingAttachments.length > 0 ? 'file' : 'text',
         createdAt: new Date().toISOString(),
+        isDelivered: false,
+        isRead: false,
       };
 
       setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
@@ -503,7 +551,9 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
 
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
-            msg._id === optimisticMessage._id ? response.data : msg
+            msg._id === optimisticMessage._id
+              ? { ...response.data, isDelivered: true }
+              : msg
           )
         );
 

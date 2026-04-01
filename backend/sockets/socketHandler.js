@@ -127,13 +127,37 @@ const socketHandler = (io) => {
         }
       });
       
-      socket.on('messagesRead', ({ conversationId, userId, messageIds }) => {
-        socket.to(conversationId).emit('messagesMarkedRead', {
-          conversationId,
-          userId,
-          messageIds,
-          readAt: new Date()
-        });
+      socket.on('messagesRead', async ({ conversationId, userId, messageIds }) => {
+        try {
+          if (!conversationId || !userId || !Array.isArray(messageIds) || messageIds.length === 0) {
+            return;
+          }
+
+          const Message = require('../models/Message');
+          const readAt = new Date();
+
+          await Message.updateMany(
+            {
+              _id: { $in: messageIds },
+              conversationId,
+              userId: { $ne: String(userId) },
+              isRead: false
+            },
+            { $set: { isRead: true, readAt } }
+          );
+
+          const payload = {
+            conversationId,
+            userId,
+            messageIds,
+            readAt
+          };
+
+          socket.to(conversationId).emit('messagesMarkedRead', payload);
+          socket.to(conversationId).emit('message_read', payload);
+        } catch (err) {
+          console.error('[Socket] Error in messagesRead:', err.message);
+        }
       });
   
       socket.on('disconnect', () => {
