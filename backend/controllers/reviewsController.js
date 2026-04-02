@@ -58,7 +58,6 @@ const createReview = async (req, res, next) => {
       }
   
       try {
-        await badgeService.updateSellerMetricsOnOrderComplete(order.sellerId, order);
         await badgeService.updateSellerRating(order.sellerId);
       } catch (badgeError) {
         console.error("Error updating seller badge:", badgeError);

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import SingleOrderPage from '@/components/shared/Order-Details-Buyer/Single';
 import SingleOrderSkeleton from '@/skelton/SingleOrder';
 import MilestoneOrderDisplay from '@/components/shared/SingleOrder/MilestonesDisplay';
 import { useTranslations } from '@/hooks/useTranslations';
+import { io as createSocket } from 'socket.io-client';
 
 interface OrderData {
   orderId: string;
@@ -35,6 +36,7 @@ const OrderDetailsPage = ({ params }: { params: { orderId: string } }) => {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [onOperationComplete, setOnOperationComplete] = useState(false);
+  const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
   
   const { t, getCurrentLanguage } = useTranslations();
   const currentLanguage = getCurrentLanguage();
@@ -61,6 +63,44 @@ const OrderDetailsPage = ({ params }: { params: { orderId: string } }) => {
         setLoading(false);
       });
   }, [orderId, onOperationComplete, currentLanguage, BACKEND_URL]);
+
+  useEffect(() => {
+    const socketUrl = BACKEND_URL?.replace(/\/api\/?$/, '') || '';
+    if (!socketUrl) return;
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    const socket = createSocket(socketUrl, {
+      path: '/socket.io/',
+      withCredentials: true,
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current = socket;
+
+    const handleOrderUpdate = (payload: any) => {
+      if (!payload) return;
+      const payloadOrderId = String(payload.orderId || payload._id || '');
+      if (payloadOrderId === String(orderId)) {
+        setOnOperationComplete(true);
+      }
+    };
+
+    socket.on('orderUpdated', handleOrderUpdate);
+    socket.on('orderInvitationUpdated', handleOrderUpdate);
+
+    return () => {
+      socket.off('orderUpdated', handleOrderUpdate);
+      socket.off('orderInvitationUpdated', handleOrderUpdate);
+      socket.disconnect();
+    };
+  }, [BACKEND_URL, orderId]);
 
   if (loading) {
     return <SingleOrderSkeleton />;

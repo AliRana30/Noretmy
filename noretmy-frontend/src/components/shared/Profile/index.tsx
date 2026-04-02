@@ -200,6 +200,9 @@ const ProfileSection = () => {
     profilePicture: '',
     description: '',
     skills: [],
+    experienceLevel: '',
+    portfolioUrl: '',
+    githubUrl: '',
     reviews: [],
     averageRating: 0,
     revenue: {

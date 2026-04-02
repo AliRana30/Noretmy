@@ -20,7 +20,10 @@
     },
     "skills": {
       "title": "Skills & Expertise",
-      "add": "Add"
+      "add": "Add",
+      "skillName": "Skill name",
+      "skillNamePlaceholder": "Add a skill",
+      "experienceLevel": "Experience level"
     },
     "portfolio": {
       "title": "Portfolio / Work (Optional)",
@@ -33,6 +36,7 @@
       "title": "Create Your First Gig (Mandatory)",
       "gigTitle": "Gig Title",
       "gigDescription": "Gig Description",
+      "category": "Category",
       "selectCategory": "Select category",
       "deliveryTime": "Delivery time (days)",
       "basicPrice": "Basic price",

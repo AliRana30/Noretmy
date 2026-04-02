@@ -73,7 +73,8 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-  const timeLeft = useCountdown(orderDetails.deliveryDate);
+  const shouldResetCountdown = ['waitingReview', 'completed'].includes(orderStatus);
+  const timeLeft = useCountdown(orderDetails.deliveryDate, shouldResetCountdown);
 
   const user = useSelector((state: any) => state.auth?.user);
   const isOrderSeller = user?._id === orderDetails?.sellerId || user?.id === orderDetails?.sellerId;
@@ -174,12 +175,13 @@ const SingleOrderSection: React.FC<SingleOrderSectionProps> = ({
   }, [orderDetails?.progress, orderStatus]);
 
   const filteredDropdownItems = useMemo(() => {
-    return statusHistory
+    return (statusHistory || [])
       .map((history: HistoryItem) => {
+        if (!history?.status) return null;
         const config =
           statusConfig[history.status as keyof typeof statusConfig];
         return config
-          ? { ...config, status: history.status, key: history._id }
+          ? { ...config, status: history.status, key: history._id || `${history.status}-fallback` }
           : null;
       })
       .filter(Boolean)

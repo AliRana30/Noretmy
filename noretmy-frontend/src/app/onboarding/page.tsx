@@ -226,7 +226,10 @@ const OnboardingPage = () => {
         const form = new FormData();
         form.append('title', data.gig.title);
         form.append('cat', data.gig.category);
+        form.append('subCat', data.gig.category);
         form.append('description', data.gig.description);
+        form.append('keywords', JSON.stringify([data.gig.category, data.gig.title]));
+        form.append('whyChooseMe', JSON.stringify(['Fast delivery', 'Clear communication']));
         form.append('pricingPlan', JSON.stringify({
           basic: {
             title: 'Basic',
@@ -234,14 +237,14 @@ const OnboardingPage = () => {
             deliveryTime: data.gig.deliveryDays,
             price: data.gig.pricing.basic,
           },
-          standard: {
-            title: 'Standard',
+          premium: {
+            title: 'Premium',
             description: data.gig.description,
             deliveryTime: data.gig.deliveryDays,
             price: data.gig.pricing.standard,
           },
-          premium: {
-            title: 'Premium',
+          pro: {
+            title: 'Pro',
             description: data.gig.description,
             deliveryTime: data.gig.deliveryDays,
             price: data.gig.pricing.premium,
@@ -272,13 +275,20 @@ const OnboardingPage = () => {
 
   const complete = async () => {
     try {
+      await saveProgressToServer(totalSteps);
+
       await axios.post(
         `${BACKEND_URL}/users/onboarding/complete`,
         { actionChoice: data.actionChoice || undefined },
         { withCredentials: true }
       );
 
-      dispatch(updateUserProfile({ isOnboarded: true, onboardingStep: totalSteps }));
+      dispatch(updateUserProfile({
+        isOnboarded: true,
+        onboardingStep: totalSteps,
+        fullName: data.fullName,
+        profilePicture: data.profilePicture,
+      }));
 
       localStorage.removeItem(STORAGE_KEY);
 
@@ -356,9 +366,18 @@ const OnboardingPage = () => {
                 />
               </label>
             </div>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.headline') || 'Title (e.g. MERN Stack Developer)'} value={data.title} onChange={(e) => setData((p) => ({ ...p, title: e.target.value }))} />
-            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.basicInfo.bio') || 'Description / Bio'} value={data.bio} onChange={(e) => setData((p) => ({ ...p, bio: e.target.value }))} />
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.basicInfo.fullName') || 'Full Name'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.basicInfo.headline') || 'Title (e.g. MERN Stack Developer)'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.headline') || 'Title (e.g. MERN Stack Developer)'} value={data.title} onChange={(e) => setData((p) => ({ ...p, title: e.target.value }))} />
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.basicInfo.bio') || 'Description / Bio'}</span>
+              <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.basicInfo.bio') || 'Description / Bio'} value={data.bio} onChange={(e) => setData((p) => ({ ...p, bio: e.target.value }))} />
+            </label>
           </section>
         )}
 
@@ -366,12 +385,15 @@ const OnboardingPage = () => {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">{t('freelancer.skills.title') || 'Skills & Expertise'}</h2>
             <div className="flex gap-2">
-              <input
-                className="flex-1 border rounded-lg px-3 py-2"
-                placeholder="Add a skill"
-                value={data.skillInput}
-                onChange={(e) => setData((p) => ({ ...p, skillInput: e.target.value }))}
-              />
+              <div className="flex-1">
+                <label className="block text-sm text-gray-700 mb-2">{t('freelancer.skills.skillName') || 'Skill name'}</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder={t('freelancer.skills.skillNamePlaceholder') || 'Add a skill'}
+                  value={data.skillInput}
+                  onChange={(e) => setData((p) => ({ ...p, skillInput: e.target.value }))}
+                />
+              </div>
               <button
                 className="px-4 py-2 rounded-lg bg-gray-900 text-white"
                 onClick={() => {
@@ -404,19 +426,28 @@ const OnboardingPage = () => {
                 </span>
               ))}
             </div>
-            <select className="w-full border rounded-lg px-3 py-2" value={data.experienceLevel} onChange={(e) => setData((p) => ({ ...p, experienceLevel: e.target.value as ExperienceLevel }))}>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="expert">Expert</option>
-            </select>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.skills.experienceLevel') || 'Experience level'}</span>
+              <select className="w-full border rounded-lg px-3 py-2" value={data.experienceLevel} onChange={(e) => setData((p) => ({ ...p, experienceLevel: e.target.value as ExperienceLevel }))}>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="expert">Expert</option>
+              </select>
+            </label>
           </section>
         )}
 
         {role === 'freelancer' && currentStep === 3 && (
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">{t('freelancer.portfolio.title') || 'Portfolio / Work (Optional)'}</h2>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.url') || 'Portfolio URL'} value={data.portfolioUrl} onChange={(e) => setData((p) => ({ ...p, portfolioUrl: e.target.value }))} />
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.github') || 'GitHub URL'} value={data.githubUrl} onChange={(e) => setData((p) => ({ ...p, githubUrl: e.target.value }))} />
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.portfolio.url') || 'Portfolio URL'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.url') || 'Portfolio URL'} value={data.portfolioUrl} onChange={(e) => setData((p) => ({ ...p, portfolioUrl: e.target.value }))} />
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.portfolio.github') || 'GitHub URL'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.github') || 'GitHub URL'} value={data.githubUrl} onChange={(e) => setData((p) => ({ ...p, githubUrl: e.target.value }))} />
+            </label>
             <label className="block text-sm text-gray-700">
               <span className="block mb-2">{t('freelancer.portfolio.upload') || 'Upload project images'}</span>
               <input type="file" accept="image/*" multiple onChange={(e) => setPortfolioFiles(Array.from(e.target.files || []))} />
@@ -439,17 +470,38 @@ const OnboardingPage = () => {
         {role === 'freelancer' && currentStep === 4 && (
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">{t('freelancer.gig.title') || 'Create Your First Gig (Mandatory)'}</h2>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.gigTitle') || 'Gig Title'} value={data.gig.title} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, title: e.target.value } }))} />
-            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.gig.gigDescription') || 'Gig Description'} value={data.gig.description} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, description: e.target.value } }))} />
-            <select className="w-full border rounded-lg px-3 py-2" value={data.gig.category} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, category: e.target.value } }))}>
-              <option value="">{t('freelancer.gig.selectCategory') || 'Select category'}</option>
-              {GIG_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <input type="number" min={1} className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.deliveryTime') || 'Delivery time (days)'} value={data.gig.deliveryDays} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, deliveryDays: Number(e.target.value) || 1 } }))} />
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.gig.gigTitle') || 'Gig Title'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.gigTitle') || 'Gig Title'} value={data.gig.title} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, title: e.target.value } }))} />
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.gig.gigDescription') || 'Gig Description'}</span>
+              <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.gig.gigDescription') || 'Gig Description'} value={data.gig.description} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, description: e.target.value } }))} />
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.gig.category') || 'Category'}</span>
+              <select className="w-full border rounded-lg px-3 py-2" value={data.gig.category} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, category: e.target.value } }))}>
+                <option value="">{t('freelancer.gig.selectCategory') || 'Select category'}</option>
+                {GIG_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('freelancer.gig.deliveryTime') || 'Delivery time (days)'}</span>
+              <input type="number" min={1} className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.deliveryTime') || 'Delivery time (days)'} value={data.gig.deliveryDays} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, deliveryDays: Number(e.target.value) || 1 } }))} />
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.basicPrice') || 'Basic price'} value={data.gig.pricing.basic} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, basic: Number(e.target.value) || 1 } } }))} />
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.standardPrice') || 'Standard price'} value={data.gig.pricing.standard} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, standard: Number(e.target.value) || 1 } } }))} />
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.premiumPrice') || 'Premium price'} value={data.gig.pricing.premium} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, premium: Number(e.target.value) || 1 } } }))} />
+              <label className="block text-sm text-gray-700">
+                <span className="block mb-2">{t('freelancer.gig.basicPrice') || 'Basic price'}</span>
+                <input type="number" min={1} className="border rounded-lg px-3 py-2 w-full" placeholder={t('freelancer.gig.basicPrice') || 'Basic price'} value={data.gig.pricing.basic} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, basic: Number(e.target.value) || 1 } } }))} />
+              </label>
+              <label className="block text-sm text-gray-700">
+                <span className="block mb-2">{t('freelancer.gig.standardPrice') || 'Standard price'}</span>
+                <input type="number" min={1} className="border rounded-lg px-3 py-2 w-full" placeholder={t('freelancer.gig.standardPrice') || 'Standard price'} value={data.gig.pricing.standard} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, standard: Number(e.target.value) || 1 } } }))} />
+              </label>
+              <label className="block text-sm text-gray-700">
+                <span className="block mb-2">{t('freelancer.gig.premiumPrice') || 'Premium price'}</span>
+                <input type="number" min={1} className="border rounded-lg px-3 py-2 w-full" placeholder={t('freelancer.gig.premiumPrice') || 'Premium price'} value={data.gig.pricing.premium} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, premium: Number(e.target.value) || 1 } } }))} />
+              </label>
             </div>
             <label className="block text-sm text-gray-700">
               <span className="block mb-2">{t('freelancer.gig.images') || 'Gig images'}</span>
@@ -493,7 +545,10 @@ const OnboardingPage = () => {
                 />
               </label>
             </div>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('client.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
+            <label className="block text-sm text-gray-700">
+              <span className="block mb-2">{t('client.basicInfo.fullName') || 'Full Name'}</span>
+              <input className="w-full border rounded-lg px-3 py-2" placeholder={t('client.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
+            </label>
           </section>
         )}
 

@@ -150,6 +150,8 @@ const ChatScreen: React.FC = () => {
 
     socket.on('newMessageNotification', handleRealtimeUpdate);
     socket.on('receiveMessage', handleRealtimeUpdate);
+    socket.on('orderUpdated', handleRealtimeUpdate);
+    socket.on('orderInvitationUpdated', handleRealtimeUpdate);
 
     socket.on('userTyping', (payload: { conversationId: string; userId: string; isTyping: boolean }) => {
       if (payload.userId !== user?._id) {
@@ -166,6 +168,8 @@ const ChatScreen: React.FC = () => {
       }
       socket.off('newMessageNotification', handleRealtimeUpdate);
       socket.off('receiveMessage', handleRealtimeUpdate);
+      socket.off('orderUpdated', handleRealtimeUpdate);
+      socket.off('orderInvitationUpdated', handleRealtimeUpdate);
       socket.off('userTyping');
       socket.disconnect();
     };

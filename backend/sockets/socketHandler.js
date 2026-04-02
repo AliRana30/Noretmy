@@ -106,6 +106,20 @@ const socketHandler = (io) => {
           console.error('[Socket] Error in sendMessage:', err.message);
         }
       });
+
+      socket.on('orderInvitationUpdated', (payload) => {
+        try {
+          if (!payload || !payload.conversationId) {
+            console.warn('[Socket] orderInvitationUpdated called with invalid data');
+            return;
+          }
+
+          io.emit('orderInvitationUpdated', payload);
+          io.to(payload.conversationId).emit('orderInvitationUpdated', payload);
+        } catch (err) {
+          console.error('[Socket] Error in orderInvitationUpdated:', err.message);
+        }
+      });
       
       socket.on('typing', ({ conversationId, userId, isTyping }) => {
         try {

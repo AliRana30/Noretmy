@@ -20,7 +20,10 @@
     },
     "skills": {
       "title": "Habilidades y experiencia",
-      "add": "Añadir"
+      "add": "Añadir",
+      "skillName": "Nombre de la habilidad",
+      "skillNamePlaceholder": "Añade una habilidad",
+      "experienceLevel": "Nivel de experiencia"
     },
     "portfolio": {
       "title": "Portafolio / Trabajo (Opcional)",
@@ -33,6 +36,7 @@
       "title": "Crea tu primer servicio (obligatorio)",
       "gigTitle": "Título del servicio",
       "gigDescription": "Descripción del servicio",
+      "category": "Categoría",
       "selectCategory": "Seleccionar categoría",
       "deliveryTime": "Tiempo de entrega (días)",
       "basicPrice": "Precio básico",

@@ -332,7 +332,7 @@ const getSellerData = async (req, res) => {
       }
     }
 
-    const userProfile = await UserProfile.findOne({ userId }).select('location country countryCode profilePicture profileHeadline description skills');
+    const userProfile = await UserProfile.findOne({ userId }).select('location country countryCode profilePicture profileHeadline description skills experienceLevel portfolioUrl githubUrl interests portfolioItems');
     if (userProfile) {
       responseData.location = userProfile.location;
       responseData.country = userProfile.country;
@@ -341,6 +341,11 @@ const getSellerData = async (req, res) => {
       responseData.profilePicture = userProfile.profilePicture,
       responseData.description = userProfile.description;
       responseData.skills = userProfile.skills;
+      responseData.experienceLevel = userProfile.experienceLevel;
+      responseData.portfolioUrl = userProfile.portfolioUrl;
+      responseData.githubUrl = userProfile.githubUrl;
+      responseData.interests = userProfile.interests;
+      responseData.portfolioItems = userProfile.portfolioItems;
     }
 
     const sellerIdStr = userId.toString();
@@ -1035,10 +1040,6 @@ const getFreelancerProfile = async (req, res) => {
       realOnTimeRate = Number(liveSellerStats.onTimeDeliveryRate ?? realOnTimeRate);
       realResponseRate = Number(liveSellerStats.responseRate ?? realResponseRate);
       realCompletionRate = Number(liveSellerStats.completionRate ?? realCompletionRate);
-    } else if (sellerBadge?.metrics) {
-      realOnTimeRate = sellerBadge.metrics.onTimeDeliveryRate || 100;
-      realResponseRate = sellerBadge.metrics.responseRate || 100;
-      realCompletionRate = sellerBadge.metrics.completionRate || realCompletionRate;
     } else if (completedOrdersCount > 0) {
       // Calculate from actual data if no badge metrics
       realOnTimeRate = +completionRate.toFixed(1);

@@ -29,6 +29,35 @@ const badgeService = require("../services/badgeService");
 const notificationService = require("../services/notificationService");
 const paymentMilestoneService = require('../services/paymentMilestoneService');
 
+const emitOrderUpdate = (order, extra = {}) => {
+  const io = global.io;
+  if (!io || !order) return;
+
+  const payload = {
+    orderId: order._id?.toString?.() || order._id,
+    status: order.status,
+    progress: order.progress,
+    paymentStatus: order.paymentStatus,
+    paymentMilestoneStage: order.paymentMilestoneStage,
+    isPaid: order.isPaid,
+    isCompleted: order.isCompleted,
+    buyerId: order.buyerId?.toString?.() || order.buyerId,
+    sellerId: order.sellerId?.toString?.() || order.sellerId,
+    updatedAt: order.updatedAt || new Date(),
+    ...extra
+  };
+
+  io.emit('orderUpdated', payload);
+
+  if (payload.buyerId) {
+    io.to(`user_${payload.buyerId}`).emit('orderUpdated', payload);
+  }
+
+  if (payload.sellerId) {
+    io.to(`user_${payload.sellerId}`).emit('orderUpdated', payload);
+  }
+};
+
 
 
 
@@ -387,6 +416,8 @@ const startOrder = async (req, res) => {
 
     await order.save();
 
+    emitOrderUpdate(order, { event: 'order_started' });
+
     try {
       const gig = await Job.findById(order.gigId);
       await notificationService.notifyOrderStarted(
@@ -514,6 +545,8 @@ const deliverOrder = async (req, res) => {
     }
     
     await order.save();
+
+    emitOrderUpdate(order, { event: 'order_delivered' });
     
     try {
       const paymentMilestoneService = require('../services/paymentMilestoneService');
@@ -645,6 +678,13 @@ const acceptOrder = async (req, res) => {
       return res.status(403).json({ error: "You are not authorized to complete this order" });
     }
 
+    if (order.status === "completed" || order.isCompleted) {
+      return res.status(200).json({
+        message: "Order is already completed.",
+        order,
+      });
+    }
+
     if (order.status !== "delivered" && order.status !== "requestedRevision") {
       return res.status(400).json({ error: "Order is not in a valid state to be accepted " });
     }
@@ -666,7 +706,7 @@ const acceptOrder = async (req, res) => {
     }
     
     const statusUpdate = {
-      status: "waitingReview",
+      status: "completed",
       changedAt: new Date(),
     };
     order.statusHistory.push(statusUpdate);
@@ -682,23 +722,30 @@ const acceptOrder = async (req, res) => {
     if (order.paymentBreakdown && order.paymentBreakdown.reviewAmount > 0) {
       try {
         const PaymentMilestone = require('../models/PaymentMilestone');
-        const reviewMilestone = new PaymentMilestone({
+        const existingReviewedMilestone = await PaymentMilestone.findOne({
           orderId: order._id,
-          stage: 'reviewed',
-          percentageOfTotal: 20,
-          amount: order.paymentBreakdown.reviewAmount,
-          currency: order.currency || 'USD',
-          stripePaymentIntentId: order.payment_intent,
-          paymentStatus: 'captured',
-          capturedAt: new Date(),
-          triggeredBy: {
-            role: 'buyer',
-            action: 'order_accepted'
-          }
+          stage: 'reviewed'
         });
-        await reviewMilestone.save();
-        
-        order.paymentBreakdown.pendingReleaseAmount += order.paymentBreakdown.reviewAmount;
+
+        if (!existingReviewedMilestone) {
+          const reviewMilestone = new PaymentMilestone({
+            orderId: order._id,
+            stage: 'reviewed',
+            percentageOfTotal: 20,
+            amount: order.paymentBreakdown.reviewAmount,
+            currency: order.currency || 'USD',
+            stripePaymentIntentId: order.payment_intent,
+            paymentStatus: 'captured',
+            capturedAt: new Date(),
+            triggeredBy: {
+              role: 'buyer',
+              action: 'order_accepted'
+            }
+          });
+          await reviewMilestone.save();
+
+          order.paymentBreakdown.pendingReleaseAmount += order.paymentBreakdown.reviewAmount;
+        }
         
         order.timeline.push({
           event: 'Review Payment Captured',
@@ -775,6 +822,8 @@ const acceptOrder = async (req, res) => {
       }
 
     await order.save();
+
+      emitOrderUpdate(order, { event: 'order_completed' });
 
     try {
       const gig = await Job.findById(order.gigId);
@@ -1650,6 +1699,8 @@ const acceptInvitation = async (req, res) => {
     
     await invitation.save();
 
+    emitOrderUpdate(invitation, { event: 'order_accepted', invitationStatus: 'accepted' });
+
     const gig = await Job.findById(invitation.gigId);
     const conversationId = userId + invitation.buyerId;
     
@@ -1758,6 +1809,8 @@ const rejectInvitation = async (req, res) => {
     invitation.rejectionReason = reason || '';
     invitation.status = 'cancelled';
     await invitation.save();
+
+    emitOrderUpdate(invitation, { event: 'order_rejected', invitationStatus: 'rejected' });
 
     const gig = await Job.findById(invitation.gigId);
     const conversationId = userId + invitation.buyerId;
@@ -1905,6 +1958,8 @@ const updateOrderProgress = async (req, res) => {
     }
 
     await order.save();
+
+    emitOrderUpdate(order, { event: 'progress_updated', progress: progressValue, note });
 
     res.status(200).json({
       message: `Progress updated to ${progressValue}%`,
@@ -2464,6 +2519,8 @@ const advanceOrderStatus = async (req, res) => {
 
       await order.save();
 
+      emitOrderUpdate(order, { event: 'order_completed' });
+
       try {
         const baseEarnings = getSellerPayout(order.price);
         
@@ -2541,6 +2598,12 @@ const advanceOrderStatus = async (req, res) => {
     });
 
     await order.save();
+
+    emitOrderUpdate(order, {
+      event: 'status_changed',
+      previousStatus,
+      targetStatus
+    });
 
     const Notification = require('../models/Notification');
     const recipientId = isBuyer ? order.sellerId : order.buyerId;

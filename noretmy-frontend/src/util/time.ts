@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 
-export const useCountdown = (deliveryDate: string) => {
+export const useCountdown = (deliveryDate?: string, forceZero: boolean = false) => {
   const calculateTimeLeft = () => {
+    if (forceZero || !deliveryDate) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
     const now = new Date().getTime();
     const deliveryTime = new Date(deliveryDate).getTime();
+    if (!Number.isFinite(deliveryTime)) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
     const difference = deliveryTime - now;
 
     if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -24,7 +32,7 @@ export const useCountdown = (deliveryDate: string) => {
     }, 1000);
 
     return () => clearInterval(timer); // Cleanup on unmount
-  }, [deliveryDate]);
+  }, [deliveryDate, forceZero]);
 
   return timeLeft;
 };

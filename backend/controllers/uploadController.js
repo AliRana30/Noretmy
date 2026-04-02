@@ -49,7 +49,7 @@ const uploadImages = async (req, res) => {
 const uploadDocuments = async (req) => {
   try {
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
+      return [];
     }
 
     const uploadToCloudinary = async (file) => {
@@ -80,7 +80,7 @@ const uploadDocuments = async (req) => {
 
   } catch (error) {
     console.error('Error uploading images:', error);
-    return error;
+    throw error;
   }
 };
 

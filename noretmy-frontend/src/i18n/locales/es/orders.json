@@ -52,7 +52,7 @@
       "completedDesc": "Pedido finalizado y fondos liberados"
     },
     "statusLabels": {
-      "accepted": "Pago Confirmado",
+      "accepted": "Pedido Aceptado",
       "completed": "Pedido Completado",
       "waitingReview": "Esperando Revisión",
       "requestedRevision": "Revisión Solicitada",
@@ -62,7 +62,7 @@
       "created": "Pedido Creado"
     },
     "statusDescriptions": {
-      "accepted": "Pago recibido y pedido aceptado",
+      "accepted": "El freelancer aceptó el pedido y está esperando el pago",
       "completed": "Todos los entregables han sido completados y aceptados",
       "waitingReview": "Esperando que el comprador deje una revisión",
       "requestedRevision": "El comprador ha solicitado cambios en la entrega",

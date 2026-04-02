@@ -1,67 +1,94 @@
+"use client";
+
 import React from "react";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export default function LegalNotice() {
+  const { getCurrentLanguage } = useTranslations();
+  const isSpanish = getCurrentLanguage()?.toLowerCase().startsWith("es");
+
+  const content = isSpanish
+    ? {
+        title: "Aviso legal",
+        subtitle: "Informacion importante sobre Noretmy LLC",
+        sections: [
+          {
+            title: "Titular del sitio web",
+            body: "Este sitio web pertenece a Noretmy LLC, registrada en 2093 Philadelphia Pike #7584, Claymont, DE 19703, Estados Unidos.",
+          },
+          {
+            title: "Finalidad",
+            body: "La finalidad del sitio es ofrecer servicios digitales a empresas y particulares.",
+          },
+          {
+            title: "Propiedad intelectual e industrial",
+            body: "Todo el contenido del sitio (textos, imagenes, logos y codigo) pertenece a Noretmy LLC o a terceros con licencia valida.",
+          },
+          {
+            title: "Proteccion de datos",
+            body: "Los datos personales se tratan conforme a la normativa aplicable y a nuestra Politica de Privacidad.",
+          },
+          {
+            title: "Responsabilidad",
+            body: "Noretmy LLC no se responsabiliza por uso indebido del sitio ni por danos derivados del acceso o uso del servicio.",
+          },
+          {
+            title: "Ley aplicable y jurisdiccion",
+            body: "Este aviso legal se rige por la legislacion del Estado de Nuevo Mexico, Estados Unidos.",
+          },
+        ],
+      }
+    : {
+        title: "Legal Notice",
+        subtitle: "Important information about Noretmy LLC",
+        sections: [
+          {
+            title: "Website Owner",
+            body: "This website is owned by Noretmy LLC, registered at 2093 Philadelphia Pike #7584, Claymont, DE 19703, United States.",
+          },
+          {
+            title: "Purpose",
+            body: "The purpose of this website is to provide digital services for businesses and individuals.",
+          },
+          {
+            title: "Intellectual and Industrial Property",
+            body: "All content on this site (text, images, logos, and source code) belongs to Noretmy LLC or licensed third parties.",
+          },
+          {
+            title: "Personal Data Protection",
+            body: "Personal data is processed in accordance with applicable regulations and our Privacy Policy.",
+          },
+          {
+            title: "Liability",
+            body: "Noretmy LLC is not liable for misuse of this site or damages arising from access or use of the platform.",
+          },
+          {
+            title: "Applicable Law and Jurisdiction",
+            body: "This legal notice is governed by the laws of the State of New Mexico, United States.",
+          },
+        ],
+      };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto  px-4 sm:px-6 lg:px-8 bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="bg-blue-50 px-6 py-8 border-b border-gray-100">
-          <h1 className="text-3xl font-semibold text-gray-800">Legal Notice</h1>
-          <p className="mt-2 text-gray-500">Important information about Noretmy LLC</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{content.title}</h1>
+          <p className="mt-2 text-gray-500">{content.subtitle}</p>
         </div>
         
         <div className="px-6 py-6">
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Website Owner</h2>
-            <p className="text-gray-600">
-              In compliance with the duty of information stipulated in current regulations, we inform you that this website is owned by Noretmy LLC, a limited liability company registered at Noretmy LLC  
-2093 Philadelphia Pike #7584  
-Claymont, DE 19703  
-United States
-            </p>
-          </section>
-          
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Contact Information</h2>
-            <p className="text-gray-600">
-              For any questions or to contact the website owner, please contact the following email address:{" "}
-              <a href="mailto:info@noretmy.com" className="text-blue-600 hover:text-blue-800">
-                info@noretmy.com
-              </a>
-            </p>
-          </section>
-          
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Purpose</h2>
-            <p className="text-gray-600">
-              The purpose of this website is to offer digital services to both businesses and individuals. Access to and use of the site confers the status of user and implies full acceptance of this Legal Notice.
-            </p>
-          </section>
-          
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Intellectual and Industrial Property</h2>
-            <p className="text-gray-600">
-              All content on the website, including text, images, designs, logos, source code, etc., is the property of Noretmy LLC or third parties, and is protected by intellectual and industrial property rights. Reproduction in whole or in part without express authorization is prohibited.
-            </p>
-          </section>
-          
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Personal Data Protection</h2>
-            <p className="text-gray-600">
-              The personal data provided by the user through contact forms or other means will be treated in accordance with applicable data protection legislation. For more information, please see our Privacy Policy.
-            </p>
-          </section>
-          
-          <section className="mb-8">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Liability</h2>
-            <p className="text-gray-600">
-              Noretmy LLC is not responsible for any misuse of the website's content, nor for any damages or losses arising from its use or access. The owner reserves the right to modify the content and elements of the website at any time without prior notice.
-            </p>
-          </section>
-          
+          {content.sections.map((section) => (
+            <section key={section.title} className="mb-8">
+              <h2 className="text-xl font-medium text-gray-700 mb-3">{section.title}</h2>
+              <p className="text-gray-600">{section.body}</p>
+            </section>
+          ))}
+
           <section className="mb-4">
-            <h2 className="text-xl font-medium text-gray-700 mb-3">Applicable Law and Jurisdiction</h2>
+            <h2 className="text-xl font-medium text-gray-700 mb-3">{isSpanish ? "Contacto" : "Contact Information"}</h2>
             <p className="text-gray-600">
-              This Legal Notice is governed by the laws applicable in the United States, specifically in the state of New Mexico. In the event of a dispute, the parties shall submit to the competent courts of that state.
+              Email: <a href="mailto:info@noretmy.com" className="text-blue-600 hover:text-blue-800">info@noretmy.com</a>
             </p>
           </section>
         </div>

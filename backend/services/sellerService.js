@@ -198,7 +198,7 @@ const getSellerStatistics = async (sellerId) => {
     });
 
     const completionRate = totalOrders > 0
-      ? Math.round((completedOrders / totalOrders) * 100)
+      ? Math.round(((totalOrders - cancelledOrders) / totalOrders) * 100)
       : 100;
 
     const sellerConversations = await Conversation.find({ sellerId: sellerIdStr }).select('id').lean();

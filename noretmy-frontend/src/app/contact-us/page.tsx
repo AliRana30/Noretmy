@@ -4,6 +4,7 @@ import React, { useState, FormEvent, ChangeEvent } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface FormValues {
   subject: string;
@@ -20,6 +21,53 @@ interface FormErrors {
 }
 
 const ContactPage: React.FC = () => {
+  const { getCurrentLanguage } = useTranslations();
+  const isSpanish = getCurrentLanguage()?.toLowerCase().startsWith('es');
+
+  const text = isSpanish
+    ? {
+        contactUs: 'Contactanos',
+        header: 'Valoramos tus comentarios. Escribenos para cualquier duda o consulta.',
+        sendMessage: 'Envianos un mensaje',
+        subject: 'Asunto',
+        email: 'Correo',
+        message: 'Mensaje',
+        messagePlaceholder: 'Escribe tu mensaje aqui...',
+        acceptPolicy: 'Acepto la politica de privacidad',
+        sending: 'Enviando...',
+        send: 'Enviar mensaje',
+        connect: 'Conecta con nosotros',
+        loginFirst: 'Por favor inicia sesion primero.',
+        sentOk: 'Mensaje enviado correctamente.',
+        sentError: 'Error al enviar el formulario.',
+        requiredSubject: 'El asunto es obligatorio',
+        requiredEmail: 'El correo es obligatorio',
+        invalidEmail: 'Correo invalido',
+        requiredMessage: 'El mensaje es obligatorio',
+        requiredPolicy: 'Debes aceptar la politica de privacidad',
+      }
+    : {
+        contactUs: 'Contact Us',
+        header: 'We value your feedback and are here to help. Feel free to reach out with any questions, comments, or concerns.',
+        sendMessage: 'Send Us a Message',
+        subject: 'Subject',
+        email: 'Email',
+        message: 'Message',
+        messagePlaceholder: 'Write your message here...',
+        acceptPolicy: 'I accept the privacy policy',
+        sending: 'Sending...',
+        send: 'Send Message',
+        connect: 'Connect With Us',
+        loginFirst: 'Please login first!',
+        sentOk: 'Message sent successfully!',
+        sentError: 'Error submitting form',
+        requiredSubject: 'Subject is required',
+        requiredEmail: 'Email is required',
+        invalidEmail: 'Invalid email',
+        requiredMessage: 'Message is required',
+        requiredPolicy: 'You must accept the privacy policy',
+      };
+
   const user = useSelector((state: any) => state.auth.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -44,21 +92,21 @@ const ContactPage: React.FC = () => {
     const newErrors: FormErrors = {};
     
     if (!formValues.subject) {
-      newErrors.subject = 'Name is required';
+      newErrors.subject = text.requiredSubject;
     }
     
     if (!formValues.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = text.requiredEmail;
     } else if (!validateEmail(formValues.email)) {
-      newErrors.email =  'Invalid email';
+      newErrors.email =  text.invalidEmail;
     }
     
     if (!formValues.message) {
-      newErrors.message =  'Message is required';
+      newErrors.message =  text.requiredMessage;
     }
     
     if (!formValues.isSelected) {
-      newErrors.isSelected =  'You must accept the privacy policy';
+      newErrors.isSelected = text.requiredPolicy;
     }
     
     return newErrors;
@@ -110,7 +158,7 @@ const ContactPage: React.FC = () => {
     }
 
     if (!user) {
-      toast.error( 'Please login first!', {
+      toast.error(text.loginFirst, {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -130,7 +178,7 @@ const ContactPage: React.FC = () => {
         { withCredentials: true }
       );
 
-      toast.success( 'Message sent successfully!', {
+      toast.success(text.sentOk, {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -145,7 +193,7 @@ const ContactPage: React.FC = () => {
       setTouched({});
       
     } catch (error) {
-      toast.error('Error submitting form', {
+      toast.error(text.sentError, {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -160,24 +208,23 @@ const ContactPage: React.FC = () => {
       {/* Header Section */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-orange-500 mb-4">
-          { 'Contact Us'}
+          {text.contactUs}
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          {
-            'We value your feedback and are here to help. Feel free to reach out with any questions, comments, or concerns.'}
+          {text.header}
         </p>
       </div>
 
       {/* Form Section */}
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          { 'Send Us a Message'}
+          {text.sendMessage}
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-              { 'Subject'}
+              {text.subject}
             </label>
             <input
               id="name"
@@ -187,16 +234,16 @@ const ContactPage: React.FC = () => {
               onChange={handleChange}
               onBlur={handleBlur}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-              placeholder={ 'Subject'}
+              placeholder={text.subject}
             />
-            {touched.name && errors.subject && (
+            {touched.subject && errors.subject && (
               <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
             )}
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              {text.email}
             </label>
             <input
               id="email"
@@ -206,7 +253,7 @@ const ContactPage: React.FC = () => {
               onChange={handleChange}
               onBlur={handleBlur}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-              placeholder="Email"
+              placeholder={text.email}
             />
             {touched.email && errors.email && (
               <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -215,7 +262,7 @@ const ContactPage: React.FC = () => {
 
           <div>
             <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-              { 'Message'}
+              {text.message}
             </label>
             <textarea
               id="message"
@@ -225,7 +272,7 @@ const ContactPage: React.FC = () => {
               onChange={handleChange}
               onBlur={handleBlur}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all resize-none"
-              placeholder={ 'Write your message here...'}
+              placeholder={text.messagePlaceholder}
             />
             {touched.message && errors.message && (
               <p className="mt-1 text-sm text-red-600">{errors.message}</p>
@@ -246,8 +293,7 @@ const ContactPage: React.FC = () => {
             </div>
             <div className="ml-3">
               <label htmlFor="isSelected" className="text-sm text-gray-700 cursor-pointer">
-                {
-                 'I accept the privacy policy'}
+                {text.acceptPolicy}
               </label>
               {touched.isSelected && errors.isSelected && (
                 <p className="mt-1 text-sm text-red-600">{errors.isSelected}</p>
@@ -266,10 +312,10 @@ const ContactPage: React.FC = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                { 'Sending...'}
+                {text.sending}
               </span>
             ) : (
-               'Send Message'
+              text.send
             )}
           </button>
         </form>
@@ -278,7 +324,7 @@ const ContactPage: React.FC = () => {
       {/* Footer Section */}
       <div className="mt-16 text-center">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">
-          { 'Connect With Us'}
+          {text.connect}
         </h3>
         <div className="flex justify-center space-x-6">
           {/* Social media icons */}

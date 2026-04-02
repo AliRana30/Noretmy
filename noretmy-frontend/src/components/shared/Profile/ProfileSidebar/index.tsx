@@ -23,6 +23,9 @@ interface ProfileSidebarProps {
     username: string;
     profilePicture: string;
     profileHeadline?: string;
+    experienceLevel?: string;
+    portfolioUrl?: string;
+    githubUrl?: string;
     createdAt: string;
     isOnline?: boolean;
   };
@@ -110,6 +113,37 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 <p className="text-sm text-gray-600 pt-2 line-clamp-2">
                   {profileData.profileHeadline}
                 </p>
+              )}
+
+              {profileData.experienceLevel && (
+                <p className="text-xs text-gray-500 pt-2">
+                  {t('profile:sidebar.experienceLevel', 'Experience level')}: {profileData.experienceLevel}
+                </p>
+              )}
+
+              {(profileData.portfolioUrl || profileData.githubUrl) && (
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {profileData.portfolioUrl && (
+                    <a
+                      href={profileData.portfolioUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-orange-600 hover:text-orange-700 underline"
+                    >
+                      {t('profile:sidebar.portfolio', 'Portfolio')}
+                    </a>
+                  )}
+                  {profileData.githubUrl && (
+                    <a
+                      href={profileData.githubUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-orange-600 hover:text-orange-700 underline"
+                    >
+                      GitHub
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>

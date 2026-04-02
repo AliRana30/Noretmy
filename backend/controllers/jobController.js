@@ -64,24 +64,47 @@ const createJob = async (req, res) => {
     let parsedWhyChooseMe = [];
     let parsedPricingPlan = {};
     let parsedAddons = [];
+    let parsedKeywords = [];
 
     try {
       if (faqs) parsedFaqs = JSON.parse(faqs);
       if (whyChooseMe) parsedWhyChooseMe = JSON.parse(whyChooseMe);
       if (pricingPlan) parsedPricingPlan = JSON.parse(pricingPlan);
       if (addons) parsedAddons = JSON.parse(addons);
+      if (keywords) {
+        if (typeof keywords === 'string') {
+          const maybeJsonArray = keywords.trim();
+          if (maybeJsonArray.startsWith('[')) {
+            parsedKeywords = JSON.parse(maybeJsonArray);
+          } else {
+            parsedKeywords = maybeJsonArray.split(',').map((k) => k.trim()).filter(Boolean);
+          }
+        } else if (Array.isArray(keywords)) {
+          parsedKeywords = keywords.map((k) => String(k).trim()).filter(Boolean);
+        }
+      }
     } catch (err) {
       return res.status(400).json({ message: "Invalid JSON format in one of the fields", error: err.message });
     }
+
+    if (!parsedKeywords.length) {
+      parsedKeywords = [cat, title].filter(Boolean);
+    }
+
+    if (!parsedWhyChooseMe.length) {
+      parsedWhyChooseMe = ['Fast delivery', 'Clear communication'];
+    }
+
+    const normalizedSubCat = (subCat && String(subCat).trim()) || String(cat).trim();
 
     const finalJobStatus = jobStatus && jobStatus.trim() !== '' ? jobStatus : 'Active';
 
     const newJob = new Job({
       title,
       cat,
-      subCat,
+      subCat: normalizedSubCat,
       description,
-      keywords,
+      keywords: parsedKeywords,
       whyChooseMe: parsedWhyChooseMe,
       pricingPlan: parsedPricingPlan,
       addons: parsedAddons,

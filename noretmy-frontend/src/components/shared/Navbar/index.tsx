@@ -33,7 +33,11 @@ const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-  const { t } = useTranslations();
+  const { t } = useTranslations('navbar');
+  const safeT = (key: string, fallback: string) => {
+    const value = t(key as any, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
 
   const user = useSelector((state: any) => (state?.auth?.user));
   const isLoggedIn = mounted && !!user; // Only check after mount to avoid hydration mismatch
@@ -90,33 +94,33 @@ const Navbar: React.FC = () => {
     const profileModalList = [
       {
         icon: <UserCircleIcon className="h-5 w-5" />,
-        text: t('navbar:profile.title'),
+        text: safeT('profile.title', 'Profile'),
         href: '/profile',
       },
       {
         icon: <Heart className="h-5 w-5" />,
-        text: t('navbar:profile.favorites'),
+        text: safeT('profile.favorites', 'Favorites'),
         href: '/favorites',
       },
       {
         icon: <CreditCardIcon className="h-5 w-5" />,
-        text: t('navbar:profile.payments'),
+        text: safeT('profile.payments', 'Payments'),
         href: '/seller-board',
         showForSeller: true,
       },
       {
         icon: <PackageIcon className="h-5 w-5" />,
-        text: t('navbar:navigation.orders'),
+        text: safeT('navigation.orders', 'Orders'),
         href: '/orders',
       },
       {
         icon: <BellIcon className="h-5 w-5" />,
-        text: t('navbar:profile.notifications'),
+        text: safeT('profile.notifications', 'Notifications'),
         href: '/notifications',
       },
       {
         icon: <MegaphoneIcon className="h-5 w-5" />,
-        text: t('navbar:profile.promote'),
+        text: safeT('profile.promote', 'Promote'),
         href: '/promote-gigs',
         showForSeller: true,
       }
@@ -231,7 +235,7 @@ const Navbar: React.FC = () => {
               >
                 <UserCircleIcon className="h-5 w-5 text-gray-700 group-hover:text-red-600 transition-colors" />
                 <span className="text-sm font-normal text-gray-900 group-hover:text-red-600 transition-colors">
-                  {t('navbar:auth.logout')}
+                  {safeT('auth.logout', 'Logout')}
                 </span>
               </button>
             ) : (
@@ -242,7 +246,7 @@ const Navbar: React.FC = () => {
               >
                 <UserCircleIcon className="h-5 w-5 text-gray-700 group-hover:text-orange-600 transition-colors" />
                 <span className="text-sm font-normal text-gray-900 group-hover:text-orange-600 transition-colors">
-                  {t('navbar:auth.signIn')}
+                  {safeT('auth.signIn', 'Sign in')}
                 </span>
               </Link>
             )}
@@ -255,25 +259,25 @@ const Navbar: React.FC = () => {
   const navigationItems = [
     {
       icon: <UserCircleIcon className="h-5 w-5 mr-1" />,
-      text: t('navbar:navigation.about') || 'About',
+      text: safeT('navigation.about', 'About'),
       href: '/about',
     },
     ...(!isSeller ? [
       {
         icon: <SearchIcon className="h-5 w-5 mr-1" />,
-        text: t('navbar:navigation.searchServices'),
+        text: safeT('navigation.searchServices', 'Search Services'),
         href: '/search-gigs',
       }
     ] : [
       {
         icon: <PackageIcon className="h-5 w-5 mr-1" />,
-        text: t('navbar:navigation.orders'),
+        text: safeT('navigation.orders', 'Orders'),
         href: '/orders',
       }
     ]),
     {
       icon: <ChatBubbleLeftEllipsisIcon className="h-5 w-5 mr-1" />,
-      text: t('navbar:navigation.chat'),
+      text: safeT('navigation.chat', 'Chat'),
       href: '/chat',
     },
   ];
@@ -294,7 +298,7 @@ const Navbar: React.FC = () => {
             <Link href="/">
               <Image
                 src="/logo/tagslogo.png"
-                alt={t('navbar:aria.logo')}
+                alt={safeT('aria.logo', 'Logo')}
                 width={140}
                 height={60}
                 className="h-12 sm:h-14 w-auto max-w-[120px] sm:max-w-none object-contain"
@@ -373,7 +377,7 @@ const Navbar: React.FC = () => {
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="hover:bg-gray-100 p-2 rounded-full transition-colors flex-shrink-0"
-                  aria-label={t('navbar:aria.profileButton')}
+                  aria-label={safeT('aria.profileButton', 'Open profile menu')}
                 >
                   {user?.profilePicture ? (
                     <img
@@ -393,13 +397,13 @@ const Navbar: React.FC = () => {
                   href="/login"
                   className="px-4 py-2 text-gray-800 font-medium hover:text-black transition-colors rounded-lg border border-gray-300 bg-white hover:bg-gray-100"
                 >
-                  {t('navbar:auth.signIn')}
+                  {safeT('auth.signIn', 'Sign in')}
                 </Link>
                 <Link
                   href="/register"
                   className="px-4 py-2 bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors rounded-lg shadow-sm"
                 >
-                  {t('navbar:auth.join')}
+                  {safeT('auth.join', 'Join')}
                 </Link>
               </div>
             )}
@@ -443,7 +447,7 @@ const Navbar: React.FC = () => {
             <div className="border-t border-gray-100 pt-4 mb-4">
               <div className="flex items-center px-4 py-3 bg-gray-50 rounded-lg">
                 <LanguageIcon className="h-5 w-5 text-gray-500 mr-3" />
-                <span className="text-gray-700 font-medium mr-3">{t('navbar:profile.language')}:</span>
+                <span className="text-gray-700 font-medium mr-3">{safeT('profile.language', 'Language')}:</span>
                 <LanguageSwitcher />
               </div>
             </div>
@@ -456,14 +460,14 @@ const Navbar: React.FC = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full text-center px-4 py-3 text-gray-800 font-medium hover:text-black transition-colors rounded-lg border border-gray-300 bg-white hover:bg-gray-100"
                 >
-                  {t('navbar:auth.signIn')}
+                  {safeT('auth.signIn', 'Sign in')}
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full text-center px-4 py-3 bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors rounded-lg shadow-sm"
                 >
-                  {t('navbar:auth.join')}
+                  {safeT('auth.join', 'Join')}
                 </Link>
               </div>
             )}

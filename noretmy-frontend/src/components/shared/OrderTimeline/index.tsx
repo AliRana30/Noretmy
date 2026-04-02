@@ -172,15 +172,18 @@ const OrderTimeline: React.FC<OrderTimelineProps> = ({
         if (!pendingStep) return;
 
         setIsProcessing(true);
-        const targetStatus = stepToStatus[pendingStep.key];
-
-        if (targetStatus && onAdvanceStatus) {
-            await onAdvanceStatus(targetStatus);
+        try {
+            const targetStatus = stepToStatus[pendingStep.key];
+            if (targetStatus && onAdvanceStatus) {
+                await onAdvanceStatus(targetStatus);
+            }
+        } catch (error) {
+            console.error('Failed to advance order status:', error);
+        } finally {
+            setIsProcessing(false);
+            setShowConfirmModal(false);
+            setPendingStep(null);
         }
-
-        setIsProcessing(false);
-        setShowConfirmModal(false);
-        setPendingStep(null);
     };
 
     const formatDate = (dateString?: string) => {

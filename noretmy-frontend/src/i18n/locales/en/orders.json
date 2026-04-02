@@ -52,7 +52,7 @@
       "completedDesc": "Order finished and funds released"
     },
     "statusLabels": {
-      "accepted": "Payment Confirmed",
+      "accepted": "Order Accepted",
       "completed": "Order Completed",
       "waitingReview": "Awaiting Review",
       "requestedRevision": "Revision Requested",
@@ -62,7 +62,7 @@
       "created": "Order Created"
     },
     "statusDescriptions": {
-      "accepted": "Payment received and order has been accepted",
+      "accepted": "Freelancer accepted the order and is waiting for payment",
       "completed": "All deliverables have been completed and accepted",
       "waitingReview": "Waiting for buyer to leave a review",
       "requestedRevision": "Buyer has requested changes to the delivery",
