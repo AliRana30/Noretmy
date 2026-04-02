@@ -3,6 +3,7 @@ const { sign } = require('jsonwebtoken');
 const jwt=  require("jsonwebtoken")
 const { signUp, signIn, verifyEmail, resendVerificationEmail } = require('../services/authService');
 const User = require('../models/User');
+const DeletedAccountLog = require('../models/DeletedAccountLog');
 
 const axios = require('axios');
 const getCountryInfo = require('../services/locationService');
@@ -22,7 +23,7 @@ const handleSignup = async (req, res, next) => {
 
     const countryInfoPromise = getCountryInfo(req).catch(err => {
       console.error('Background country info fetch failed:', err.message);
-      return { success: true, country: 'United States', countryCode: 'US' };
+      return { success: false, country: null, countryCode: null };
     });
 
     const signUpResponse = await signUp(
@@ -77,6 +78,7 @@ const handleLogin = async (req, res) => {
 
     const token= sign({
       id:user.id,
+      email:user.email,
       role:user.role,
       isSeller:user.isSeller,
     },process.env.JWT_KEY)
@@ -133,6 +135,73 @@ const handleLogout = async (req, res) => {
     code: 'LOGOUT_SUCCESS', 
     message: "User has been logged out!" 
   });
+};
+
+const handleSessionStatus = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.accessToken;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        code: 'NOT_AUTHENTICATED',
+        message: 'No active session',
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+    const user = await User.findById(decoded.id).select('fullName email role isSeller isBlocked blockReason');
+
+    if (!user) {
+      const deletedLog = await DeletedAccountLog.findOne({ userId: String(decoded.id) }).lean();
+
+      res.clearCookie('accessToken', {
+        sameSite: 'none',
+        secure: true,
+      });
+
+      return res.status(401).json({
+        success: false,
+        code: 'ACCOUNT_DELETED',
+        message: 'Your account has been deleted by admin.',
+        reason: deletedLog?.reason || 'Deleted by admin',
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        code: 'ACCOUNT_BLOCKED',
+        message: `Your account has been blocked${user.blockReason ? ': ' + user.blockReason : ''}.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      code: 'SESSION_ACTIVE',
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        isSeller: user.isSeller,
+      },
+    });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        code: 'TOKEN_EXPIRED',
+        message: 'Session expired',
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      code: 'INVALID_TOKEN',
+      message: 'Invalid session token',
+    });
+  }
 };
 
 const handleEmailVerification = async (req, res, next) => {
@@ -273,4 +342,4 @@ const handleResetPassword = async (req, res) => {
   }
 };
 
-module.exports = { handleSignup, handleLogin, handleLogout, handleEmailVerification,handleVerifiedEmail, handleResendVerificationEmail,getCountryInfo,handleForgotPassword,handleResetPassword };
+module.exports = { handleSignup, handleLogin, handleLogout, handleSessionStatus, handleEmailVerification,handleVerifiedEmail, handleResendVerificationEmail,getCountryInfo,handleForgotPassword,handleResetPassword };

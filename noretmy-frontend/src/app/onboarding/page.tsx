@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import FallbackAvatar from '@/components/shared/FallbackAvatar';
 import { updateUserProfile } from '@/store/authSlice';
+import { useTranslations } from '@/hooks/useTranslations';
 
 type RoleFlow = 'client' | 'freelancer';
 type ExperienceLevel = 'beginner' | 'intermediate' | 'expert';
@@ -80,6 +81,7 @@ const OnboardingPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const { t } = useTranslations('onboarding');
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   const role: RoleFlow = user?.role === 'freelancer' || user?.isSeller ? 'freelancer' : 'client';
@@ -108,7 +110,7 @@ const OnboardingPage = () => {
     const form = new FormData();
     files.forEach((f) => form.append('images', f));
 
-    const response = await axios.post(`${BACKEND_URL}/upload/upload`, form, {
+    const response = await axios.post(`${BACKEND_URL}/upload`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
       withCredentials: true,
     });
@@ -305,7 +307,7 @@ const OnboardingPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading onboarding...</div>
+        <div className="text-gray-600">{t('loading') || 'Loading onboarding...'}</div>
       </div>
     );
   }
@@ -317,43 +319,52 @@ const OnboardingPage = () => {
       <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Complete Your Onboarding</h1>
-            <span className="text-sm text-gray-500">Step {currentStep} of {totalSteps}</span>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('title') || 'Complete Your Onboarding'}</h1>
+            <span className="text-sm text-gray-500">{(t('step') || 'Step {{currentStep}} of {{totalSteps}}').replace('{{currentStep}}', String(currentStep)).replace('{{totalSteps}}', String(totalSteps))}</span>
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-2 bg-orange-500" style={{ width: `${progressPercent}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-2">{isSaving ? 'Saving progress...' : 'Progress auto-saves.'}</p>
+          <p className="text-xs text-gray-500 mt-2">{isSaving ? (t('saving') || 'Saving progress...') : (t('autosave') || 'Progress auto-saves.')}</p>
         </div>
 
         {role === 'freelancer' && currentStep === 1 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Basic Information</h2>
+            <h2 className="text-lg font-semibold">{t('freelancer.basicInfo.title') || 'Basic Information'}</h2>
             <div className="flex items-center gap-4">
               <FallbackAvatar src={data.profilePicture} alt={data.fullName || 'User'} name={data.fullName || 'User'} size="lg" />
               <label className="text-sm text-gray-700">
-                <span className="block mb-2">Profile picture</span>
+                <span className="block mb-2">{t('freelancer.basicInfo.profilePicture') || 'Profile picture'}</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const urls = await uploadImages([file]);
-                    setData((prev) => ({ ...prev, profilePicture: urls[0] || prev.profilePicture }));
+                    const previewUrl = URL.createObjectURL(file);
+                    setData((prev) => ({ ...prev, profilePicture: previewUrl }));
+                    dispatch(updateUserProfile({ profilePicture: previewUrl }));
+                    try {
+                      const urls = await uploadImages([file]);
+                      const nextPicture = urls[0] || previewUrl;
+                      setData((prev) => ({ ...prev, profilePicture: nextPicture }));
+                      dispatch(updateUserProfile({ profilePicture: nextPicture }));
+                    } catch (error) {
+                      console.error('Failed to upload profile picture:', error);
+                    }
                   }}
                 />
               </label>
             </div>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="Full Name" value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="Title (e.g. MERN Stack Developer)" value={data.title} onChange={(e) => setData((p) => ({ ...p, title: e.target.value }))} />
-            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder="Description / Bio" value={data.bio} onChange={(e) => setData((p) => ({ ...p, bio: e.target.value }))} />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.basicInfo.headline') || 'Title (e.g. MERN Stack Developer)'} value={data.title} onChange={(e) => setData((p) => ({ ...p, title: e.target.value }))} />
+            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.basicInfo.bio') || 'Description / Bio'} value={data.bio} onChange={(e) => setData((p) => ({ ...p, bio: e.target.value }))} />
           </section>
         )}
 
         {role === 'freelancer' && currentStep === 2 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Skills & Expertise</h2>
+            <h2 className="text-lg font-semibold">{t('freelancer.skills.title') || 'Skills & Expertise'}</h2>
             <div className="flex gap-2">
               <input
                 className="flex-1 border rounded-lg px-3 py-2"
@@ -369,7 +380,7 @@ const OnboardingPage = () => {
                   setData((p) => ({ ...p, skills: [...p.skills, skill], skillInput: '' }));
                 }}
               >
-                Add
+                {t('freelancer.skills.add') || 'Add'}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -403,11 +414,11 @@ const OnboardingPage = () => {
 
         {role === 'freelancer' && currentStep === 3 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Portfolio / Work (Optional)</h2>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="Portfolio URL" value={data.portfolioUrl} onChange={(e) => setData((p) => ({ ...p, portfolioUrl: e.target.value }))} />
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="GitHub URL" value={data.githubUrl} onChange={(e) => setData((p) => ({ ...p, githubUrl: e.target.value }))} />
+            <h2 className="text-lg font-semibold">{t('freelancer.portfolio.title') || 'Portfolio / Work (Optional)'}</h2>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.url') || 'Portfolio URL'} value={data.portfolioUrl} onChange={(e) => setData((p) => ({ ...p, portfolioUrl: e.target.value }))} />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.portfolio.github') || 'GitHub URL'} value={data.githubUrl} onChange={(e) => setData((p) => ({ ...p, githubUrl: e.target.value }))} />
             <label className="block text-sm text-gray-700">
-              <span className="block mb-2">Upload project images</span>
+              <span className="block mb-2">{t('freelancer.portfolio.upload') || 'Upload project images'}</span>
               <input type="file" accept="image/*" multiple onChange={(e) => setPortfolioFiles(Array.from(e.target.files || []))} />
             </label>
             <button
@@ -420,28 +431,28 @@ const OnboardingPage = () => {
                 setPortfolioFiles([]);
               }}
             >
-              Upload portfolio images
+              {t('freelancer.portfolio.uploadButton') || 'Upload portfolio images'}
             </button>
           </section>
         )}
 
         {role === 'freelancer' && currentStep === 4 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Create Your First Gig (Mandatory)</h2>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="Gig Title" value={data.gig.title} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, title: e.target.value } }))} />
-            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder="Gig Description" value={data.gig.description} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, description: e.target.value } }))} />
+            <h2 className="text-lg font-semibold">{t('freelancer.gig.title') || 'Create Your First Gig (Mandatory)'}</h2>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.gigTitle') || 'Gig Title'} value={data.gig.title} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, title: e.target.value } }))} />
+            <textarea className="w-full border rounded-lg px-3 py-2" rows={4} placeholder={t('freelancer.gig.gigDescription') || 'Gig Description'} value={data.gig.description} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, description: e.target.value } }))} />
             <select className="w-full border rounded-lg px-3 py-2" value={data.gig.category} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, category: e.target.value } }))}>
-              <option value="">Select category</option>
+              <option value="">{t('freelancer.gig.selectCategory') || 'Select category'}</option>
               {GIG_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input type="number" min={1} className="w-full border rounded-lg px-3 py-2" placeholder="Delivery time (days)" value={data.gig.deliveryDays} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, deliveryDays: Number(e.target.value) || 1 } }))} />
+            <input type="number" min={1} className="w-full border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.deliveryTime') || 'Delivery time (days)'} value={data.gig.deliveryDays} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, deliveryDays: Number(e.target.value) || 1 } }))} />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder="Basic price" value={data.gig.pricing.basic} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, basic: Number(e.target.value) || 1 } } }))} />
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder="Standard price" value={data.gig.pricing.standard} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, standard: Number(e.target.value) || 1 } } }))} />
-              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder="Premium price" value={data.gig.pricing.premium} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, premium: Number(e.target.value) || 1 } } }))} />
+              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.basicPrice') || 'Basic price'} value={data.gig.pricing.basic} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, basic: Number(e.target.value) || 1 } } }))} />
+              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.standardPrice') || 'Standard price'} value={data.gig.pricing.standard} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, standard: Number(e.target.value) || 1 } } }))} />
+              <input type="number" min={1} className="border rounded-lg px-3 py-2" placeholder={t('freelancer.gig.premiumPrice') || 'Premium price'} value={data.gig.pricing.premium} onChange={(e) => setData((p) => ({ ...p, gig: { ...p.gig, pricing: { ...p.gig.pricing, premium: Number(e.target.value) || 1 } } }))} />
             </div>
             <label className="block text-sm text-gray-700">
-              <span className="block mb-2">Gig images</span>
+              <span className="block mb-2">{t('freelancer.gig.images') || 'Gig images'}</span>
               <input type="file" accept="image/*" multiple onChange={(e) => setGigFiles(Array.from(e.target.files || []))} />
             </label>
           </section>
@@ -449,38 +460,47 @@ const OnboardingPage = () => {
 
         {role === 'freelancer' && currentStep === 5 && (
           <section className="space-y-3 text-center">
-            <h2 className="text-lg font-semibold">Completion</h2>
-            <p className="text-gray-700">Your profile is ready. Start receiving orders!</p>
+            <h2 className="text-lg font-semibold">{t('freelancer.completion.title') || 'Completion'}</h2>
+            <p className="text-gray-700">{t('freelancer.completion.message') || 'Your profile is ready. Start receiving orders!'}</p>
           </section>
         )}
 
         {role === 'client' && currentStep === 1 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Basic Information</h2>
+            <h2 className="text-lg font-semibold">{t('client.basicInfo.title') || 'Basic Information'}</h2>
             <div className="flex items-center gap-4">
               <FallbackAvatar src={data.profilePicture} alt={data.fullName || 'User'} name={data.fullName || 'User'} size="lg" />
               <label className="text-sm text-gray-700">
-                <span className="block mb-2">Profile picture</span>
+                <span className="block mb-2">{t('client.basicInfo.profilePicture') || 'Profile picture'}</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const urls = await uploadImages([file]);
-                    setData((prev) => ({ ...prev, profilePicture: urls[0] || prev.profilePicture }));
+                    const previewUrl = URL.createObjectURL(file);
+                    setData((prev) => ({ ...prev, profilePicture: previewUrl }));
+                    dispatch(updateUserProfile({ profilePicture: previewUrl }));
+                    try {
+                      const urls = await uploadImages([file]);
+                      const nextPicture = urls[0] || previewUrl;
+                      setData((prev) => ({ ...prev, profilePicture: nextPicture }));
+                      dispatch(updateUserProfile({ profilePicture: nextPicture }));
+                    } catch (error) {
+                      console.error('Failed to upload profile picture:', error);
+                    }
                   }}
                 />
               </label>
             </div>
-            <input className="w-full border rounded-lg px-3 py-2" placeholder="Full Name" value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder={t('client.basicInfo.fullName') || 'Full Name'} value={data.fullName} onChange={(e) => setData((p) => ({ ...p, fullName: e.target.value }))} />
           </section>
         )}
 
         {role === 'client' && currentStep === 2 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Preferences</h2>
-            <p className="text-sm text-gray-600">Select categories/interests</p>
+            <h2 className="text-lg font-semibold">{t('client.preferences.title') || 'Preferences'}</h2>
+            <p className="text-sm text-gray-600">{t('client.preferences.description') || 'Select categories/interests'}</p>
             <div className="flex flex-wrap gap-2">
               {CLIENT_CATEGORIES.map((cat) => {
                 const active = data.interests.includes(cat);
@@ -505,15 +525,15 @@ const OnboardingPage = () => {
 
         {role === 'client' && currentStep === 3 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Action Choice</h2>
+            <h2 className="text-lg font-semibold">{t('client.actionChoice.title') || 'Action Choice'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button className={`p-4 rounded-xl border text-left ${data.actionChoice === 'post-job' ? 'border-orange-400 bg-orange-50' : 'border-gray-300'}`} onClick={() => setData((p) => ({ ...p, actionChoice: 'post-job' }))}>
-                <h3 className="font-semibold">Post a Job</h3>
-                <p className="text-sm text-gray-600 mt-1">Describe your project and receive proposals.</p>
+                <h3 className="font-semibold">{t('client.actionChoice.postJob.title') || 'Post a Job'}</h3>
+                <p className="text-sm text-gray-600 mt-1">{t('client.actionChoice.postJob.description') || 'Describe your project and receive proposals.'}</p>
               </button>
               <button className={`p-4 rounded-xl border text-left ${data.actionChoice === 'browse-gigs' ? 'border-orange-400 bg-orange-50' : 'border-gray-300'}`} onClick={() => setData((p) => ({ ...p, actionChoice: 'browse-gigs' }))}>
-                <h3 className="font-semibold">Browse Gigs</h3>
-                <p className="text-sm text-gray-600 mt-1">Explore freelancer services and hire fast.</p>
+                <h3 className="font-semibold">{t('client.actionChoice.browseGigs.title') || 'Browse Gigs'}</h3>
+                <p className="text-sm text-gray-600 mt-1">{t('client.actionChoice.browseGigs.description') || 'Explore freelancer services and hire fast.'}</p>
               </button>
             </div>
           </section>
@@ -521,8 +541,8 @@ const OnboardingPage = () => {
 
         {role === 'client' && currentStep === 4 && (
           <section className="space-y-3 text-center">
-            <h2 className="text-lg font-semibold">Completion</h2>
-            <p className="text-gray-700">Your account is ready. Choose your next action.</p>
+            <h2 className="text-lg font-semibold">{t('client.completion.title') || 'Completion'}</h2>
+            <p className="text-gray-700">{t('client.completion.message') || 'Your account is ready. Choose your next action.'}</p>
           </section>
         )}
 
@@ -532,23 +552,23 @@ const OnboardingPage = () => {
             disabled={currentStep === 1}
             onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
           >
-            Back
+            {t('buttons.back') || 'Back'}
           </button>
 
           <div className="flex gap-3">
             {((role === 'freelancer' && currentStep === 3) || (role === 'client' && currentStep === 2)) && (
               <button className="px-4 py-2 rounded-lg border border-gray-300" onClick={skipOptional}>
-                Skip
+                {t('buttons.skip') || 'Skip'}
               </button>
             )}
 
             {!isLastStep ? (
               <button className="px-4 py-2 rounded-lg bg-orange-500 text-white" onClick={goNext}>
-                Next
+                {t('buttons.next') || 'Next'}
               </button>
             ) : (
               <button className="px-4 py-2 rounded-lg bg-green-600 text-white" onClick={complete}>
-                Finish
+                {t('buttons.finish') || 'Finish'}
               </button>
             )}
           </div>

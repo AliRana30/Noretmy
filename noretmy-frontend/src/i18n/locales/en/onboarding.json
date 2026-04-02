@@ -1,0 +1,74 @@
+{
+  "loading": "Loading onboarding...",
+  "title": "Complete Your Onboarding",
+  "step": "Step {{currentStep}} of {{totalSteps}}",
+  "saving": "Saving progress...",
+  "autosave": "Progress auto-saves.",
+  "buttons": {
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "finish": "Finish"
+  },
+  "freelancer": {
+    "basicInfo": {
+      "title": "Basic Information",
+      "profilePicture": "Profile picture",
+      "fullName": "Full Name",
+      "headline": "Title (e.g. MERN Stack Developer)",
+      "bio": "Description / Bio"
+    },
+    "skills": {
+      "title": "Skills & Expertise",
+      "add": "Add"
+    },
+    "portfolio": {
+      "title": "Portfolio / Work (Optional)",
+      "url": "Portfolio URL",
+      "github": "GitHub URL",
+      "upload": "Upload project images",
+      "uploadButton": "Upload portfolio images"
+    },
+    "gig": {
+      "title": "Create Your First Gig (Mandatory)",
+      "gigTitle": "Gig Title",
+      "gigDescription": "Gig Description",
+      "selectCategory": "Select category",
+      "deliveryTime": "Delivery time (days)",
+      "basicPrice": "Basic price",
+      "standardPrice": "Standard price",
+      "premiumPrice": "Premium price",
+      "images": "Gig images"
+    },
+    "completion": {
+      "title": "Completion",
+      "message": "Your profile is ready. Start receiving orders!"
+    }
+  },
+  "client": {
+    "basicInfo": {
+      "title": "Basic Information",
+      "profilePicture": "Profile picture",
+      "fullName": "Full Name"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Select categories/interests"
+    },
+    "actionChoice": {
+      "title": "Action Choice",
+      "postJob": {
+        "title": "Post a Job",
+        "description": "Describe your project and receive proposals."
+      },
+      "browseGigs": {
+        "title": "Browse Gigs",
+        "description": "Explore freelancer services and hire fast."
+      }
+    },
+    "completion": {
+      "title": "Completion",
+      "message": "Your account is ready. Choose your next action."
+    }
+  }
+}

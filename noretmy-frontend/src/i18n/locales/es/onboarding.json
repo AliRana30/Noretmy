@@ -1,0 +1,74 @@
+{
+  "loading": "Cargando onboarding...",
+  "title": "Completa tu onboarding",
+  "step": "Paso {{currentStep}} de {{totalSteps}}",
+  "saving": "Guardando progreso...",
+  "autosave": "El progreso se guarda automáticamente.",
+  "buttons": {
+    "back": "Atrás",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "finish": "Finalizar"
+  },
+  "freelancer": {
+    "basicInfo": {
+      "title": "Información básica",
+      "profilePicture": "Foto de perfil",
+      "fullName": "Nombre completo",
+      "headline": "Título (por ejemplo, MERN Stack Developer)",
+      "bio": "Descripción / Biografía"
+    },
+    "skills": {
+      "title": "Habilidades y experiencia",
+      "add": "Añadir"
+    },
+    "portfolio": {
+      "title": "Portafolio / Trabajo (Opcional)",
+      "url": "URL del portafolio",
+      "github": "URL de GitHub",
+      "upload": "Subir imágenes de proyectos",
+      "uploadButton": "Subir imágenes del portafolio"
+    },
+    "gig": {
+      "title": "Crea tu primer servicio (obligatorio)",
+      "gigTitle": "Título del servicio",
+      "gigDescription": "Descripción del servicio",
+      "selectCategory": "Seleccionar categoría",
+      "deliveryTime": "Tiempo de entrega (días)",
+      "basicPrice": "Precio básico",
+      "standardPrice": "Precio estándar",
+      "premiumPrice": "Precio premium",
+      "images": "Imágenes del servicio"
+    },
+    "completion": {
+      "title": "Finalización",
+      "message": "Tu perfil está listo. ¡Empieza a recibir pedidos!"
+    }
+  },
+  "client": {
+    "basicInfo": {
+      "title": "Información básica",
+      "profilePicture": "Foto de perfil",
+      "fullName": "Nombre completo"
+    },
+    "preferences": {
+      "title": "Preferencias",
+      "description": "Selecciona categorías/intereses"
+    },
+    "actionChoice": {
+      "title": "Elección de acción",
+      "postJob": {
+        "title": "Publicar un trabajo",
+        "description": "Describe tu proyecto y recibe propuestas."
+      },
+      "browseGigs": {
+        "title": "Explorar servicios",
+        "description": "Explora servicios de freelancers y contrata rápido."
+      }
+    },
+    "completion": {
+      "title": "Finalización",
+      "message": "Tu cuenta está lista. Elige tu siguiente acción."
+    }
+  }
+}

@@ -14,7 +14,7 @@
     "service": "Servicio",
     "days": "días",
     "toast": {
-        "signIn": "Por favor, inicia sesión para ver tus favoritos",
+        "signIn": "Necesitas iniciar sesión primero para añadir a favoritos",
         "fetchError": "No se pudieron cargar los favoritos",
         "removeSuccess": "Eliminado de favoritos",
         "removeError": "Error al eliminar de favoritos"

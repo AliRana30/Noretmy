@@ -11,6 +11,7 @@ const Contact = require('../models/Contact');
 const Project = require('../models/Project');
 const Promotion = require('../models/Promotion'); // Legacy
 const PromotionPurchase = require('../models/PromotionPurchase'); // New: Single source of truth
+const DeletedAccountLog = require('../models/DeletedAccountLog');
 const WithdrawalRequest = require('../models/WithdrawalRequest');
 const Vat = require('../models/Vat');
 const { createAdminUser, updateUserRole: updateUserRoleService } = require('../services/authService');
@@ -983,6 +984,17 @@ const deleteUser = async (req, res) => {
         message: 'Cannot delete admin users'
       });
     }
+
+    await DeletedAccountLog.findOneAndUpdate(
+      { userId: String(user._id) },
+      {
+        userId: String(user._id),
+        email: user.email || null,
+        reason: reason || 'Deleted by admin',
+        deletedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     await Promise.all([
       UserProfile.deleteMany({ userId }),

@@ -41,6 +41,14 @@ const AdminUsersList = () => {
     loadUsers();
   }, []);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      loadUsers();
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const normalizeUser = (u) => {
     const statusText = (u?.status ?? u?.accountStatus ?? '').toString().toLowerCase();
 
@@ -453,7 +461,7 @@ const AdminUsersList = () => {
                   >
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <img
                             src={user.img || user.profilePicture}
                             alt={user.username}

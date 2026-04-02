@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, ChevronDown, X, Check, ChevronRight, ArrowLeft, Filter, Sliders } from 'lucide-react';
 import { FiverrCategories } from '@/util/data';
+import { useTranslations } from '@/hooks/useTranslations';
 
 const priceRanges = ['Under $100', '$100 - $500', '$500 - $1000', 'Over $1000'];
 const deliveryTimes = ['24 Hours', '3 Days', '7 Days', '14 Days', '1 Month'];
@@ -27,6 +28,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   selectedFilters,
   setSelectedFilters,
 }) => {
+  const { t } = useTranslations('search');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -82,7 +84,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               type="text"
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search for services..."
+              placeholder={t('filters.search.placeholder') || 'Search for services...'}
               className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 transition-colors text-gray-800 placeholder:text-gray-400 text-sm"
               autoComplete="new-password"
               data-form-type="other"
@@ -101,7 +103,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                   : 'bg-gray-50 text-gray-700 border border-gray-100 hover:border-gray-200'
                 }`}
             >
-              Categories
+              {t('filters.categories') || 'Categories'}
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''
                   }`}
@@ -117,7 +119,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 }`}
             >
               <Sliders className="w-4 h-4" />
-              Filters
+              {t('filters.filters') || 'Filters'}
               {selectedFilters.length > 0 && (
                 <span className="flex items-center justify-center w-5 h-5 bg-orange-500 rounded-full text-white text-xs font-bold">
                   {selectedFilters.length}
@@ -163,7 +165,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 onClick={() => setSelectedFilters([])}
                 className="px-3 py-1.5 text-xs text-orange-600 hover:text-orange-700 font-medium transition-colors"
               >
-                Clear all
+                {t('filters.clearAll') || 'Clear all'}
               </button>
             )}
           </div>
@@ -180,7 +182,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                   : 'bg-white border border-gray-100 text-gray-700 hover:border-gray-200'
                 }`}
             >
-              <span>Categories</span>
+              <span>{t('filters.categories') || 'Categories'}</span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''
                   }`}
@@ -197,7 +199,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4" />
-                <span>Filters</span>
+                <span>{t('filters.filters') || 'Filters'}</span>
               </div>
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${showAllFilters ? 'rotate-180' : ''
@@ -232,7 +234,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                   className="flex items-center gap-1 text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span className="hidden sm:inline">Back</span>
+                  <span className="hidden sm:inline">{t('filters.back') || 'Back'}</span>
                 </button>
                 <span className="text-gray-400 hidden sm:inline">/</span>
                 <h3 className="font-medium text-gray-900 text-sm truncate">{selectedCategory}</h3>

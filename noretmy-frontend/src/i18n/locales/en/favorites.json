@@ -14,7 +14,7 @@
     "service": "Service",
     "days": "days",
     "toast": {
-        "signIn": "Please sign in to view your favorites",
+        "signIn": "You need to log in first to add in your favorites",
         "fetchError": "Failed to load favorites",
         "removeSuccess": "Removed from favorites",
         "removeError": "Failed to remove from favorites"

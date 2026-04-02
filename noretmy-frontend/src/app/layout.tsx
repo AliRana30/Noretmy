@@ -13,6 +13,7 @@ import i18next from 'i18next';
 import { Toaster } from 'react-hot-toast';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { OnlineStatusProvider } from '@/context/OnlineStatusContext';
+import SessionGuard from '@/components/shared/SessionGuard';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({
         <ReduxProvider store={store}>
           <OnlineStatusProvider>
             <NotificationProvider>
+              <SessionGuard />
               <div className="flex flex-col min-h-screen w-full relative">
               <Navbar />
               <main className="flex-grow w-full relative">

@@ -43,7 +43,6 @@ interface DashboardData {
   completionRate: number;
   onTimeDeliveryRate: number;
   responseRate: number;
-  successScore: number;
   sellerLevel: SellerLevel;
   currentMonth: string;
   monthlyEarnings: { name: string; earnings: number }[];
@@ -76,7 +75,6 @@ const SellerDashboard = () => {
     completionRate: 100,
     onTimeDeliveryRate: 100,
     responseRate: 98,
-    successScore: 0,
     sellerLevel: {
       level: 'new',
       label: 'New Seller',
@@ -149,7 +147,6 @@ const SellerDashboard = () => {
           completionRate: data.completionRate || 100,
           onTimeDeliveryRate: data.onTimeDeliveryRate || 100,
           responseRate: data.responseRate || 98,
-          successScore: data.successScore || 0,
           sellerLevel: data.sellerLevel || {
             level: 'new',
             label: 'New Seller',
@@ -287,16 +284,12 @@ const SellerDashboard = () => {
           </div>
         )}
 
-        {/* Success Score Card */}
+        {/* Performance Overview */}
         <div className="bg-orange-600 rounded-xl shadow-lg p-6 mb-6 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold opacity-90">{t('dashboard.successScore')}</h2>
-              <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-bold">{dashboardData.successScore}</span>
-                <span className="text-xl opacity-80">/100</span>
-              </div>
-              <p className="text-sm opacity-80 mt-1">{t('dashboard.successScoreDescription')}</p>
+              <h2 className="text-lg font-semibold opacity-90">Performance Overview</h2>
+              <p className="text-sm opacity-80 mt-1">Core delivery and communication metrics</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white/10 rounded-lg p-3 text-center">

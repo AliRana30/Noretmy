@@ -46,7 +46,7 @@ const FavoritesPage = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      toast.info(t('favorites:toast.signIn'), {
+      toast.error(t('toast.signIn'), {
         position: 'top-center',
         autoClose: 3000,
       });

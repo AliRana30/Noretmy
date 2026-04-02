@@ -41,7 +41,8 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         setGig(gig);
 
         setGigTopProps({
-          seller: seller?.fullName || seller?.userName || 'N/A',
+          seller: seller?.fullName || seller?.userName || 'Freelancer',
+          sellerHref: seller?.userName ? `/freelancer/${seller.userName}` : seller?.userId ? `/freelancer/${seller.userId}` : '/freelancer',
           avatar: seller?.profilePicture || '/images/placeholder-avatar.png',
           gig: gig?.title || 'N/A',
           description: gig?.description || 'N/A',
@@ -52,8 +53,8 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
           sales: data?.sales || 0,
           sellerBadge: seller?.sellerLevel?.label || null,
           sellerLevel: seller?.sellerLevel || null,
-          successScore: seller?.successScore ?? null,
           completionRate: seller?.completionRate ?? null,
+          sellerExists: !!seller,
         });
 
         setPricingPlans([
@@ -183,6 +184,7 @@ const GigDetailsSection: React.FC<GigDetailsSectionProps> = ({ id }) => {
         gigId={gig._id}
         pricingPlans={pricingPlans}
         sellerId={gig?.sellerId}
+        sellerExists={!!gigTopProps?.sellerExists}
         onPlanSelect={() => { }}
       />
     </div>

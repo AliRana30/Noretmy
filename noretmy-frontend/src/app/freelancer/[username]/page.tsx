@@ -29,6 +29,7 @@ import SellerBadge, {
   SellerBadgeCard
 } from '@/components/shared/SellerBadge';
 import { useSellerBadge } from '@/hooks/useSellerBadge';
+import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 interface FreelancerData {
   user: {
@@ -126,12 +127,6 @@ const FreelancerProfileContent = () => {
     typeof freelancer?.stats?.completionRate === 'number'
       ? freelancer.stats.completionRate
       : (sellerBadge?.metrics?.completionRate ?? 0);
-  const successScoreValue = Math.round(
-    (Math.max(0, Math.min(5, averageRatingValue)) / 5) * 40 +
-    completionRateValue * 0.25 +
-    onTimeDeliveryRate * 0.2 +
-    (typeof responseRateValue === 'number' ? responseRateValue : 0) * 0.15
-  );
 
   useEffect(() => {
     const fetchFreelancerProfile = async () => {
@@ -209,11 +204,11 @@ const FreelancerProfileContent = () => {
             <div className="flex flex-col md:flex-row items-start gap-6 relative z-10">
               {/* Profile Picture */}
               <div className="relative">
-                <Image
-                  src={profile.profilePicture || '/images/placeholder-avatar.png'}
+                <FallbackAvatar
+                  src={profile.profilePicture}
                   alt={user.fullName}
-                  width={128}
-                  height={128}
+                  name={user.fullName}
+                  size="xl"
                   className="w-32 h-32 rounded-xl border-4 border-slate-50 shadow-sm object-cover"
                 />
                 {stats.averageRating >= 4.5 && (
@@ -363,19 +358,6 @@ const FreelancerProfileContent = () => {
                     <div
                       className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000"
                       style={{ width: `${stats.successRate || 0}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-600">Success Score</span>
-                    <span className="font-semibold text-slate-900">{successScoreValue}/100</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5">
-                    <div
-                      className="bg-orange-500 h-1.5 rounded-full transition-all duration-1000"
-                      style={{ width: `${Math.min(100, Math.max(0, successScoreValue))}%` }}
                     ></div>
                   </div>
                 </div>

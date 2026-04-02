@@ -19,6 +19,7 @@ interface PricingPlansProps {
   gigId: string;
   pricingPlans: PricingPlan[];
   sellerId?: string;
+  sellerExists?: boolean;
   onPlanSelect: (plan: PricingPlan | null) => void;
 }
 
@@ -28,6 +29,7 @@ const PricingPlans = ({
   gigId,
   pricingPlans,
   sellerId,
+  sellerExists = true,
   onPlanSelect,
 }: PricingPlansProps) => {
   const [selectedPlan, setSelectedPlan] = useState<number>(1);
@@ -65,6 +67,14 @@ const PricingPlans = ({
 
     if (isOwnGig) {
       toast(t('gigs:single.pricing.ownGigRestriction') || 'You cannot order your own gig.', {
+        icon: 'ℹ️',
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!sellerExists) {
+      toast.error("Freelancer doesn't exist anymore", {
         icon: 'ℹ️',
         duration: 3000,
       });
@@ -197,7 +207,7 @@ const PricingPlans = ({
                   <button
                     onClick={() => handlePlanSelect(index)}
                     disabled={isButtonDisabled}
-                    className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${isButtonDisabled
+                    className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${isButtonDisabled || !sellerExists
                       ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                       : selectedPlan === index
                         ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/25'
@@ -209,6 +219,8 @@ const PricingPlans = ({
                       ? (t('gigs:single.pricing.freelancerOnly') || 'Freelancers Cannot Order')
                       : isOwnGig
                         ? (t('gigs:single.pricing.ownGig') || 'Your Own Gig')
+                        : !sellerExists
+                          ? "Freelancer doesn't exist anymore"
                         : (t('gigs:single.pricing.orderNow') || 'Order Now')
                     }
                   </button>

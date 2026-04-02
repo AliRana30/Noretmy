@@ -4,7 +4,7 @@ const { sendVerificationEmail, sendWelcomeEmail } = require('./emailService');
 const UserProfile = require('../models/UserProfile');
 const { validatePassword } = require('../utils/passwordValidation');
 
-const TOKEN_EXPIRY_DURATION = 15 * 60 * 1000; // 15 minutes
+const TOKEN_EXPIRY_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 const signUp = async (email, password, fullName, username, isSeller, isCompany, countryInfoPromise) => {
   try {
@@ -127,7 +127,7 @@ const signUp = async (email, password, fullName, username, isSeller, isCompany, 
     await user.save();
 
     const resolvedCountryInfo = await countryInfoPromise;
-    const { country = 'United States', countryCode = 'US' } = resolvedCountryInfo || {};
+    const { country = null, countryCode = null } = resolvedCountryInfo || {};
 
     const userProfile = new UserProfile({
       userId: user._id,

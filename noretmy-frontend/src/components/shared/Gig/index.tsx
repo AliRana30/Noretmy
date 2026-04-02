@@ -98,7 +98,7 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      toast.info('Please sign in to add favorites', {
+      toast.error('You need to log in first to add in your favorites', {
         position: 'top-center',
         autoClose: 3000,
         onClick: () => router.push('/login'),
@@ -163,12 +163,16 @@ const GigCard: React.FC<GigProps> = ({ gig, initialIsFavorite = false, onFavorit
 
   const badgeDisplay = gig.sellerBadge ? getBadgeDisplayInfo(gig.sellerBadge.level) : null;
   const showNewSellerBadge = !badgeDisplay;
-  
-  // Only show promoted badge to the gig owner
-  const isGigOwner = user && gig.seller && (
-    user._id === gig.seller._id ||
-    user.id === gig.seller._id ||
-    user.username === gig.seller.username
+
+  const userId = user?._id || user?.id;
+  const sellerId = gig?.seller?._id;
+  const userUsername = user?.username;
+  const sellerUsername = gig?.seller?.username;
+
+  // Only treat it as owner when both compared values are present.
+  const isGigOwner = Boolean(
+    (userId && sellerId && String(userId) === String(sellerId)) ||
+    (userUsername && sellerUsername && String(userUsername) === String(sellerUsername))
   );
 
   return (

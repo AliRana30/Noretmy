@@ -907,8 +907,8 @@ const getGigDetails = async (gigId, lang = 'en') => {
     return {
       gig: translatedGig,
       seller: {
-        fullName: seller?.fullName || "Unknown Seller",
-        userName: seller?.username,
+        fullName: seller?.fullName || seller?.username || "Freelancer",
+        userName: seller?.username || seller?.fullName || "freelancer",
         userId: seller?._id,
         profilePicture: userProfile?.profilePicture || "/default-avatar.png",
         sellerLevel: sellerLevel,

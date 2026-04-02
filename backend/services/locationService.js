@@ -6,9 +6,9 @@ const getCountryInfo = async (req) => {
         
         if (ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' || ip?.includes('::ffff:127.0.0.1')) {
             return {
-                success: true,
-                country: 'United States',
-                countryCode: 'US',
+                success: false,
+                country: null,
+                countryCode: null,
             };
         }
 
@@ -29,17 +29,17 @@ const getCountryInfo = async (req) => {
             };
         } else {
             return {
-                success: true,
-                country: 'United States',
-                countryCode: 'US',
+                success: false,
+                country: null,
+                countryCode: null,
             };
         }
     } catch (error) {
         console.error('Error fetching country info:', error.message);
         return {
-            success: true,
-            country: 'United States',
-            countryCode: 'US',
+            success: false,
+            country: null,
+            countryCode: null,
         };
     }
 };

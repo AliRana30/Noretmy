@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle, XCircle, Loader2, ArrowRight, RefreshCw, MessageCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -126,19 +126,6 @@ export default function EmailVerificationPage() {
               >
                 <RefreshCw className="mr-2 h-5 w-5" />
                 Resend verification email through Signup
-              </Link>
-              <Link 
-                href="/contact-us" 
-                className={`w-full py-3 px-6 flex items-center justify-center font-medium rounded-xl transition-all duration-300 ${
-                  isHovered === 'support' 
-                    ? 'bg-gray-100 text-gray-800' 
-                    : 'bg-white text-gray-700 border border-gray-200'
-                }`}
-                onMouseEnter={() => setIsHovered('support')}
-                onMouseLeave={() => setIsHovered(null)}
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Contact support
               </Link>
               <Link 
                 href="/" 

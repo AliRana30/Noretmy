@@ -226,7 +226,7 @@ const ChatScreen: React.FC = () => {
       (conversation._id === activeConversationId || conversation.id === activeConversationId);
 
     // Use full name from database
-    const displayName = otherParty.fullName || otherParty.username || 'Unknown';
+    const displayName = otherParty.fullName || otherParty.username || 'Freelancer';
 
     return (
       <div

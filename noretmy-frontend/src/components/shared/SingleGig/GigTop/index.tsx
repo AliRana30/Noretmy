@@ -11,6 +11,7 @@ import FallbackAvatar from '@/components/shared/FallbackAvatar';
 
 interface GigTopProps {
   seller: string;
+  sellerHref?: string;
   avatar: string;
   gig: string;
   description: string;
@@ -19,7 +20,6 @@ interface GigTopProps {
   category: string;
   upgradeOption: string;
   sales: number;
-  successScore?: number | null;
   completionRate?: number | null;
   sellerBadge?: string;
   sellerLevel?: {
@@ -31,6 +31,7 @@ interface GigTopProps {
 
 const GigTop: React.FC<GigTopProps> = ({
   seller,
+  sellerHref,
   avatar,
   gig,
   description,
@@ -38,7 +39,6 @@ const GigTop: React.FC<GigTopProps> = ({
   images,
   category,
   sales,
-  successScore,
   completionRate,
   sellerBadge,
   sellerLevel,
@@ -48,8 +48,9 @@ const GigTop: React.FC<GigTopProps> = ({
   const [showFullDescription, setShowFullDescription] = useState<boolean>(false);
   const { t } = useTranslations();
   const displaySellerName = seller
-    ? seller.replace(/[\d_]+/g, ' ').trim().split(/\s+/)[0] || seller
-    : seller;
+    ? seller.replace(/[\d_]+/g, ' ').trim().split(/\s+/)[0] || 'Freelancer'
+    : 'Freelancer';
+  const resolvedSellerHref = sellerHref || '/freelancer';
 
   const nextImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -153,7 +154,7 @@ const GigTop: React.FC<GigTopProps> = ({
             </h1>
 
             {/* Seller Info */}
-            <Link href={`/freelancer/${seller}`} className="flex items-center gap-3 group">
+            <Link href={resolvedSellerHref} className="flex items-center gap-3 group">
               <FallbackAvatar
                 src={avatar}
                 alt={seller}
@@ -181,13 +182,6 @@ const GigTop: React.FC<GigTopProps> = ({
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">{completedOrders || 0}</p>
                 <p className="text-sm text-slate-500">Orders</p>
-              </div>
-              <div className="w-px h-10 bg-slate-200"></div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">
-                  {typeof successScore === 'number' ? `${Math.round(successScore)}%` : 'N/A'}
-                </p>
-                <p className="text-sm text-slate-500">Success Score</p>
               </div>
               <div className="w-px h-10 bg-slate-200"></div>
               <div className="text-center">

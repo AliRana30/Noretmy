@@ -88,10 +88,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, currentUser
     order?.gigId?.title ||
     t('details.orderInfo.untitledGig', { ns: 'orders', defaultValue: 'Untitled Gig' });
 
-  const sellerUsername =
-    (order as any)?.seller?.name ||
-    order?.sellerId?.username ||
-    t('details.seller.unknown', { ns: 'orders', defaultValue: 'Unknown Seller' });
+    const sellerUsername =
+      (order as any)?.seller?.name ||
+      order?.sellerId?.username ||
+      t('details.seller.unknown', { ns: 'orders', defaultValue: 'Freelancer' });
   const sellerImage =
     (order as any)?.seller?.image ||
     order?.sellerId?.image ||

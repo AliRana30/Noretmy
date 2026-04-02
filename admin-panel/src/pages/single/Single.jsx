@@ -69,6 +69,34 @@ const Single = () => {
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const intervalId = setInterval(() => {
+      getAdminUserDetail(userId)
+        .then((response) => {
+          if (response?.data?.user) {
+            setUserData({
+              ...response.data.user,
+              stats: response.data.stats,
+              recentActivity: response.data.recentActivity,
+            });
+            setChartData(response.data.chartData || []);
+          } else if (response?.data) {
+            setUserData(response.data);
+            setChartData(response.data.chartData || []);
+          } else {
+            setUserData(response);
+          }
+        })
+        .catch((err) => {
+          console.error('Error refreshing user data:', err);
+        });
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, [userId]);
+
   if (loading) return <LoadingSpinner message={t("loadingUserProfile")} />;
   if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
 

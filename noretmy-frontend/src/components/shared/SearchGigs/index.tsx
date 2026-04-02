@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Search, Sparkles, Users, Briefcase } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -18,14 +18,14 @@ import SearchPageSkeleton from '@/skelton/SearchPage';
 import { FiverrCategories } from '@/util/data';
 
 const slugToCategoryMap: Record<string, string> = {
-  'web-development': 'Web development',
-  'ui-ux-design': 'UX/UI',
+  'web-development': 'Web Development',
+  'ui-ux-design': 'Graphic design and digital design › UX/UI',
   'digital-marketing': 'Digital Marketing',
-  'graphic-design': 'Graphic design and digital design',
+  'graphic-design': 'Graphics & Design',
   'photography': 'Photography',
   'video-animation': 'Video Editing',
   'seo-analytics': 'SEO',
-  'audio-production': 'Audio Production',
+  'audio-production': 'Music & Audio',
 };
 
 interface GigData {
@@ -75,7 +75,7 @@ const SearchGigs: React.FC = () => {
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   const dispatch = useAppDispatch();
-  const { t, getCurrentLanguage } = useTranslations();
+  const { t, getCurrentLanguage } = useTranslations('search');
 
   const { data: gigs, loading, error } = useSelector((state: any) => state.gigs);
   const currentLanguage = getCurrentLanguage();
@@ -103,6 +103,13 @@ const SearchGigs: React.FC = () => {
 
     return categorySlug.replace(/-/g, ' ');
   }, [searchParams]);
+
+  const isCategoryFilter = useCallback((filter: string) => {
+    if (!filter) return false;
+    return FiverrCategories.some(
+      (cat) => filter === cat.name || filter.startsWith(`${cat.name} ›`),
+    );
+  }, []);
 
   useEffect(() => {
     const categorySlug = searchParams.get('category');
@@ -136,15 +143,15 @@ const SearchGigs: React.FC = () => {
         }
       }
 
-      setSelectedFilters((prev) => (prev.includes(matchedFilter) ? prev : [matchedFilter]));
+      setSelectedFilters((prev) => {
+        const nonCategoryFilters = prev.filter((filter) => !isCategoryFilter(filter));
+        if (nonCategoryFilters.includes(matchedFilter)) return nonCategoryFilters;
+        return [...nonCategoryFilters, matchedFilter];
+      });
     }
-    if (query) {
-      setSearchText(query);
-    }
-    if (type === 'freelancers') {
-      setSearchType('freelancers');
-    }
-  }, [searchParams, resolvedCategoryFilter]);
+    setSearchText(query || '');
+    setSearchType(type === 'freelancers' ? 'freelancers' : 'gigs');
+  }, [searchParams, resolvedCategoryFilter, isCategoryFilter]);
 
   const parseFilters = (filters: string[]) => {
     const priceRangeMap: Record<string, { min?: number; max?: number }> = {
@@ -186,13 +193,10 @@ const SearchGigs: React.FC = () => {
     if (searchType === 'gigs') {
       const debounce = setTimeout(() => {
         const { categories, parsedMinBudget, parsedMaxBudget, parsedDeliveryTime } = parseFilters(selectedFilters);
-        const mergedCategories = resolvedCategoryFilter
-          ? Array.from(new Set([...categories, resolvedCategoryFilter]))
-          : categories;
 
         dispatch(
           fetchGigs({
-            categories: mergedCategories,
+            categories,
             minBudget: parsedMinBudget,
             maxBudget: parsedMaxBudget,
             deliveryTime: parsedDeliveryTime,
@@ -204,7 +208,16 @@ const SearchGigs: React.FC = () => {
 
       return () => clearTimeout(debounce);
     }
-  }, [searchText, selectedFilters, minBudget, maxBudget, deliveryTime, currentLanguage, dispatch, searchType, resolvedCategoryFilter]);
+  }, [searchText, selectedFilters, minBudget, maxBudget, deliveryTime, currentLanguage, dispatch, searchType]);
+
+  const handleClearAll = () => {
+    setSearchText('');
+    setSelectedFilters([]);
+    setMinBudget(undefined);
+    setMaxBudget(undefined);
+    setDeliveryTime(undefined);
+    router.replace('/search-gigs');
+  };
 
   useEffect(() => {
     const searchFreelancers = async () => {
@@ -252,12 +265,12 @@ const SearchGigs: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-red-500 mb-4">{t('search:error.prefix') || 'Error:'} {error}</p>
+          <p className="text-red-500 mb-4">{t('error.prefix') || 'Error:'} {error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800"
           >
-            Try Again
+            {t('actions.tryAgain') || 'Try Again'}
           </button>
         </div>
       </div>
@@ -271,13 +284,13 @@ const SearchGigs: React.FC = () => {
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
             {searchText
-              ? `Results for "${searchText}"`
-              : searchType === 'gigs' ? 'Browse Services' : 'Find Freelancers'}
+              ? (t('header.resultsFor') || 'Results for "{{query}}"').replace('{{query}}', searchText)
+              : searchType === 'gigs' ? (t('header.browseServices') || 'Browse Services') : (t('header.findFreelancers') || 'Find Freelancers')}
           </h1>
           <p className="text-slate-600">
             {searchType === 'gigs'
-              ? `${gigs.length} ${gigs.length === 1 ? 'service' : 'services'} available`
-              : `${freelancers.length} ${freelancers.length === 1 ? 'freelancer' : 'freelancers'} found`}
+              ? (t('header.servicesAvailable') || '{{count}} services available').replace('{{count}}', String(gigs.length))
+              : (t('header.freelancersFound') || '{{count}} freelancers found').replace('{{count}}', String(freelancers.length))}
           </p>
         </div>
 
@@ -291,7 +304,7 @@ const SearchGigs: React.FC = () => {
               }`}
           >
             <Briefcase className="w-4 h-4" />
-            Services
+            {t('toggles.services') || 'Services'}
           </button>
           <button
             onClick={() => setSearchType('freelancers')}
@@ -301,7 +314,7 @@ const SearchGigs: React.FC = () => {
               }`}
           >
             <Users className="w-4 h-4" />
-            Freelancers
+            {t('toggles.freelancers') || 'Freelancers'}
           </button>
         </div>
 
@@ -323,7 +336,7 @@ const SearchGigs: React.FC = () => {
                 type="text"
                 value={searchText}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search freelancers by name..."
+                placeholder={t('filters.search.freelancers.placeholder') || 'Search freelancers by name...'}
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 transition-colors text-gray-800 placeholder:text-gray-400 text-sm"
                 autoComplete="new-password"
                 inputMode="search"
@@ -352,19 +365,16 @@ const SearchGigs: React.FC = () => {
                   <Sparkles className="w-8 h-8 text-slate-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                  {t('search:noResults.title') || 'No services found'}
+                  {t('noResults.title') || 'No services found'}
                 </h2>
                 <p className="text-slate-600 mb-6 max-w-md">
-                  {t('search:noResults.description') || 'Try adjusting your search or filters to find what you\'re looking for.'}
+                  {t('noResults.description') || 'Try adjusting your search or filters to find what you\'re looking for.'}
                 </p>
                 <button
-                  onClick={() => {
-                    setSearchText('');
-                    setSelectedFilters([]);
-                  }}
+                  onClick={handleClearAll}
                   className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                 >
-                  Clear Filters
+                  {t('actions.clearFilters') || 'Clear Filters'}
                 </button>
               </div>
             )
@@ -404,10 +414,10 @@ const SearchGigs: React.FC = () => {
                   <Users className="w-8 h-8 text-slate-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                  No freelancers found
+                  {t('freelancers.empty.title') || 'No freelancers found'}
                 </h2>
                 <p className="text-slate-600 mb-6 max-w-md">
-                  Try searching with a different name or keyword.
+                  {t('freelancers.empty.description') || 'Try searching with a different name or keyword.'}
                 </p>
               </div>
             ) : (
@@ -416,10 +426,10 @@ const SearchGigs: React.FC = () => {
                   <Users className="w-8 h-8 text-slate-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                  No freelancers available right now
+                  {t('freelancers.none.title') || 'No freelancers available right now'}
                 </h2>
                 <p className="text-slate-600 max-w-md">
-                  Top freelancers will appear here automatically, or type a name to narrow results.
+                  {t('freelancers.none.description') || 'Top freelancers will appear here automatically, or type a name to narrow results.'}
                 </p>
               </div>
             )

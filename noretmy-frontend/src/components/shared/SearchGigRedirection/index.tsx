@@ -97,6 +97,11 @@ export default function SearchGigsRedirection({ navigateWithTransition }: Search
                 : (t('home:searchSection.placeholder') || 'Search for any service...')
             }
             className="flex-1 py-4 pr-4 text-slate-900 placeholder-slate-400 bg-transparent outline-none text-base"
+            autoComplete="off"
+            inputMode="search"
+            name={searchType === 'freelancers' ? 'home_freelancer_search' : 'home_service_search'}
+            data-form-type="other"
+            data-lpignore="true"
           />
 
           {/* Search Button */}

@@ -31,6 +31,14 @@ const ListDocuments = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      loadData();
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -164,7 +172,7 @@ const ListDocuments = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className={`text-xl sm:text-2xl leading-tight font-bold break-words ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-xl sm:text-2xl leading-tight font-bold wrap-break-word ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {getTranslation(listTranslations, "documentVerification")}
           </h1>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>

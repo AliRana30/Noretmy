@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { createError } = require("../utils/createError");
 const User = require("../models/User");
+const DeletedAccountLog = require('../models/DeletedAccountLog');
 
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1] || req.cookies.accessToken;
@@ -22,6 +23,19 @@ const verifyToken = (req, res, next) => {
 
         try {
             const user = await User.findById(payload.id).select('isBlocked blockReason');
+            if (!user) {
+                const deletedLog = await DeletedAccountLog.findOne({ userId: String(payload.id) }).lean();
+                res.clearCookie('accessToken', {
+                    sameSite: 'none',
+                    secure: true,
+                });
+                return res.status(401).json({
+                    success: false,
+                    code: 'ACCOUNT_DELETED',
+                    message: 'Your account has been deleted by admin.',
+                    reason: deletedLog?.reason || 'Deleted by admin',
+                });
+            }
             if (user?.isBlocked) {
                 return res.status(403).json({
                     success: false,
@@ -112,9 +126,16 @@ const verifyTokenEnhanced = async (req, res, next) => {
         
         const user = await User.findById(decoded.id).select('-password');
         if (!user) {
+            const deletedLog = await DeletedAccountLog.findOne({ userId: String(decoded.id) }).lean();
+            res.clearCookie('accessToken', {
+                sameSite: 'none',
+                secure: true,
+            });
             return res.status(401).json({ 
                 success: false, 
-                message: "Access denied. User not found." 
+                code: 'ACCOUNT_DELETED',
+                message: "Access denied. User not found.",
+                reason: deletedLog?.reason || 'Deleted by admin',
             });
         }
 

@@ -144,7 +144,12 @@ const MessageScreen: React.FC<{ route?: any }> = ({ route }) => {
           { withCredentials: true },
         );
 
-        const messageData = response.data.length > 0 ? response.data : [];
+        const messageData = response.data.length > 0
+          ? response.data.map((msg: any) => ({
+              ...msg,
+              isDelivered: typeof msg?.isDelivered === 'boolean' ? msg.isDelivered : true,
+            }))
+          : [];
         setMessages(messageData);
         setIsLoading(false);
         requestAnimationFrame(() => scrollToBottom('auto'));
