@@ -11,6 +11,8 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { isAuthenticated, user } = useAuth();
 
   const getAdminId = useCallback(() => {
@@ -25,28 +27,37 @@ export const NotificationProvider = ({ children }) => {
     );
   }, [user]);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async ({ page = currentPage } = {}) => {
     if (!isAuthenticated() || !user) return;
     
     try {
       setLoading(true);
-      const response = await getAdminNotifications({ limit: 20, page: 1 });
+      const response = await getAdminNotifications({ limit: 10, page });
       const list = response?.data || response?.notifications || response || [];
+      const pagination = response?.pagination || {};
 
       if (Array.isArray(list)) {
         setNotifications(list);
+        setCurrentPage(Number(pagination.current || page || 1));
+        setTotalPages(Math.max(1, Number(pagination.pages || 1)));
         const unread = list.filter(n => !n.isRead).length;
         setUnreadCount(unread);
       } else {
         setNotifications([]);
         setUnreadCount(0);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Error fetching admin notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [currentPage, isAuthenticated, user]);
+
+  const goToPage = useCallback((page) => {
+    const bounded = Math.min(Math.max(1, Number(page) || 1), totalPages);
+    fetchNotifications({ page: bounded });
+  }, [fetchNotifications, totalPages]);
 
   const handleMarkAsRead = async (id) => {
     const prevNotifications = [...notifications];
@@ -151,7 +162,10 @@ export const NotificationProvider = ({ children }) => {
       notifications,
       unreadCount,
       loading,
+      currentPage,
+      totalPages,
       fetchNotifications,
+      goToPage,
       markAsRead: handleMarkAsRead,
       markAllAsRead: handleMarkAllAsRead
     }}>

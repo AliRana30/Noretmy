@@ -1,15 +1,21 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2, ExternalLink, Clock } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
-import { useLocalization } from '../../context/LocalizationContext';
-import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotifications();
-  const { getTranslation } = useLocalization();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    fetchNotifications,
+    currentPage,
+    totalPages,
+    goToPage,
+  } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -132,9 +138,23 @@ const NotificationDropdown = () => {
             )}
           </div>
           
-          <div className="p-3 border-t border-gray-50 text-center bg-gray-50/30">
-            <button className="text-xs text-gray-500 hover:text-gray-700 font-medium">
-              View all notification history
+          <div className="p-3 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between gap-2">
+            <button
+              disabled={currentPage <= 1}
+              onClick={() => goToPage(currentPage - 1)}
+              className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-gray-500 font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage >= totalPages}
+              onClick={() => goToPage(currentPage + 1)}
+              className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
             </button>
           </div>
         </div>

@@ -58,7 +58,6 @@ const ViewWithdrawalRequest = () => {
     const amount = typeof detail?.amount === 'number' ? detail.amount : Number(detail?.amount || 0);
     const status = detail?.status || 'pending';
     const createdAt = detail?.createdAt;
-    const updatedAt = detail?.updatedAt;
     const method = detail?.withdrawalMethod || null;
     const payoutEmail = detail?.payoutEmail || null;
 
@@ -69,7 +68,6 @@ const ViewWithdrawalRequest = () => {
       amount,
       status,
       createdAt,
-      updatedAt,
       method,
       payoutEmail,
       user: populatedUser || {},
@@ -193,14 +191,6 @@ const ViewWithdrawalRequest = () => {
               </p>
             </div>
 
-            <div className={`p-4 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Updated
-              </p>
-              <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {formatDateTime(normalized.updatedAt)}
-              </p>
-            </div>
           </div>
 
           {/* Raw IDs */}
@@ -234,7 +224,7 @@ const ViewWithdrawalRequest = () => {
             <div className={`p-4 rounded-xl ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`}>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Name</p>
               <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {normalized.user?.username || normalized.user?.fullName || requestData?.username || 'N/A'}
+                {normalized.user?.fullName || normalized.user?.username || requestData?.fullName || requestData?.username || 'N/A'}
               </p>
               <div className="mt-3">
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -242,7 +232,7 @@ const ViewWithdrawalRequest = () => {
                   Email
                 </p>
                 <p className={`font-medium break-all ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  {normalized.user?.email || requestData?.email || 'N/A'}
+                  {normalized.user?.email || requestData?.userEmail || requestData?.email || 'N/A'}
                 </p>
               </div>
             </div>

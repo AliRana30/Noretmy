@@ -93,6 +93,21 @@ const SingleOrder = () => {
   const seller = order?.sellerId || {};
   const job = order?.jobId || {};
 
+  const toNumber = (value, fallback = 0) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const subtotal = toNumber(order?.baseAmount ?? order?.price, 0);
+  const hasExplicitPlatformFee = order?.platformFee !== undefined && order?.platformFee !== null;
+  const platformFeeRate = toNumber(order?.platformFeeRate, 0);
+  const platformFee = hasExplicitPlatformFee
+    ? toNumber(order?.platformFee, 0)
+    : (platformFeeRate > 0 ? subtotal * platformFeeRate : 0);
+  const vatAmount = toNumber(order?.vatAmount, 0);
+  const total = toNumber(order?.totalAmount ?? order?.totalPrice, subtotal + platformFee + vatAmount);
+  const sellerEarnings = toNumber(order?.sellerEarnings ?? order?.netAmount, subtotal - platformFee);
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -311,17 +326,17 @@ const SingleOrder = () => {
               <div className="flex justify-between">
                 <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Subtotal</span>
                 <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  ${(order?.baseAmount || order?.price || 0).toFixed(2)}
+                  ${subtotal.toFixed(2)}
                 </span>
               </div>
               
               {/* Platform Fee */}
               <div className="flex justify-between">
                 <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Platform Fee {order?.platformFeeRate ? `(${(order.platformFeeRate * 100).toFixed(0)}%)` : '(5%)'}
+                  Platform Fee ({(platformFeeRate * 100).toFixed(0)}%)
                 </span>
                 <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  ${(order?.platformFee || order?.feeAndTax || ((order?.baseAmount || order?.price || 0) * 0.05)).toFixed(2)}
+                  ${platformFee.toFixed(2)}
                 </span>
               </div>
               
@@ -332,7 +347,7 @@ const SingleOrder = () => {
                     VAT {order?.vatRate ? `(${(order.vatRate * 100).toFixed(0)}%)` : ''} {order?.clientCountry ? `- ${order.clientCountry}` : ''}
                   </span>
                   <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    ${(order?.vatAmount || 0).toFixed(2)}
+                    ${vatAmount.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -340,7 +355,7 @@ const SingleOrder = () => {
               <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
                 <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Total</span>
                 <span className={`font-bold text-lg ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                  ${(order?.totalAmount || order?.totalPrice || ((order?.baseAmount || order?.price || 0) + (order?.platformFee || order?.feeAndTax || 0) + (order?.vatAmount || 0))).toFixed(2)}
+                  ${total.toFixed(2)}
                 </span>
               </div>
               
@@ -361,7 +376,7 @@ const SingleOrder = () => {
                 <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Seller Earnings</span>
                   <span className={`font-medium text-green-500`}>
-                    ${((order?.baseAmount || order?.price || 0) - (order?.platformFee || ((order?.baseAmount || order?.price || 0) * 0.05))).toFixed(2)}
+                    ${Math.max(0, sellerEarnings).toFixed(2)}
                   </span>
                 </div>
               )}

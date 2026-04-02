@@ -585,41 +585,95 @@ const getUserDetails = async (req, res) => {
       }
     } catch (e) { }
 
+    const jobIds = userJobs.map((job) => String(job._id));
+    const activePromotions = await PromotionPurchase.find({
+      userId: userId,
+      status: 'active',
+      expiresAt: { $gt: new Date() },
+      $or: [
+        { promotionType: 'all_gigs' },
+        { promotionType: 'single_gig', gigId: { $in: jobIds } }
+      ]
+    })
+      .select('planName planKey promotionType gigId')
+      .lean()
+      .catch(() => []);
+
+    const allGigsPromotion = activePromotions.find((p) => p.promotionType === 'all_gigs') || null;
+    const singleGigPromotionMap = new Map(
+      activePromotions
+        .filter((p) => p.promotionType === 'single_gig' && p.gigId)
+        .map((p) => [String(p.gigId), p])
+    );
+
+    const resolveUpgradeMethod = (jobId, fallbackUpgradeOption) => {
+      const singleGigPromotion = singleGigPromotionMap.get(String(jobId));
+      const activePromotion = singleGigPromotion || allGigsPromotion;
+      if (activePromotion) {
+        return activePromotion.planName || activePromotion.planKey || 'Promoted';
+      }
+      return fallbackUpgradeOption || 'Free';
+    };
+
     const formattedJobs = userJobs.map(job => {
-      const normalizedJobStatus = String(job.jobStatus || (job.isActive ? 'Active' : 'Inactive')).toLowerCase();
-      const isActiveJob = ['available', 'active'].includes(normalizedJobStatus);
+      const normalizedJobStatus = String(job.jobStatus || '').toLowerCase();
+      const isActiveJob = normalizedJobStatus
+        ? !['inactive', 'paused', 'blocked', 'deleted'].includes(normalizedJobStatus)
+        : true;
 
       return {
         id: job._id,
-        img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
-        location: job.location || "N/A",
-        jobStatus: isActiveJob ? 'Active' : 'Inactive',
+        rowType: 'job',
+        serviceId: String(job._id),
+        serviceTitle: job.title || 'Untitled service',
+        location: job.location || userProfile?.location || user?.city || user?.country || 'N/A',
         date: new Date(job.createdAt).toLocaleDateString(),
-        upgradeOption: job.upgradeOption || "None",
-        method: "GIG",
+        upgradeMethod: resolveUpgradeMethod(job._id, job.upgradeOption),
         status: isActiveJob ? 'Active' : 'Inactive'
       };
     });
 
+    const orderUserIds = [...new Set(
+      userOrders
+        .flatMap((order) => [order.buyerId, order.sellerId])
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => String(id))
+    )];
+
+    const orderUsers = await User.find({ _id: { $in: orderUserIds } })
+      .select('_id fullName username')
+      .lean()
+      .catch(() => []);
+    const orderUserMap = new Map(
+      orderUsers.map((u) => [String(u._id), u.fullName || u.username || 'N/A'])
+    );
+
     const formattedOrders = userOrders.map(order => ({
       id: order._id,
-      img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
-      location: "Order",
-      jobStatus: order.status,
+      rowType: 'order',
+      orderId: String(order._id),
+      serviceTitle: order.jobTitle || order.gigTitle || order.title || 'Order',
+      sellerName: order.sellerName || orderUserMap.get(String(order.sellerId)) || 'N/A',
+      buyerName: order.buyerName || orderUserMap.get(String(order.buyerId)) || 'N/A',
+      amount: Number(order.totalAmount ?? order.price ?? 0),
+      paymentStatus: order.isPaid || order.paymentStatus === 'completed' ? 'Paid' : (order.paymentStatus || 'Pending'),
       date: new Date(order.createdAt).toLocaleDateString(),
-      upgradeOption: `$${order.totalAmount || order.price}`,
-      method: "ORDER",
-      status: order.status === 'completed' ? 'Approved' : 'Pending'
+      status: order.status || 'pending'
     }));
+
+    const mergedUser = {
+      ...user.toObject(),
+      city: user.city || userProfile?.city || null,
+      country: user.country || userProfile?.country || null,
+      location: user.location || userProfile?.location || null,
+      img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
+      profilePicture: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150"
+    };
 
     res.status(200).json({
       success: true,
       data: {
-        user: { 
-          ...user.toObject(), 
-          img: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150",
-          profilePicture: userProfile?.profilePicture || user.profilePicture || "https://via.placeholder.com/150"
-        },
+        user: mergedUser,
         profile: userProfile,
         stats: userStats,
         chartData: chartData,

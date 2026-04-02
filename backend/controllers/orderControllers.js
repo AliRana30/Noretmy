@@ -28,6 +28,7 @@ const badgeService = require("../services/badgeService");
 
 const notificationService = require("../services/notificationService");
 const paymentMilestoneService = require('../services/paymentMilestoneService');
+const { createStripeConnectedAccountTransfer } = require('./stripeContoroller');
 
 const emitOrderUpdate = (order, extra = {}) => {
   const io = global.io;
@@ -2784,6 +2785,18 @@ const completeOrderAfterPayment = async (req, res) => {
           freelancer.revenue.available = (freelancer.revenue.available || 0) + netEarnings;
           freelancer.availableBalance = freelancer.revenue.available;
           await freelancer.save();
+
+          if (freelancer.stripeAccountId) {
+            try {
+              await createStripeConnectedAccountTransfer(
+                Math.max(0, Math.round(netEarnings * 100)),
+                freelancer.stripeAccountId,
+                `Order payout for ${order._id}`
+              );
+            } catch (stripeTransferError) {
+              console.error('Error funding freelancer Stripe account on payment:', stripeTransferError);
+            }
+          }
         }
       } catch (syncError) {
         console.error('Error syncing freelancer revenue on payment:', syncError);

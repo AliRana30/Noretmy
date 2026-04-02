@@ -168,25 +168,25 @@ async function handleStripeOnboarding(userId, email, country) {
     }
 }
 
-const createStripeTransfer = async (amount, destination, description) => {
+const createStripeConnectedAccountTransfer = async (amount, destination, description) => {
     try {
         const isDevelopment = process.env.NODE_ENV === 'development';
         const isMockAccount = destination?.startsWith('acct_dev_');
         
         if (isDevelopment && isMockAccount) {
-            console.log('🔧 [DEV MODE] Simulating Stripe payout (no real API call)');
+            console.log('🔧 [DEV MODE] Simulating Stripe transfer to connected account (no real API call)');
             const mockPayout = {
-                id: `po_dev_${Date.now()}`,
+                id: `tr_dev_${Date.now()}`,
                 amount: amount,
                 currency: 'usd',
-                status: 'paid',
+                status: 'succeeded',
                 destination: destination,
                 description: description,
                 created: Math.floor(Date.now() / 1000)
             };
             
-            console.log('[Stripe Payout] Mock Success:', {
-                payoutId: mockPayout.id,
+            console.log('[Stripe Transfer] Mock Success:', {
+                transferId: mockPayout.id,
                 amount: mockPayout.amount / 100,
                 destination,
                 status: mockPayout.status
@@ -195,12 +195,15 @@ const createStripeTransfer = async (amount, destination, description) => {
             return mockPayout;
         }
         
-        const transfer = await stripe.transfers.create({
-            amount, // Amount in cents
-            currency: 'usd',
-            destination: destination, // The connected account ID
-            description, // Description for the transfer
-        });
+        const transfer = await stripe.transfers.create(
+            {
+                amount,
+                currency: 'usd',
+                destination,
+                description,
+            },
+            {}
+        );
         
         console.log('[Stripe Transfer] Success:', {
             transferId: transfer.id,
@@ -210,7 +213,7 @@ const createStripeTransfer = async (amount, destination, description) => {
         
         return transfer;
     } catch (error) {
-        console.error('[Stripe Transfer] Error:', {
+        console.error('[Stripe Payout] Error:', {
             message: error.message,
             type: error.type,
             code: error.code,
@@ -218,7 +221,7 @@ const createStripeTransfer = async (amount, destination, description) => {
         });
         
         if (error.code === 'insufficient_funds') {
-            throw new Error('Insufficient funds in the platform Stripe account to process this transfer.');
+            throw new Error('Insufficient funds available in the freelancer Stripe account to process this payout.');
         } else if (error.code === 'account_invalid') {
             throw new Error('The destination Stripe account is invalid or not properly configured.');
         } else if (error.code === 'payouts_not_allowed') {
@@ -229,4 +232,84 @@ const createStripeTransfer = async (amount, destination, description) => {
     }
 };
 
-module.exports = { handleStripeOnboarding,createStripeTransfer };
+const createStripePayoutFromConnectedAccount = async (amount, destination, description) => {
+    try {
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        const isMockAccount = destination?.startsWith('acct_dev_');
+
+        if (isDevelopment && isMockAccount) {
+            console.log('🔧 [DEV MODE] Simulating Stripe payout (no real API call)');
+            const mockPayout = {
+                id: `po_dev_${Date.now()}`,
+                amount,
+                currency: 'usd',
+                status: 'paid',
+                destination,
+                description,
+                created: Math.floor(Date.now() / 1000)
+            };
+
+            console.log('[Stripe Payout] Mock Success:', {
+                payoutId: mockPayout.id,
+                amount: mockPayout.amount / 100,
+                destination,
+                status: mockPayout.status
+            });
+
+            return mockPayout;
+        }
+
+        const balance = await stripe.balance.retrieve({}, { stripeAccount: destination });
+        const availableBalance = Array.isArray(balance?.available)
+            ? balance.available
+                .filter((entry) => String(entry.currency || '').toLowerCase() === 'usd')
+                .reduce((total, entry) => total + Number(entry.amount || 0), 0)
+            : 0;
+
+        if (availableBalance < amount) {
+            throw new Error(`Insufficient funds in the freelancer Stripe account. Available: $${(availableBalance / 100).toFixed(2)}`);
+        }
+
+        const payout = await stripe.payouts.create(
+            {
+                amount,
+                currency: 'usd',
+                description,
+            },
+            {
+                stripeAccount: destination,
+            }
+        );
+
+        console.log('[Stripe Payout] Success:', {
+            payoutId: payout.id,
+            amount: payout.amount / 100,
+            destination,
+        });
+
+        return payout;
+    } catch (error) {
+        console.error('[Stripe Payout] Error:', {
+            message: error.message,
+            type: error.type,
+            code: error.code,
+            destination
+        });
+
+        if (error.code === 'insufficient_funds') {
+            throw new Error('Insufficient funds available in the freelancer Stripe account to process this payout.');
+        } else if (error.code === 'account_invalid') {
+            throw new Error('The destination Stripe account is invalid or not properly configured.');
+        } else if (error.code === 'payouts_not_allowed') {
+            throw new Error('The destination Stripe account cannot receive transfers at this time.');
+        }
+
+        throw new Error(error.message || 'Failed to process the Stripe payout.');
+    }
+};
+
+module.exports = {
+    handleStripeOnboarding,
+    createStripeConnectedAccountTransfer,
+    createStripePayoutFromConnectedAccount,
+};

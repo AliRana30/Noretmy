@@ -33,7 +33,7 @@ const contentRoutes = require('./routes/contentRoutes');
 const passwordResetRoutes = require('./routes/passwordResetRoutes');
 
 const { initBadgeCronJobs } = require('./services/badgeCronJobs');
-const { initDeadlineCronJobs } = require('./services/orderDeadlineCron');
+const { initDeadlineCronJobs, initAdminNotificationCleanupCronJobs } = require('./services/orderDeadlineCron');
 const { initPromotionExpirationCron } = require('./scripts/expirePromotions');
 require('./controllers/vatController'); 
 
@@ -172,6 +172,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   initBadgeCronJobs();
   initDeadlineCronJobs();
+  initAdminNotificationCleanupCronJobs();
   initPromotionExpirationCron();
 });
 

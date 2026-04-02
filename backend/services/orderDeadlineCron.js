@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Job = require('../models/Job');
+const Notification = require('../models/Notification');
 const { sendDeadlineWarningEmail } = require('./emailService');
 const notificationService = require('./notificationService');
 
@@ -75,4 +76,37 @@ const initDeadlineCronJobs = () => {
     console.log('✅ Order Deadline Cron Job scheduled (Every hour)');
 };
 
-module.exports = { initDeadlineCronJobs };
+const initAdminNotificationCleanupCronJobs = () => {
+    cron.schedule('30 2 * * *', async () => {
+        console.log('🧹 Running Admin Notification Cleanup Cron...');
+
+        try {
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+
+            const adminUsers = await User.find({ role: { $regex: /^admin$/i } }).select('_id').lean();
+            const adminIds = adminUsers.map((admin) => String(admin._id));
+
+            const filter = {
+                createdAt: { $lt: cutoffDate },
+                $or: [{ link: { $regex: /^\/admin/i } }],
+            };
+
+            if (adminIds.length > 0) {
+                filter.$or.push({ userId: { $in: adminIds } });
+            }
+
+            const result = await Notification.deleteMany(filter);
+
+            console.log(
+                `🧹 Admin notification cleanup removed ${result.deletedCount || 0} notifications older than ${cutoffDate.toISOString()}`
+            );
+        } catch (error) {
+            console.error('❌ Error in Admin Notification Cleanup Cron:', error);
+        }
+    });
+
+    console.log('✅ Admin Notification Cleanup Cron Job scheduled (Daily at 2:30 AM)');
+};
+
+module.exports = { initDeadlineCronJobs, initAdminNotificationCleanupCronJobs };

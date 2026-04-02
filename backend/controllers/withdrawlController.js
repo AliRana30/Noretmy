@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const WithdrawRequest = require('../models/withdrawRequest');
-const { handleStripeOnboarding, createStripeTransfer } = require('./stripeContoroller');
+const { handleStripeOnboarding, createStripePayoutFromConnectedAccount } = require('./stripeContoroller');
 
 const Freelancer = require('../models/Freelancer');
 const UserProfile = require('../models/UserProfile');
@@ -448,16 +448,16 @@ const approveWithdrawRequest = async (req, res) => {
                     blockingReason: 'stripe_verification_failed'
                 });
             }
-            let transfer;
+            let payout;
             try {
-                transfer = await createStripeTransfer(
-                    withdrawalRequest.amount * 100, // Convert to cents
+                payout = await createStripePayoutFromConnectedAccount(
+                    Math.round(withdrawalRequest.amount * 100),
                     freelancer.stripeAccountId,
                     `Payment for withdrawal request ID: ${withdrawalRequest._id}`
                 );
                 
                 console.log('✅ [Withdrawal Approval] Stripe transfer successful:', {
-                    transferId: transfer.id,
+                    transferId: payout.id,
                     amount: withdrawalRequest.amount,
                     requestId: withdrawalRequest._id
                 });
@@ -473,7 +473,7 @@ const approveWithdrawRequest = async (req, res) => {
                     errorMessage.includes('payouts_enabled')) {
                     userFriendlyMessage = 'The freelancer\'s Stripe account is not fully set up for payouts. They need to complete their Stripe onboarding and verification. Please ask them to check their Stripe dashboard and complete any pending requirements.';
                 } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('balance')) {
-                    userFriendlyMessage = 'Insufficient funds in the platform Stripe account to process this payout. Please contact support.';
+                    userFriendlyMessage = 'Insufficient funds in the freelancer Stripe account to process this payout.';
                 } else if (errorMessage.includes('account') && errorMessage.includes('invalid')) {
                     userFriendlyMessage = 'The freelancer\'s Stripe account ID is invalid or has been disconnected. They may need to reconnect their Stripe account.';
                 }
@@ -525,8 +525,8 @@ const approveWithdrawRequest = async (req, res) => {
             console.log('✅ [Withdrawal Approval] Complete - returning success response');
             return res.status(200).json({
                 success: true,
-                message: 'Withdrawal approved successfully! Funds transferred via Stripe.',
-                transfer,
+                message: 'Withdrawal approved successfully! Funds paid out via Stripe.',
+                payout,
             });
         } else if (method === 'paypal') {
             const payoutEmail = freelancer.email || withdrawalRequest.payoutEmail;

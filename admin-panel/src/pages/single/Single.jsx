@@ -108,6 +108,12 @@ const Single = () => {
     return new Date(date).toLocaleDateString(currentLanguage === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' });
   };
 
+  const activityRows = isFreelancer
+    ? (userData.recentActivity?.jobs || [])
+    : (userData.recentActivity?.orders || []);
+
+  const tableVariant = isFreelancer ? 'jobs' : 'orders';
+
   return (
     <div className="single-container p-4 md:p-6 w-full">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -258,12 +264,12 @@ const Single = () => {
             {isFreelancer ? "Active Service Gigs" : "Recent Orders"}
           </h2>
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-            Showing {userData.recentActivity?.jobs?.length || userData.recentActivity?.orders?.length || 0} records
+            Showing {activityRows.length || 0} records
           </span>
         </div>
         <div className="p-2">
-          {(userData.recentActivity?.jobs?.length > 0 || userData.recentActivity?.orders?.length > 0) ? (
-            <List jobsData={userData.recentActivity?.jobs || userData.recentActivity?.orders || []}/>
+          {activityRows.length > 0 ? (
+            <List jobsData={activityRows} variant={tableVariant} />
           ) : (
             <div className="p-8 text-center">
               <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-gray-300" />
